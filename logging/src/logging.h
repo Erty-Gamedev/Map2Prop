@@ -13,7 +13,8 @@ namespace Logging
 		LOG_ERROR,
 	};
 
-	extern LogLevel loglevel;
+	extern LogLevel loglevel_console;
+	extern LogLevel loglevel_file;
 
 	static std::map<LogLevel, const char*> LogLevelName{
 		{LogLevel::LOG_DEBUG, "DEBUG"},

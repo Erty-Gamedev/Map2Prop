@@ -1,13 +1,15 @@
 #include "logging.h"
 #include <wchar.h>
 #include <windows.h>
+#include <format>
 
 
 #ifdef _DEBUG
-Logging::LogLevel Logging::loglevel = Logging::LogLevel::LOG_DEBUG;
+Logging::LogLevel Logging::loglevel_console = Logging::LogLevel::LOG_DEBUG;
 #else
-Logging::LogLevel Logging::loglevel = Logging::LogLevel::LOG_INFO;
+Logging::LogLevel Logging::loglevel_console = Logging::LogLevel::LOG_INFO;
 #endif
+Logging::LogLevel Logging::loglevel_file = Logging::LogLevel::LOG_WARNING;
 
 
 /**
@@ -68,12 +70,10 @@ static bool enableVirtualTerminal()
 static bool isVirtual = enableVirtualTerminal();
 
 
-void Logging::log(Logging::LogLevel level, const std::string& message)
-{
-    if (Logging::loglevel > level)
-        return;
 
-    const char * levelName = Logging::LogLevelName[level];
+static void log_console(Logging::LogLevel level, const std::string& message)
+{
+    const char* levelName = Logging::LogLevelName[level];
 
     if (!isVirtual)
     {
@@ -82,7 +82,10 @@ void Logging::log(Logging::LogLevel level, const std::string& message)
     }
 
     std::string styling;
-    styling.reserve(15);
+    styling.reserve(10);
+
+    std::string formatted;
+    formatted.reserve(message.length() + 64);
 
     switch (level)
     {
@@ -95,12 +98,25 @@ void Logging::log(Logging::LogLevel level, const std::string& message)
     case Logging::LogLevel::LOG_ERROR:
         styling = "\033[1;31m";
         break;
-    default:
-        printf("%1s: %2s%3s\n", levelName, message.c_str(), "\033[0m");
-        return;
     }
 
-    printf("%1s%2s: %3s%4s\n", styling.c_str(), levelName, message.c_str(), "\033[0m");
+    printf(std::format("{}{}: {}{}\n", styling.c_str(), levelName, message.c_str(), "\033[0m").c_str());
+}
+
+static void log_file(Logging::LogLevel level, const std::string& message)
+{
+    if (Logging::loglevel_file > level)
+        return;
+    // TODO: Implement
+}
+
+
+void Logging::log(Logging::LogLevel level, const std::string& message)
+{
+    if (level >= Logging::loglevel_console)
+        log_console(level, message);
+    if (level >= Logging::loglevel_file)
+        log_file(level, message);
 }
 
 void Logging::debug(const std::string& message)

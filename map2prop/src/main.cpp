@@ -14,5 +14,5 @@ int main(int argc, char** argv)
     if (!Config::input.empty())
         std::cout << Config::input << std::endl;
 
-    std::cout << Logging::LogLevelName[Logging::loglevel] << std::endl;
+    std::cout << Logging::LogLevelName[Logging::loglevel_console] << std::endl;
 }
