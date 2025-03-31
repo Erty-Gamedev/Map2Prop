@@ -15,14 +15,14 @@ namespace Logging
 
 	extern LogLevel loglevel;
 
-	static std::map<LogLevel, std::string> LogLevelName{
+	static std::map<LogLevel, const char*> LogLevelName{
 		{LogLevel::LOG_DEBUG, "DEBUG"},
 		{LogLevel::LOG_INFO, "INFO"},
 		{LogLevel::LOG_WARNING, "WARNING"},
 		{LogLevel::LOG_ERROR, "ERROR"},
 	};
 
-	void log(const std::string& message, LogLevel level);
+	void log(Logging::LogLevel level, const std::string& message);
 	void debug(const std::string& message);
 	void info(const std::string& message);
 	void warning(const std::string& message);

@@ -68,20 +68,19 @@ static bool enableVirtualTerminal()
 static bool isVirtual = enableVirtualTerminal();
 
 
-void Logging::log(const std::string& message, Logging::LogLevel level)
+void Logging::log(Logging::LogLevel level, const std::string& message)
 {
     if (Logging::loglevel > level)
         return;
 
-    std::string levelName = Logging::LogLevelName[level];
+    const char * levelName = Logging::LogLevelName[level];
 
     if (!isVirtual)
     {
-        printf("%1s: %2s\n", levelName.c_str(), message.c_str());
+        printf("%1s: %2s\n", levelName, message.c_str());
         return;
     }
 
-    //std::string styling = "\033[";
     std::string styling;
     styling.reserve(15);
 
@@ -97,26 +96,26 @@ void Logging::log(const std::string& message, Logging::LogLevel level)
         styling = "\033[1;31m";
         break;
     default:
-        printf("%1s: %2s%3s\n", levelName.c_str(), message.c_str(), "\033[0m");
+        printf("%1s: %2s%3s\n", levelName, message.c_str(), "\033[0m");
         return;
     }
 
-    printf("%1s%2s: %3s%4s\n", styling.c_str(), levelName.c_str(), message.c_str(), "\033[0m");
+    printf("%1s%2s: %3s%4s\n", styling.c_str(), levelName, message.c_str(), "\033[0m");
 }
 
 void Logging::debug(const std::string& message)
 {
-    Logging::log(message, Logging::LogLevel::LOG_DEBUG);
+    Logging::log(Logging::LogLevel::LOG_DEBUG, message);
 }
 void Logging::info(const std::string& message)
 {
-    Logging::log(message, Logging::LogLevel::LOG_INFO);
+    Logging::log(Logging::LogLevel::LOG_INFO, message);
 }
 void Logging::warning(const std::string& message)
 {
-    Logging::log(message, Logging::LogLevel::LOG_WARNING);
+    Logging::log(Logging::LogLevel::LOG_WARNING, message);
 }
 void Logging::error(const std::string& message)
 {
-    Logging::log(message, Logging::LogLevel::LOG_ERROR);
+    Logging::log(Logging::LogLevel::LOG_ERROR, message);
 }
