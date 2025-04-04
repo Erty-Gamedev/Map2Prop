@@ -7,25 +7,30 @@ struct Vector3D {
     float x, y, z;
 };
 
-namespace Config
+namespace M2PConfig
 {
-    extern std::string input;
-    extern std::string output;
-    extern std::string gameConfig;
-    extern std::string studiomdl;
-    extern std::string wadList;
-    extern std::string outputname;
-    extern bool autocompile;
-    extern bool mapcompile;
-    extern bool renameChrome;
-    extern int wadCache;
-    extern float smoothing;
-    extern float timeout;
-    extern float qcScale;
-    extern float qcGamma;
-    extern float qcRotate;
-    extern Vector3D qcOffset;
-    extern std::filesystem::path inputPath;
+    struct Config
+    {
+        std::string input;
+        std::string output;
+        std::string gameConfig;
+        std::string studiomdl;
+        std::string wadList;
+        std::string outputname;
+        bool autocompile;
+        bool mapcompile;
+        bool renameChrome;
+        int wadCache;
+        float smoothing;
+        float timeout;
+        float qcScale;
+        float qcGamma;
+        float qcRotate;
+        Vector3D qcOffset;
+        std::filesystem::path inputPath;
+    };
+
+    extern Config config;
 
     void handleArgs(int argc, char** argv);
 }

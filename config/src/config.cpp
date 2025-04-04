@@ -6,24 +6,19 @@
 const char* NAME = { "Map2Prop++ v0.1.0" };
 
 
-// Defaults
-std::string Config::input;
-std::string Config::output;
-std::string Config::gameConfig;
-std::string Config::studiomdl;
-std::string Config::wadList;
-std::string Config::outputname;
-bool Config::autocompile = true;
-bool Config::mapcompile = false;
-bool Config::renameChrome = false;
-int Config::wadCache = 10;
-float Config::smoothing = 60.0f;
-float Config::timeout = 60.0f;
-float Config::qcScale = 1.0f;
-float Config::qcGamma = 1.8f;
-float Config::qcRotate = 0.0f;
-Vector3D Config::qcOffset = { 0.0f, 0.0f, 0.0f };
-std::filesystem::path Config::inputPath;
+using M2PConfig::config;
+M2PConfig::Config config = {
+    .autocompile = true,
+    .mapcompile = false,
+    .renameChrome = false,
+    .wadCache = 10,
+    .smoothing = 60.0f,
+    .timeout = 60.0f,
+    .qcScale = 1.0f,
+    .qcGamma = 1.8f,
+    .qcRotate = 0.0f,
+    .qcOffset = { 0.0f, 0.0f, 0.0f }
+};
 
 
 static void printVersionAndExit()
@@ -62,7 +57,7 @@ static void printUsageAndExit()
 }
 
 
-void Config::handleArgs(int argc, char** argv)
+void M2PConfig::handleArgs(int argc, char** argv)
 {
     for (int i = 1; i < argc; i++)
     {
@@ -73,66 +68,66 @@ void Config::handleArgs(int argc, char** argv)
 
         if (strcmp(argv[i], "--noautocompile") == 0 || strcmp(argv[i], "-a") == 0)
         {
-            Config::autocompile = false;
+            config.autocompile = false;
             continue;
         }
         if (strcmp(argv[i], "--mapcompile") == 0 || strcmp(argv[i], "-c") == 0)
         {
-            Config::mapcompile = true;
+            config.mapcompile = true;
             continue;
         }
         if (strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0)
         {
             i++;
             if (i < argc)
-                Config::output = argv[i];
+                config.output = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--gameconfig") == 0 || strcmp(argv[i], "-g") == 0)
         {
             i++;
             if (i < argc)
-                Config::gameConfig = argv[i];
+                config.gameConfig = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--studiomdl") == 0 || strcmp(argv[i], "-m") == 0)
         {
             i++;
             if (i < argc)
-                Config::studiomdl = argv[i];
+                config.studiomdl = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--wadlist") == 0 || strcmp(argv[i], "-w") == 0)
         {
             i++;
             if (i < argc)
-                Config::wadList = argv[i];
+                config.wadList = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--wadcache") == 0 || strcmp(argv[i], "-n") == 0)
         {
             i++;
             if (i < argc)
-                Config::wadCache = std::stoi(argv[i]);
+                config.wadCache = std::stoi(argv[i]);
             continue;
         }
         if (strcmp(argv[i], "--smoothing") == 0 || strcmp(argv[i], "-s") == 0)
         {
             i++;
             if (i < argc)
-                Config::smoothing = std::stof(argv[i]);
+                config.smoothing = std::stof(argv[i]);
             continue;
         }
         if (strcmp(argv[i], "--timeout") == 0 || strcmp(argv[i], "-t") == 0)
         {
             i++;
             if (i < argc)
-                Config::timeout = std::stof(argv[i]);
+                config.timeout = std::stof(argv[i]);
             continue;
         }
         if (strcmp(argv[i], "--renamechrome") == 0)
         {
-            Config::renameChrome = false;
+            config.renameChrome = false;
             continue;
         }
 
@@ -143,15 +138,15 @@ void Config::handleArgs(int argc, char** argv)
             exit(EXIT_FAILURE);
         }
 
-        if (!Config::input.empty())
+        if (!config.input.empty())
         {
             Logging::error(std::string{ "Unknown argument: \"" } + argv[i] + "\"\n");
             exit(EXIT_FAILURE);
         }
-        Config::input = argv[i];
+        config.input = argv[i];
     }
 
-    if (Config::input.empty())
+    if (config.input.empty())
     {
         printf("Missing positional argument: input (.map/.rmf/.jmf/.obj file to convert)");
         exit(EXIT_FAILURE);
