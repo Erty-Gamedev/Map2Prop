@@ -10,7 +10,7 @@ float Vector3D::magnitude() const
 {
 	return sqrt((x * x) + (y * y) + (z * z));
 }
-float Vector3D::dot(Vector3D b) const
+float Vector3D::dot(const Vector3D& b) const
 {
 	return x * b.x + y * b.y + z * b.z;
 }
@@ -19,7 +19,7 @@ Vector3D Vector3D::normalized() const
 	float mag = magnitude();
 	return { x / mag, y / mag, z / mag };
 }
-Vector3D Vector3D::cross(Vector3D b)
+Vector3D Vector3D::cross(const Vector3D& b)
 {
 	return {
 		y * b.z - z * b.y,
@@ -31,7 +31,7 @@ Vector3D M2PGeo::Vector3D::operator+()
 {
 	return { x, y, z };
 }
-Vector3D M2PGeo::Vector3D::operator+(Vector3D& other)
+Vector3D M2PGeo::Vector3D::operator+(const Vector3D& other)
 {
 	return { x + other.x, y + other.y, z + other.z };
 }
@@ -39,23 +39,23 @@ Vector3D M2PGeo::Vector3D::operator-()
 {
 	return { -x, -y, -z };
 }
-Vector3D M2PGeo::Vector3D::operator-(Vector3D& other)
+Vector3D M2PGeo::Vector3D::operator-(const Vector3D& other)
 {
 	return { x - other.x, y - other.y, z - other.z };
 }
-Vector3D M2PGeo::Vector3D::operator*(Vector3D& other)
+Vector3D M2PGeo::Vector3D::operator*(const Vector3D& other)
 {
 	return { x * other.x, y * other.y, z * other.z };
 }
-Vector3D M2PGeo::Vector3D::operator*(float& other)
+Vector3D M2PGeo::Vector3D::operator*(const float& other)
 {
 	return { x * other, y * other, z * other };
 }
-Vector3D M2PGeo::Vector3D::operator/(Vector3D& other)
+Vector3D M2PGeo::Vector3D::operator/(const Vector3D& other)
 {
 	return { x / other.x, y / other.y, z / other.z };
 }
-Vector3D M2PGeo::Vector3D::operator/(float& other)
+Vector3D M2PGeo::Vector3D::operator/(const float& other)
 {
 	return { x / other, y / other, z / other };
 }
@@ -63,6 +63,18 @@ std::ostream& operator<<(std::ostream& os, const Vector3D v)
 {
 	os << "Vector3D(" << v.x << ", " << v.y << ", " << v.z << ")";
 	return os;
+}
+
+float HessianPlane::distanceToPoint(Vector3D point)
+{
+	return normal.dot(point - (normal * distance));
+}
+PointRelation HessianPlane::pointRelation(const Vector3D& point)
+{
+	float distance = distanceToPoint(point);
+	if (abs(distance) < 1 / (pow(2, 10)))
+		return PointRelation::ON_PLANE;
+	return distance > 0 ? PointRelation::INFRONT : PointRelation::BEHIND;
 }
 
 
@@ -76,7 +88,6 @@ Vector3D Polygon::normal() {
 	for (int i = 0; i < 3; i++)
 	{
 		cc[i] = vertices[i].coord;
-		
 	}
 	return segmentsCross(cc).normalized();
 }
