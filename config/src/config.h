@@ -3,9 +3,6 @@
 #include <string>
 #include <filesystem>
 
-struct Vector3D {
-    float x, y, z;
-};
 
 namespace M2PConfig
 {
@@ -26,7 +23,7 @@ namespace M2PConfig
         float qcScale;
         float qcGamma;
         float qcRotate;
-        Vector3D qcOffset;
+        float qcOffset[3];
         std::filesystem::path inputPath;
     };
 
