@@ -71,6 +71,7 @@ namespace Logging
 		void debug(const char* message);
 		void info(const char* message);
 		void warning(const char* message);
+		void warn(const char* message);
 		void error(const char* message);
 
 		std::string getName();

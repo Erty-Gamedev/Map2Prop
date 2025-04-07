@@ -71,23 +71,11 @@ void Logger::log(LogLevel level, const char* message)
     m_consoleHandler.log(level, message);
     m_fileHandler.log(level, message);
 }
-
-void Logger::debug(const char* message)
-{
-    log(LogLevel::LOG_DEBUG, message);
-}
-void Logger::info(const char* message)
-{
-    log(LogLevel::LOG_INFO, message);
-}
-void Logger::warning(const char* message)
-{
-    log(LogLevel::LOG_WARNING, message);
-}
-void Logger::error(const char* message)
-{
-    log(LogLevel::LOG_ERROR, message);
-}
+void Logger::debug(const char* message) { log(LogLevel::LOG_DEBUG, message); }
+void Logger::info(const char* message) { log(LogLevel::LOG_INFO, message); }
+void Logger::warning(const char* message) { log(LogLevel::LOG_WARNING, message); }
+void Logger::warn(const char* message) { Logger::warning(message); }
+void Logger::error(const char* message) { log(LogLevel::LOG_ERROR, message); }
 
 std::string Logger::getName() { return m_name; }
 
