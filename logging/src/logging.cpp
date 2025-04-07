@@ -4,14 +4,6 @@
 #include <format>
 
 
-#ifdef _DEBUG
-Logging::LogLevel Logging::loglevel_console = Logging::LogLevel::LOG_DEBUG;
-#else
-Logging::LogLevel Logging::loglevel_console = Logging::LogLevel::LOG_INFO;
-#endif
-Logging::LogLevel Logging::loglevel_file = Logging::LogLevel::LOG_WARNING;
-
-
 /**
  * Check if we can enable virtual terminal (needed for ANSI escape sequences)
  * From: https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#example-of-enabling-virtual-terminal-processing
@@ -70,68 +62,107 @@ static bool enableVirtualTerminal()
 static bool isVirtual = enableVirtualTerminal();
 
 
+using namespace Logging;
 
-static void log_console(Logging::LogLevel level, const std::string& message)
+
+void Logger::log(LogLevel level, const char* message)
 {
-    const char* levelName = Logging::LogLevelName[level];
+    if (level < m_loglevel) { return; }
+    m_consoleHandler.log(level, message);
+    m_fileHandler.log(level, message);
+}
+
+void Logger::debug(const char* message)
+{
+    log(LogLevel::LOG_DEBUG, message);
+}
+void Logger::info(const char* message)
+{
+    log(LogLevel::LOG_INFO, message);
+}
+void Logger::warning(const char* message)
+{
+    log(LogLevel::LOG_WARNING, message);
+}
+void Logger::error(const char* message)
+{
+    log(LogLevel::LOG_ERROR, message);
+}
+
+std::string Logger::getName() { return m_name; }
+
+void Logger::setLevel(LogLevel loglevel)
+{
+    m_loglevel = loglevel;
+}
+void Logger::setConsoleHandlerLevel(LogLevel loglevel)
+{
+    m_consoleHandler.setLevel(loglevel);
+}
+void Logger::setFileHandlerLevel(LogLevel loglevel)
+{
+    m_fileHandler.setLevel(loglevel);
+}
+
+
+Logger& Logger::getLogger(std::string loggerName)
+{
+    if (Logger::s_loggers.contains(loggerName))
+        return Logger::s_loggers[loggerName];
+
+    Logger::s_loggers[loggerName] = { loggerName };
+    return Logger::s_loggers[loggerName];
+}
+
+
+
+ConsoleHandler::ConsoleHandler() { m_loglevel = LogLevel::LOG_INFO; }
+ConsoleHandler::ConsoleHandler(LogLevel loglevel) { m_loglevel = loglevel; }
+void ConsoleHandler::setLevel(LogLevel loglevel) { m_loglevel = loglevel; }
+
+void ConsoleHandler::log(LogLevel level, const char* message) const
+{
+    if (level < m_loglevel) { return; }
+
+    const char* levelName = Logger::s_logLevelName[level];
 
     if (!isVirtual)
     {
-        printf("%1s: %2s\n", levelName, message.c_str());
+        printf("%1s: %2s\n", levelName, message);
         return;
     }
 
-    std::string styling;
-    styling.reserve(10);
-
-    std::string formatted;
-    formatted.reserve(message.length() + 64);
+    const char styling[10]{ "" };
 
     switch (level)
     {
-    case Logging::LogLevel::LOG_INFO:
-        styling = "\033[36m";
+    case LogLevel::LOG_INFO:
+        memcpy((char*)styling, "\033[36m", 6);
         break;
-    case Logging::LogLevel::LOG_WARNING:
-        styling = "\033[1;33m";
+    case LogLevel::LOG_WARNING:
+        memcpy((char*)styling, "\033[1;33m", 8);
         break;
-    case Logging::LogLevel::LOG_ERROR:
-        styling = "\033[1;31m";
+    case LogLevel::LOG_ERROR:
+        memcpy((char*)styling, "\033[1;31m", 8);
         break;
     }
 
-    printf(std::format("{}{}: {}{}\n", styling.c_str(), levelName, message.c_str(), "\033[0m").c_str());
+    printf(std::format("{}{}: {}{}\n", styling, levelName, message, "\033[0m").c_str());
 }
 
-static void log_file(Logging::LogLevel level, const std::string& message)
+FileHandler::FileHandler()
 {
-    if (Logging::loglevel_file > level)
-        return;
+    m_loglevel = LogLevel::LOG_WARNING;
+    m_logdir = "/logs";
+}
+FileHandler::FileHandler(std::filesystem::path filepath, LogLevel loglevel)
+{
+    m_loglevel = loglevel;
+    m_logdir = filepath;
+}
+void FileHandler::setLevel(LogLevel loglevel) { m_loglevel = loglevel; }
+void FileHandler::setLogDir(std::filesystem::path logdir) { m_logdir = logdir; }
+void FileHandler::log(LogLevel level, const char* message) const
+{
     // TODO: Implement
-}
-
-
-void Logging::log(Logging::LogLevel level, const std::string& message)
-{
-    if (level >= Logging::loglevel_console)
-        log_console(level, message);
-    if (level >= Logging::loglevel_file)
-        log_file(level, message);
-}
-
-void Logging::debug(const std::string& message)
-{
-    Logging::log(Logging::LogLevel::LOG_DEBUG, message);
-}
-void Logging::info(const std::string& message)
-{
-    Logging::log(Logging::LogLevel::LOG_INFO, message);
-}
-void Logging::warning(const std::string& message)
-{
-    Logging::log(Logging::LogLevel::LOG_WARNING, message);
-}
-void Logging::error(const std::string& message)
-{
-    Logging::log(Logging::LogLevel::LOG_ERROR, message);
 }

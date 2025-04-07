@@ -3,11 +3,16 @@
 #include "logging.h"
 #include "config.h"
 
+using Logging::Logger;
+
 
 int main(int argc, char** argv)
 {
-    Logging::debug("Hello World!");
-    Logging::info("Checking args...");
+    Logger& logger = Logger::getLogger("map2prop");
+    logger.setLevel(Logging::LogLevel::LOG_DEBUG);
+    logger.debug(("Hello world from " + logger.getName()).c_str());
+
+    logger.info("Checking args...");
 
     M2PConfig::handleArgs(argc, argv);
     using M2PConfig::config;

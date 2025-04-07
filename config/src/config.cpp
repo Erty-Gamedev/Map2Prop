@@ -20,6 +20,9 @@ M2PConfig::Config config = {
     .qcOffset = { 0.0f, 0.0f, 0.0f }
 };
 
+using Logging::Logger;
+static Logger& logger = Logger::getLogger("map2prop");
+
 
 static void printVersionAndExit()
 {
@@ -134,13 +137,13 @@ void M2PConfig::handleArgs(int argc, char** argv)
 
         if (strncmp(argv[i], "-", 1) == 0)
         {
-            Logging::error(std::string{ "Unknown argument: \"" } + argv[i] + "\"\n");
+            logger.error((std::string{ "Unknown argument: \"" } + argv[i] + "\"\n").c_str());
             exit(EXIT_FAILURE);
         }
 
         if (!config.input.empty())
         {
-            Logging::error(std::string{ "Unknown argument: \"" } + argv[i] + "\"\n");
+            logger.error((std::string{ "Unknown argument: \"" } + argv[i] + "\"\n").c_str());
             exit(EXIT_FAILURE);
         }
         config.input = argv[i];
