@@ -1,7 +1,6 @@
 #include "logging.h"
 #include <wchar.h>
 #include <windows.h>
-#include <format>
 
 
 /**
@@ -65,7 +64,7 @@ static bool isVirtual = enableVirtualTerminal();
 using namespace Logging;
 
 
-void Logger::log(LogLevel level, const char* message)
+void Logger::log(const LogLevel& level, const char* message)
 {
     if (level < m_loglevel) { return; }
     m_consoleHandler.log(level, message);
@@ -77,23 +76,23 @@ void Logger::warning(const char* message) { log(LogLevel::LOG_WARNING, message);
 void Logger::warn(const char* message) { Logger::warning(message); }
 void Logger::error(const char* message) { log(LogLevel::LOG_ERROR, message); }
 
-std::string Logger::getName() { return m_name; }
+std::string Logger::getName() const { return m_name; }
 
-void Logger::setLevel(LogLevel loglevel)
+void Logger::setLevel(const LogLevel& loglevel)
 {
     m_loglevel = loglevel;
 }
-void Logger::setConsoleHandlerLevel(LogLevel loglevel)
+void Logger::setConsoleHandlerLevel(const LogLevel& loglevel)
 {
     m_consoleHandler.setLevel(loglevel);
 }
-void Logger::setFileHandlerLevel(LogLevel loglevel)
+void Logger::setFileHandlerLevel(const LogLevel& loglevel)
 {
     m_fileHandler.setLevel(loglevel);
 }
 
 
-Logger& Logger::getLogger(std::string loggerName)
+Logger& Logger::getLogger(const std::string& loggerName)
 {
     if (Logger::s_loggers.contains(loggerName))
         return Logger::s_loggers[loggerName];
@@ -104,11 +103,11 @@ Logger& Logger::getLogger(std::string loggerName)
 
 
 
-ConsoleHandler::ConsoleHandler() { m_loglevel = LogLevel::LOG_INFO; }
-ConsoleHandler::ConsoleHandler(LogLevel loglevel) { m_loglevel = loglevel; }
-void ConsoleHandler::setLevel(LogLevel loglevel) { m_loglevel = loglevel; }
+LogHandler::LogHandler() { m_loglevel = LogLevel::LOG_INFO; }
+LogHandler::LogHandler(const LogLevel& loglevel) { m_loglevel = loglevel; }
+void LogHandler::setLevel(const LogLevel& loglevel) { m_loglevel = loglevel; }
 
-void ConsoleHandler::log(LogLevel level, const char* message) const
+void ConsoleHandler::log(const LogLevel& level, const char* message) const
 {
     if (level < m_loglevel) { return; }
 
@@ -116,26 +115,25 @@ void ConsoleHandler::log(LogLevel level, const char* message) const
 
     if (!isVirtual)
     {
-        printf("%1s: %2s\n", levelName, message);
+        std::cout << levelName << ": " << message << std::endl;
         return;
     }
 
-    const char styling[10]{ "" };
-
+    std::cout << "\033[1m" << levelName << "\033[0m";
     switch (level)
     {
     case LogLevel::LOG_INFO:
-        memcpy((char*)styling, "\033[36m", 6);
+        std::cout << "\033[36m";
         break;
     case LogLevel::LOG_WARNING:
-        memcpy((char*)styling, "\033[1;33m", 8);
+        std::cout << "\033[1;33m";
         break;
     case LogLevel::LOG_ERROR:
-        memcpy((char*)styling, "\033[1;31m", 8);
+        std::cout << "\033[1;31m";
         break;
     }
 
-    printf(std::format("{}{}: {}{}\n", styling, levelName, message, "\033[0m").c_str());
+    std::cout << message << "\033[0m" << std::endl;
 }
 
 FileHandler::FileHandler()
@@ -143,14 +141,13 @@ FileHandler::FileHandler()
     m_loglevel = LogLevel::LOG_WARNING;
     m_logdir = "/logs";
 }
-FileHandler::FileHandler(std::filesystem::path filepath, LogLevel loglevel)
+FileHandler::FileHandler(const std::filesystem::path& filepath, const LogLevel& loglevel)
 {
     m_loglevel = loglevel;
     m_logdir = filepath;
 }
-void FileHandler::setLevel(LogLevel loglevel) { m_loglevel = loglevel; }
-void FileHandler::setLogDir(std::filesystem::path logdir) { m_logdir = logdir; }
-void FileHandler::log(LogLevel level, const char* message) const
+void FileHandler::setLogDir(const std::filesystem::path& logdir) { m_logdir = logdir; }
+void FileHandler::log(const LogLevel& level, const char* message) const
 {
     // TODO: Implement
 }
