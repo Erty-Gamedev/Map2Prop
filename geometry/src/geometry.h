@@ -3,21 +3,32 @@
 #include <vector>
 
 namespace M2PGeo {
+    /*
+    * While various project file formats allow for much longer names,
+    * texture names are ultimately limited by the 15 character limit of WAD.
+    */ 
+    constexpr int MAX_TEXTURE_NAME = 16;
+    constexpr float EPSILON = 1 / 1024;
+
 
     struct Vector2D
     {
         float x, y;
+    public:
+        float magnitude() const;
+        float dot(const Vector2D& other) const;
+        Vector2D normalised() const;
+        static Vector2D zero();
     };
 
     struct Vector3D
     {
         float x, y, z;
     public:
-        Vector3D zero();
         float magnitude() const;
-        float dot(const Vector3D& b) const;
-        Vector3D normalized() const;
-        Vector3D cross(const Vector3D& b);
+        float dot(const Vector3D& other) const;
+        Vector3D cross(const Vector3D& other);
+        Vector3D normalised() const;
         Vector3D operator+();
         Vector3D operator+(const Vector3D& other);
         Vector3D operator-();
@@ -26,6 +37,8 @@ namespace M2PGeo {
         Vector3D operator*(const float& other);
         Vector3D operator/(const Vector3D& other);
         Vector3D operator/(const float& other);
+
+        static Vector3D zero();
     };
 
     struct Vertex
@@ -37,7 +50,7 @@ namespace M2PGeo {
 
     struct Polygon
     {
-        char texture_name[16];
+        char texture_name[MAX_TEXTURE_NAME];
         bool flipped;
         std::vector<Vertex> vertices;
     public:
@@ -46,7 +59,7 @@ namespace M2PGeo {
 
     struct Texture
     {
-        char name[16];
+        char name[MAX_TEXTURE_NAME];
         float shiftx, shifty, angle, scalex, scaley, width, height;
         Vector3D rightaxis, downaxis;
     };
@@ -77,4 +90,4 @@ namespace M2PGeo {
 
 }
 
-std::ostream& operator<<(std::ostream& os, const M2PGeo::Vector3D v);
+std::ostream& operator<<(std::ostream& os, const M2PGeo::Vector3D& v);
