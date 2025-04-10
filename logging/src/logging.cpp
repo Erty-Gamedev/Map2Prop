@@ -142,18 +142,10 @@ void ConsoleHandler::log(const LogLevel& level, const char* message)
     os << message << "\033[0m" << std::endl;
 }
 
-FileHandler::FileHandler(const std::filesystem::path& filepath, const LogLevel& loglevel)
+FileHandler::FileHandler(const std::filesystem::path& logdir, const LogLevel& loglevel)
 {
     m_loglevel = loglevel;
-    m_logdir = filepath;
-    m_logfile.open(filepath / "log.txt", std::ios::app);
-    if (!m_logfile.is_open() || !m_logfile.good())
-    {
-        m_logfile.close();
-        m_fileError = true;
-        std::cerr << "###  Log Error: Could not open log file \""
-            << std::filesystem::absolute(m_logdir).string() << "\"  ###" << std::endl;
-    }
+    m_logdir = logdir;
 }
 Logging::FileHandler::~FileHandler()
 {
@@ -174,6 +166,20 @@ void FileHandler::log(const LogLevel& level, const char* message)
         }
     }
     m_logdirChecked = true;
+
+    if (!m_logfileChecked)
+    {
+        std::filesystem::path filepath = m_logdir / "log.txt";
+        m_logfile.open(filepath, std::ios::app);
+        if (!m_logfile.is_open() || !m_logfile.good())
+        {
+            m_logfile.close();
+            m_fileError = true;
+            std::cerr << "###  Log Error: Could not open log file \""
+                << std::filesystem::absolute(filepath).string() << "\"  ###" << std::endl;
+        }
+        m_logfileChecked = true;
+    }
 
     m_logfile << Logger::s_logLevelName[level] << message << std::endl;
 }

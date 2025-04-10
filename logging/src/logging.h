@@ -47,6 +47,7 @@ namespace Logging
 	private:
 		bool m_fileError = false;
 		bool m_logdirChecked = false;
+		bool m_logfileChecked = false;
 		std::filesystem::path m_logdir;
 		std::ofstream m_logfile;
 	public:
