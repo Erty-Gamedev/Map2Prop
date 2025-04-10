@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <iostream>
 #include <filesystem>
 #include <string>
@@ -31,7 +32,7 @@ namespace Logging
 		LogHandler();
 		LogHandler(const LogLevel& loglevel);
 		void setLevel(const LogLevel& loglevel);
-		virtual void log(const LogLevel& level, const char* message) const = 0;
+		virtual void log(const LogLevel& level, const char* message) = 0;
 	};
 
 	class ConsoleHandler : LogHandler
@@ -39,18 +40,22 @@ namespace Logging
 	public:
 		using LogHandler::LogHandler;
 		using LogHandler::setLevel;
-		void log(const LogLevel& level, const char* message) const override;
+		void log(const LogLevel& level, const char* message) override;
 	};
 	class FileHandler : LogHandler
 	{
 	private:
+		bool m_fileError = false;
+		bool m_logdirChecked = false;
 		std::filesystem::path m_logdir;
+		std::ofstream m_logfile;
 	public:
-		FileHandler();
 		FileHandler(const std::filesystem::path& logdir, const LogLevel& loglevel);
+		FileHandler() : FileHandler("logs", LogLevel::LOG_WARNING) {}
+		~FileHandler();
 		using LogHandler::setLevel;
 		void setLogDir(const std::filesystem::path& logdir);
-		void log(const LogLevel& level, const char* message) const;
+		void log(const LogLevel& level, const char* message);
 	};
 
 	class Logger
@@ -64,13 +69,7 @@ namespace Logging
 		};
 		static Logger& getLogger(const std::string& loggerName);
 
-		Logger(const std::string& name)
-		{
-			m_name = name;
-			m_loglevel = DEFAULT_LOG_LEVEL;
-			m_consoleHandler = Logger::s_defaultConsoleHandler;
-			m_fileHandler = Logger::s_defaultFileHandler;
-		}
+		Logger(const std::string& name);
 		Logger() : Logger("logger") {}
 		Logger(const Logger&) = delete;
 
@@ -88,12 +87,12 @@ namespace Logging
 	private:
 		static inline std::map<std::string, Logger> s_loggers {};
 		static inline ConsoleHandler s_defaultConsoleHandler { DEFAULT_LOG_LEVEL };
-		static inline FileHandler s_defaultFileHandler{ "/logs", LogLevel::LOG_WARNING };
+		static inline FileHandler s_defaultFileHandler;
 
 		std::string m_name;
 		LogLevel m_loglevel = DEFAULT_LOG_LEVEL;
-		ConsoleHandler m_consoleHandler;
-		FileHandler m_fileHandler;
+		ConsoleHandler& m_consoleHandler = s_defaultConsoleHandler;
+		FileHandler& m_fileHandler = s_defaultFileHandler;
 	};
 
 }

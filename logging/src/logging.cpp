@@ -64,6 +64,11 @@ static bool isVirtual = enableVirtualTerminal();
 using namespace Logging;
 
 
+Logger::Logger(const std::string& name)
+{
+    m_name = name;
+    m_loglevel = DEFAULT_LOG_LEVEL;
+}
 void Logger::log(const LogLevel& level, const char* message)
 {
     if (level < m_loglevel) { return; }
@@ -97,7 +102,7 @@ Logger& Logger::getLogger(const std::string& loggerName)
     if (Logger::s_loggers.contains(loggerName))
         return Logger::s_loggers[loggerName];
 
-    Logger::s_loggers[loggerName] = { loggerName };
+    Logger::s_loggers.insert(std::pair{ loggerName, loggerName });
     return Logger::s_loggers[loggerName];
 }
 
@@ -107,47 +112,68 @@ LogHandler::LogHandler() { m_loglevel = LogLevel::LOG_INFO; }
 LogHandler::LogHandler(const LogLevel& loglevel) { m_loglevel = loglevel; }
 void LogHandler::setLevel(const LogLevel& loglevel) { m_loglevel = loglevel; }
 
-void ConsoleHandler::log(const LogLevel& level, const char* message) const
+void ConsoleHandler::log(const LogLevel& level, const char* message)
 {
     if (level < m_loglevel) { return; }
 
+    std::ostream& os = (level == LogLevel::LOG_DEBUG) ? std::clog : std::cout;
     const char* levelName = Logger::s_logLevelName[level];
 
     if (!isVirtual)
     {
-        std::cout << levelName << ": " << message << std::endl;
+        os << levelName << ": " << message << std::endl;
         return;
     }
 
-    std::cout << "\033[1m" << levelName << "\033[0m";
+    os << "\033[1m" << levelName << "\033[0m";
     switch (level)
     {
     case LogLevel::LOG_INFO:
-        std::cout << "\033[36m";
+        os << "\033[36m";
         break;
     case LogLevel::LOG_WARNING:
-        std::cout << "\033[1;33m";
+        os << "\033[1;33m";
         break;
     case LogLevel::LOG_ERROR:
-        std::cout << "\033[1;31m";
+        os << "\033[1;31m";
         break;
     }
 
-    std::cout << message << "\033[0m" << std::endl;
+    os << message << "\033[0m" << std::endl;
 }
 
-FileHandler::FileHandler()
-{
-    m_loglevel = LogLevel::LOG_WARNING;
-    m_logdir = "/logs";
-}
 FileHandler::FileHandler(const std::filesystem::path& filepath, const LogLevel& loglevel)
 {
     m_loglevel = loglevel;
     m_logdir = filepath;
+    m_logfile.open(filepath / "log.txt", std::ios::app);
+    if (!m_logfile.is_open() || !m_logfile.good())
+    {
+        m_logfile.close();
+        m_fileError = true;
+        std::cerr << "###  Log Error: Could not open log file \""
+            << std::filesystem::absolute(m_logdir).string() << "\"  ###" << std::endl;
+    }
+}
+Logging::FileHandler::~FileHandler()
+{
+    if (m_logfile.is_open())
+        m_logfile.close();
 }
 void FileHandler::setLogDir(const std::filesystem::path& logdir) { m_logdir = logdir; }
-void FileHandler::log(const LogLevel& level, const char* message) const
+void FileHandler::log(const LogLevel& level, const char* message)
 {
-    // TODO: Implement
+    if (level < m_loglevel || m_fileError) { return; }
+
+    if (!m_logdirChecked && !std::filesystem::exists(m_logdir) && !std::filesystem::is_directory(m_logdir))
+    {
+        if (!std::filesystem::create_directories(m_logdir)) {
+            std::cerr << "###  Log Error: Could not create log directory \""
+                << std::filesystem::absolute(m_logdir).string() << "\"  ###" << std::endl;
+            return;
+        }
+    }
+    m_logdirChecked = true;
+
+    m_logfile << Logger::s_logLevelName[level] << message << std::endl;
 }
