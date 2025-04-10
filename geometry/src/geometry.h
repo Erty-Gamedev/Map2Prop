@@ -11,40 +11,42 @@ namespace M2PGeo {
     constexpr float EPSILON = 1 / 1024;
 
 
-    struct Vector2D
+    struct Vector2
     {
         float x, y;
     public:
         float magnitude() const;
-        float dot(const Vector2D& other) const;
-        Vector2D normalised() const;
-        static Vector2D zero();
+        float dot(const Vector2& other) const;
+        Vector2 normalised() const;
+        static Vector2 zero();
     };
 
-    struct Vector3D
+    struct Vector3
     {
         float x, y, z;
     public:
         float magnitude() const;
-        float dot(const Vector3D& other) const;
-        Vector3D cross(const Vector3D& other);
-        Vector3D normalised() const;
-        Vector3D operator+();
-        Vector3D operator+(const Vector3D& other);
-        Vector3D operator-();
-        Vector3D operator-(const Vector3D& other);
-        Vector3D operator*(const Vector3D& other);
-        Vector3D operator*(const float& other);
-        Vector3D operator/(const Vector3D& other);
-        Vector3D operator/(const float& other);
+        float dot(const Vector3& other) const;
+        Vector3 cross(const Vector3& other) const;
+        Vector3 normalised() const;
+        Vector3 operator+() const;
+        Vector3 operator+(const Vector3& other) const;
+        Vector3 operator-() const;
+        Vector3 operator-(const Vector3& other) const;
+        Vector3 operator*(const Vector3& other) const;
+        Vector3 operator*(const float& other) const;
+        Vector3 operator/(const Vector3& other) const;
+        Vector3 operator/(const float& other) const;
+        bool operator==(const Vector3& other) const;
+        bool operator!=(const Vector3& other) const;
 
-        static Vector3D zero();
+        static Vector3 zero();
     };
 
     struct Vertex
     {
-        Vector3D coord, normal;
-        Vector2D uv;
+        Vector3 coord, normal;
+        Vector2 uv;
         bool flipped;
     };
 
@@ -54,14 +56,14 @@ namespace M2PGeo {
         bool flipped;
         std::vector<Vertex> vertices;
     public:
-        Vector3D normal();
+        Vector3 normal() const;
     };
 
     struct Texture
     {
         char name[MAX_TEXTURE_NAME];
         float shiftx, shifty, angle, scalex, scaley, width, height;
-        Vector3D rightaxis, downaxis;
+        Vector3 rightaxis, downaxis;
     };
 
     enum PointRelation
@@ -73,21 +75,21 @@ namespace M2PGeo {
 
     class HessianPlane
     {
-        Vector3D normal;
+        Vector3 normal;
         float distance;
     public:
-        float distanceToPoint(Vector3D point);
-        PointRelation pointRelation(const Vector3D& point);
+        float distanceToPoint(Vector3 point) const;
+        PointRelation pointRelation(const Vector3& point) const;
     };
 
     class Plane : HessianPlane
     {
-        Vector3D planePoints[3];
+        Vector3 planePoints[3];
         Texture texture;
     };
 
-    Vector3D segmentsCross(Vector3D planePoints[3]);
+    Vector3 segmentsCross(const Vector3 planePoints[3]);
 
 }
 
-std::ostream& operator<<(std::ostream& os, const M2PGeo::Vector3D& v);
+std::ostream& operator<<(std::ostream& os, const M2PGeo::Vector3& v);
