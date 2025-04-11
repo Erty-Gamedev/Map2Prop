@@ -14,6 +14,7 @@ namespace Logging
 	{
 		LOG_DEBUG,
 		LOG_INFO,
+		LOG_LOG,
 		LOG_WARNING,
 		LOG_ERROR,
 	};
@@ -62,8 +63,9 @@ namespace Logging
 	class Logger
 	{
 	public:
-		static inline std::map<LogLevel, const char*> s_logLevelName{
+		static inline const std::map<LogLevel, const char*> s_logLevelName{
 			{LogLevel::LOG_DEBUG,   "DEBUG:   "},
+			{LogLevel::LOG_LOG,     ""         },
 			{LogLevel::LOG_INFO,    "INFO:    "},
 			{LogLevel::LOG_WARNING, "WARNING: "},
 			{LogLevel::LOG_ERROR,   "ERROR:   "},
@@ -74,8 +76,8 @@ namespace Logging
 		Logger() : Logger("logger") {}
 		Logger(const Logger&) = delete;
 
-		void log(const LogLevel& level, const char* message);
 		void debug(const char* message);
+		void log(const char* message);
 		void info(const char* message);
 		void warning(const char* message);
 		void warn(const char* message);
@@ -94,6 +96,41 @@ namespace Logging
 		LogLevel m_loglevel = DEFAULT_LOG_LEVEL;
 		ConsoleHandler& m_consoleHandler = s_defaultConsoleHandler;
 		FileHandler& m_fileHandler = s_defaultFileHandler;
+
+		void _log(const LogLevel& level, const char* message);
 	};
+
+
+	namespace Styling
+	{
+		static inline const char* RESET = "\033[0m";
+
+		static inline const char* FG_BLACK =	"\033[30m";
+		static inline const char* FG_RED =		"\033[31m";
+		static inline const char* FG_GREEN =	"\033[32m";
+		static inline const char* FG_YELLOW =	"\033[33m";
+		static inline const char* FG_BLUE =		"\033[34m";
+		static inline const char* FG_MAGENTA =	"\033[35m";
+		static inline const char* FG_CYAN =		"\033[36m";
+		static inline const char* FG_WHITE =	"\033[37m";
+
+		static inline const char* FG_BRIGHT_BLACK =		"\033[90m";
+		static inline const char* FG_BRIGHT_RED =		"\033[91m";
+		static inline const char* FG_BRIGHT_GREEN =		"\033[92m";
+		static inline const char* FG_BRIGHT_YELLOW =	"\033[93m";
+		static inline const char* FG_BRIGHT_BLUE =		"\033[94m";
+		static inline const char* FG_BRIGHT_MAGENTA =	"\033[95m";
+		static inline const char* FG_BRIGHT_CYAN =		"\033[96m";
+		static inline const char* FG_BRIGHT_WHITE =		"\033[97m";
+
+		static inline const char* STYLE_BOLD =			"\033[1m"; // works
+		static inline const char* STYLE_DIM =			"\033[2m";
+		static inline const char* STYLE_ITALIC =		"\033[3m";
+		static inline const char* STYLE_UNDERLINE =		"\033[4m"; // works
+		static inline const char* STYLE_BLINKING =		"\033[5m";
+		static inline const char* STYLE_REVERSE =		"\033[6m";
+		static inline const char* STYLE_HIDDEN =		"\033[8m";
+		static inline const char* STYLE_STRIKETHROUGH =	"\033[8m";
+	}
 
 }

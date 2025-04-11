@@ -69,17 +69,18 @@ Logger::Logger(const std::string& name)
     m_name = name;
     m_loglevel = DEFAULT_LOG_LEVEL;
 }
-void Logger::log(const LogLevel& level, const char* message)
+void Logger::_log(const LogLevel& level, const char* message)
 {
     if (level < m_loglevel) { return; }
     m_consoleHandler.log(level, message);
     m_fileHandler.log(level, message);
 }
-void Logger::debug(const char* message) { log(LogLevel::LOG_DEBUG, message); }
-void Logger::info(const char* message) { log(LogLevel::LOG_INFO, message); }
-void Logger::warning(const char* message) { log(LogLevel::LOG_WARNING, message); }
+void Logger::debug(const char* message) { _log(LogLevel::LOG_DEBUG, message); }
+void Logger::log(const char* message) { _log(LogLevel::LOG_LOG, message); }
+void Logger::info(const char* message) { _log(LogLevel::LOG_INFO, message); }
+void Logger::warning(const char* message) { _log(LogLevel::LOG_WARNING, message); }
 void Logger::warn(const char* message) { Logger::warning(message); }
-void Logger::error(const char* message) { log(LogLevel::LOG_ERROR, message); }
+void Logger::error(const char* message) { _log(LogLevel::LOG_ERROR, message); }
 
 std::string Logger::getName() const { return m_name; }
 
@@ -116,30 +117,30 @@ void ConsoleHandler::log(const LogLevel& level, const char* message)
 {
     if (level < m_loglevel) { return; }
 
-    std::ostream& os = (level == LogLevel::LOG_DEBUG) ? std::clog : std::cout;
-    const char* levelName = Logger::s_logLevelName[level];
+    std::ostream& os = (level > LogLevel::LOG_DEBUG) ? std::cout : std::clog;
+    const char* levelName = Logger::s_logLevelName.at(level);
 
     if (!isVirtual)
     {
-        os << levelName << ": " << message << std::endl;
+        os << levelName << message << std::endl;
         return;
     }
 
-    os << "\033[1m" << levelName << "\033[0m";
+    os << Styling::STYLE_BOLD << levelName << Styling::RESET;
     switch (level)
     {
     case LogLevel::LOG_INFO:
-        os << "\033[36m";
+        os << Styling::FG_CYAN;
         break;
     case LogLevel::LOG_WARNING:
-        os << "\033[1;33m";
+        os << Styling::STYLE_BOLD << Styling::FG_YELLOW;
         break;
     case LogLevel::LOG_ERROR:
-        os << "\033[1;31m";
+        os << Styling::STYLE_BOLD << Styling::FG_RED;
         break;
     }
 
-    os << message << "\033[0m" << std::endl;
+    os << message << Styling::RESET << std::endl;
 }
 
 FileHandler::FileHandler(const std::filesystem::path& logdir, const LogLevel& loglevel)
@@ -175,11 +176,11 @@ void FileHandler::log(const LogLevel& level, const char* message)
         {
             m_logfile.close();
             m_fileError = true;
-            std::cerr << "###  Log Error: Could not open log file \""
+            std::cerr << "###  Log Error: Could not create/open log file \""
                 << std::filesystem::absolute(filepath).string() << "\"  ###" << std::endl;
         }
         m_logfileChecked = true;
     }
 
-    m_logfile << Logger::s_logLevelName[level] << message << std::endl;
+    m_logfile << Logger::s_logLevelName.at(level) << message << std::endl;
 }
