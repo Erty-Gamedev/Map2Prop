@@ -5,6 +5,34 @@
 
 const char* NAME = { "Map2Prop++ v0.1.0" };
 
+const char* USAGE = R"USAGE(Usage: Map2Prop input [options]
+Converts a .map/.rmf/.jmf or J.A.C.K .obj into GoldSrc .smd files for model creation.
+
+Arguments:
+  input                 .map/.rmf/.jmf/.obj file to convert
+  -v | --version        print current version
+  -h | --help           show this help message and exit
+
+Options:
+  -c | --mapcompile     modify .map input to replace func_map2prop with model entities after compile
+  -a | --noautocompile  do not automatically compile the model after conversion
+  -o | --output         specify an output directory
+  -g | --gameconfig     game config to use from config.ini
+  -m | --studiomdl      path to SC studiomdl.exe
+  -w | --wadlist        path to text file listing .wad files
+  -n | --wadcache       max number of .wad files to keep in memory
+  -s | --smoothing      angle threshold for applying smoothing (use 0 to smooth all edges)
+  -t | --time           timeout for running studiomdl.exe (default 60.0 seconds)
+  --renamechrome        rename chrome textures (disables chrome)
+
+QC options:
+  --outputname          filename for the finished model
+  --scale               scale the model by this amount (default 1.0)
+  --gamma               darken/brighten textures (default 1.8)
+  --offset x y z        X Y Z offset to apply to the model (default 0 0 0)
+  --rotate              rotate the model by this many degrees
+)USAGE";
+
 
 using M2PConfig::config;
 M2PConfig::Config config = {
@@ -20,44 +48,7 @@ M2PConfig::Config config = {
     .qcOffset = { 0.0f, 0.0f, 0.0f }
 };
 
-using Logging::Logger;
-static Logger& logger = Logger::getLogger("map2prop");
-
-
-static void printVersionAndExit()
-{
-    std::cout << NAME << std::endl;
-    exit(EXIT_SUCCESS);
-}
-
-static void printUsageAndExit()
-{
-    std::cout << "Usage: Map2Prop input [options]\n" <<
-        "Converts a .map/.rmf/.jmf or J.A.C.K .obj into GoldSrc .smd files for model creation.\n\n" <<
-        "Arguments:\n" <<
-        "  input                 .map/.rmf/.jmf/.obj file to convert\n" <<
-        "  -v | --version        print current version\n" <<
-        "  -h | --help           show this help message and exit\n\n" <<
-        "Options:\n" <<
-        "  -a | --noautocompile  automatically compile the model after conversion\n" <<
-        "  -c | --mapcompile     modify .map input to replace func_map2prop with model entities after compile\n" <<
-        "  -o | --output         specify an output directory\n" <<
-        "  -g | --gameconfig     game config to use from config.ini\n" <<
-        "  -m | --studiomdl      path to SC studiomdl.exe\n" <<
-        "  -w | --wadlist        path to text file listing .wad files\n" <<
-        "  -n | --wadcache       max number of .wad files to keep in memory\n" <<
-        "  -s | --smoothing      angle threshold for applying smoothing (use 0 to smooth all edges)\n" <<
-        "  -t | --time           timeout for running studiomdl.exe (default 60.0 seconds)\n" <<
-        "  --renamechrome        rename chrome textures (disables chrome)\n\n" <<
-        "QC options:\n" <<
-        "  --outputname          filename for the finished model\n" <<
-        "  --scale               scale the model by this amount (default 1.0)\n" <<
-        "  --gamma               darken/brighten textures (default 1.8)\n" <<
-        "  --offset x y z        X Y Z offset to apply to the model (default 0 0 0)\n" <<
-        "  --rotate              rotate the model by this many degrees" <<
-        std::endl;
-    exit(EXIT_SUCCESS);
-}
+static Logging::Logger& logger = Logging::Logger::getLogger("map2prop");
 
 
 void M2PConfig::handleArgs(int argc, char** argv)
@@ -65,9 +56,15 @@ void M2PConfig::handleArgs(int argc, char** argv)
     for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)
-            printVersionAndExit();
+        {
+            logger.log(NAME);
+            exit(EXIT_SUCCESS);
+        }
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
-            printUsageAndExit();
+        {
+            logger.log(USAGE);
+            exit(EXIT_SUCCESS);
+        }
 
         if (strcmp(argv[i], "--noautocompile") == 0 || strcmp(argv[i], "-a") == 0)
         {
@@ -151,7 +148,22 @@ void M2PConfig::handleArgs(int argc, char** argv)
 
     if (config.input.empty())
     {
-        printf("Missing positional argument: input (.map/.rmf/.jmf/.obj file to convert)");
+        logger.log("Missing positional argument: input (.map/.rmf/.jmf/.obj file to convert)");
+        logger.log(USAGE);
         exit(EXIT_FAILURE);
     }
+
+    if (!std::filesystem::exists(config.input))
+    {
+        logger.error((std::string{ "Could not open file \"" } + config.input + ("\" ")).c_str());
+        exit(EXIT_FAILURE);
+    }
+
+    config.inputFilepath = config.input;
+    config.inputDir = config.inputFilepath.parent_path();
+
+    if (!config.output.empty())
+        config.outputDir = config.output;
+    else
+        config.outputDir = config.inputDir;
 }

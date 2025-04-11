@@ -13,7 +13,7 @@ namespace M2PConfig
         std::string gameConfig;
         std::string studiomdl;
         std::string wadList;
-        std::string outputname;
+        std::string outputName;
         bool autocompile;
         bool mapcompile;
         bool renameChrome;
@@ -24,7 +24,9 @@ namespace M2PConfig
         float qcGamma;
         float qcRotate;
         float qcOffset[3];
-        std::filesystem::path inputPath;
+        std::filesystem::path inputFilepath;
+        std::filesystem::path inputDir;
+        std::filesystem::path outputDir;
     };
 
     extern Config config;
