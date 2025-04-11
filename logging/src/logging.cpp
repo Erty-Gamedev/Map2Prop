@@ -126,21 +126,21 @@ void ConsoleHandler::log(const LogLevel& level, const char* message)
         return;
     }
 
-    os << Styling::STYLE_BOLD << levelName << Styling::RESET;
+    os << Styling::bold << levelName << Styling::reset;
     switch (level)
     {
     case LogLevel::LOG_INFO:
-        os << Styling::FG_CYAN;
+        os << Styling::fgCyan;
         break;
     case LogLevel::LOG_WARNING:
-        os << Styling::STYLE_BOLD << Styling::FG_YELLOW;
+        os << Styling::bold << Styling::fgYellow;
         break;
     case LogLevel::LOG_ERROR:
-        os << Styling::STYLE_BOLD << Styling::FG_RED;
+        os << Styling::bold << Styling::fgRed;
         break;
     }
 
-    os << message << Styling::RESET << std::endl;
+    os << message << Styling::reset << std::endl;
 }
 
 FileHandler::FileHandler(const std::filesystem::path& logdir, const LogLevel& loglevel)

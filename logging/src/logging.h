@@ -103,34 +103,34 @@ namespace Logging
 
 	namespace Styling
 	{
-		static inline const char* RESET = "\033[0m";
+		static inline const char* reset = "\033[0m";
 
-		static inline const char* FG_BLACK =	"\033[30m";
-		static inline const char* FG_RED =		"\033[31m";
-		static inline const char* FG_GREEN =	"\033[32m";
-		static inline const char* FG_YELLOW =	"\033[33m";
-		static inline const char* FG_BLUE =		"\033[34m";
-		static inline const char* FG_MAGENTA =	"\033[35m";
-		static inline const char* FG_CYAN =		"\033[36m";
-		static inline const char* FG_WHITE =	"\033[37m";
+		static inline const char* fgBlack =		"\033[30m";
+		static inline const char* fgRed =		"\033[31m";
+		static inline const char* fgGreen =		"\033[32m";
+		static inline const char* fgYellow =	"\033[33m";
+		static inline const char* fgBlue =		"\033[34m";
+		static inline const char* fgMagenta =	"\033[35m";
+		static inline const char* fgCyan =		"\033[36m";
+		static inline const char* fgWhite =		"\033[37m";
 
-		static inline const char* FG_BRIGHT_BLACK =		"\033[90m";
-		static inline const char* FG_BRIGHT_RED =		"\033[91m";
-		static inline const char* FG_BRIGHT_GREEN =		"\033[92m";
-		static inline const char* FG_BRIGHT_YELLOW =	"\033[93m";
-		static inline const char* FG_BRIGHT_BLUE =		"\033[94m";
-		static inline const char* FG_BRIGHT_MAGENTA =	"\033[95m";
-		static inline const char* FG_BRIGHT_CYAN =		"\033[96m";
-		static inline const char* FG_BRIGHT_WHITE =		"\033[97m";
+		static inline const char* fgBrightBlack =	"\033[90m";
+		static inline const char* fgBrightRed =		"\033[91m";
+		static inline const char* fgBrightGreen =	"\033[92m";
+		static inline const char* fgBrightYellow =	"\033[93m";
+		static inline const char* fgBrightBlue =	"\033[94m";
+		static inline const char* fgBrightMagenta =	"\033[95m";
+		static inline const char* fgBrightCyan =	"\033[96m";
+		static inline const char* fgBrightWhite =	"\033[97m";
 
-		static inline const char* STYLE_BOLD =			"\033[1m"; // works
-		static inline const char* STYLE_DIM =			"\033[2m";
-		static inline const char* STYLE_ITALIC =		"\033[3m";
-		static inline const char* STYLE_UNDERLINE =		"\033[4m"; // works
-		static inline const char* STYLE_BLINKING =		"\033[5m";
-		static inline const char* STYLE_REVERSE =		"\033[6m";
-		static inline const char* STYLE_HIDDEN =		"\033[8m";
-		static inline const char* STYLE_STRIKETHROUGH =	"\033[8m";
+		static inline const char* bold =			"\033[1m"; // works
+		static inline const char* dim =				"\033[2m";
+		static inline const char* italic =			"\033[3m";
+		static inline const char* underline =		"\033[4m"; // works
+		static inline const char* blinking =		"\033[5m";
+		static inline const char* reverse =			"\033[6m";
+		static inline const char* hidden =			"\033[8m";
+		static inline const char* strikethrough =	"\033[8m";
 	}
 
 }
