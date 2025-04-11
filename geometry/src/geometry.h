@@ -7,8 +7,8 @@ namespace M2PGeo {
     * While various project file formats allow for much longer names,
     * texture names are ultimately limited by the 15 character limit of WAD.
     */ 
-    constexpr int MAX_TEXTURE_NAME = 16;
-    constexpr float EPSILON = 1 / 1024;
+    constexpr int c_MAX_TEXTURE_NAME = 16;
+    constexpr float c_EPSILON = 1 / 1024;
 
 
     struct Vector2
@@ -52,7 +52,7 @@ namespace M2PGeo {
 
     struct Polygon
     {
-        char texture_name[MAX_TEXTURE_NAME];
+        char texture_name[c_MAX_TEXTURE_NAME];
         bool flipped;
         std::vector<Vertex> vertices;
     public:
@@ -61,7 +61,7 @@ namespace M2PGeo {
 
     struct Texture
     {
-        char name[MAX_TEXTURE_NAME];
+        char name[c_MAX_TEXTURE_NAME];
         float shiftx, shifty, angle, scalex, scaley, width, height;
         Vector3 rightaxis, downaxis;
     };

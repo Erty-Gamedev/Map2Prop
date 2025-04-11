@@ -82,9 +82,9 @@ Vector3 Vector3::operator/(const float& other) const
 }
 bool Vector3::operator==(const Vector3& other) const
 {
-	return abs(x - other.x) < EPSILON
-		&& abs(y - other.y) < EPSILON
-		&& abs(z - other.z) < EPSILON;
+	return abs(x - other.x) < c_EPSILON
+		&& abs(y - other.y) < c_EPSILON
+		&& abs(z - other.z) < c_EPSILON;
 }
 bool Vector3::operator!=(const Vector3& other) const
 {
@@ -115,7 +115,7 @@ float HessianPlane::distanceToPoint(Vector3 point) const
 PointRelation HessianPlane::pointRelation(const Vector3& point) const
 {
 	float distance = distanceToPoint(point);
-	if (abs(distance) < M2PGeo::EPSILON)
+	if (abs(distance) < M2PGeo::c_EPSILON)
 		return PointRelation::ON_PLANE;
 	return distance > 0 ? PointRelation::INFRONT : PointRelation::BEHIND;
 }
