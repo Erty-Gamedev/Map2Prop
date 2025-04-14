@@ -400,5 +400,10 @@ FodyWeavers.xsd
 *.sln.iml
 
 
+# VS solution and project files/filters
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
 # Test files
 test/
