@@ -82,6 +82,14 @@ void Logger::warning(const char* message) { _log(LogLevel::LOG_WARNING, message)
 void Logger::warn(const char* message) { Logger::warning(message); }
 void Logger::error(const char* message) { _log(LogLevel::LOG_ERROR, message); }
 
+void Logger::debug(const std::string& message) { _log(LogLevel::LOG_DEBUG, message.c_str()); }
+void Logger::log(const std::string& message) { _log(LogLevel::LOG_LOG, message.c_str()); }
+void Logger::info(const std::string& message) { _log(LogLevel::LOG_INFO, message.c_str()); }
+void Logger::warning(const std::string& message) { _log(LogLevel::LOG_WARNING, message.c_str()); }
+void Logger::warn(const std::string& message) { Logger::warning(message); }
+void Logger::error(const std::string& message) { _log(LogLevel::LOG_ERROR, message.c_str()); }
+
+
 std::string Logger::getName() const { return m_name; }
 
 void Logger::setLevel(const LogLevel& loglevel)

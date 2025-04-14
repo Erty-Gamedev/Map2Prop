@@ -83,6 +83,13 @@ namespace Logging
 		void warn(const char* message);
 		void error(const char* message);
 
+		void debug(const std::string& message);
+		void log(const std::string& message);
+		void info(const std::string& message);
+		void warning(const std::string& message);
+		void warn(const std::string& message);
+		void error(const std::string& message);
+
 		std::string getName() const;
 		void setLevel(const LogLevel& loglevel);
 		void setConsoleHandlerLevel(const LogLevel& loglevel);
