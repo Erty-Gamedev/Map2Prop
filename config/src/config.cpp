@@ -51,8 +51,51 @@ M2PConfig::Config config = {
 static Logging::Logger& logger = Logging::Logger::getLogger("map2prop");
 
 
+
+M2PConfig::ConfigFile::ConfigFile(const std::filesystem::path& configFile = "config.ini")
+{
+    m_filepath = configFile;
+
+    m_file.open(m_filepath, std::ios::in);
+    if (!m_file.is_open() || !m_file.good())
+    {
+        m_file.close();
+        logger.info("Could not read config file \"" + m_filepath.string() + "\", creating default config file...");
+
+        if (!createConfigFile())
+        {
+            logger.warning("Could not create default config file \"" + m_filepath.string() + "\"");
+        }
+    }
+
+    // TODO: Read from config file
+}
+M2PConfig::ConfigFile::~ConfigFile()
+{
+    if (m_file.is_open())
+        m_file.close();
+}
+bool M2PConfig::ConfigFile::createConfigFile()
+{
+    return true;
+
+    m_file.open(m_filepath, std::ios::out);
+    if (!m_file.is_open() || !m_file.good())
+    {
+        m_file.close();
+        return false;
+    }
+
+    // TODO: Write default config file
+}
+
+
+
+
 void M2PConfig::handleArgs(int argc, char** argv)
 {
+    M2PConfig::ConfigFile configfile{};
+
     for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)
@@ -134,13 +177,13 @@ void M2PConfig::handleArgs(int argc, char** argv)
 
         if (strncmp(argv[i], "-", 1) == 0)
         {
-            logger.error((std::string{ "Unknown argument: \"" } + argv[i] + "\"\n").c_str());
+            logger.error(std::string{ "Unknown argument: \"" } + argv[i] + "\"\n");
             exit(EXIT_FAILURE);
         }
 
         if (!config.input.empty())
         {
-            logger.error((std::string{ "Unknown argument: \"" } + argv[i] + "\"\n").c_str());
+            logger.error(std::string{ "Unknown argument: \"" } + argv[i] + "\"\n");
             exit(EXIT_FAILURE);
         }
         config.input = argv[i];
@@ -155,7 +198,7 @@ void M2PConfig::handleArgs(int argc, char** argv)
 
     if (!std::filesystem::exists(config.input))
     {
-        logger.error((std::string{ "Could not open file \"" } + config.input + ("\" ")).c_str());
+        logger.error("Could not open file \"" + config.input + "\"");
         exit(EXIT_FAILURE);
     }
 
