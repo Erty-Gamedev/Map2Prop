@@ -99,5 +99,3 @@ namespace M2PGeo {
 }
 
 std::ostream& operator<<(std::ostream&, const M2PGeo::Vector3&);
-
-
