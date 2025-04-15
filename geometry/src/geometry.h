@@ -16,7 +16,7 @@ namespace M2PGeo {
         float x, y;
     public:
         float magnitude() const;
-        float dot(const Vector2& other) const;
+        float dot(const Vector2&) const;
         Vector2 normalised() const;
         static Vector2 zero();
     };
@@ -26,19 +26,19 @@ namespace M2PGeo {
         float x, y, z;
     public:
         float magnitude() const;
-        float dot(const Vector3& other) const;
-        Vector3 cross(const Vector3& other) const;
+        float dot(const Vector3&) const;
+        Vector3 cross(const Vector3&) const;
         Vector3 normalised() const;
         Vector3 operator+() const;
-        Vector3 operator+(const Vector3& other) const;
+        Vector3 operator+(const Vector3&) const;
         Vector3 operator-() const;
-        Vector3 operator-(const Vector3& other) const;
-        Vector3 operator*(const Vector3& other) const;
-        Vector3 operator*(const float& other) const;
-        Vector3 operator/(const Vector3& other) const;
-        Vector3 operator/(const float& other) const;
-        bool operator==(const Vector3& other) const;
-        bool operator!=(const Vector3& other) const;
+        Vector3 operator-(const Vector3&) const;
+        Vector3 operator*(const Vector3&) const;
+        Vector3 operator*(const float) const;
+        Vector3 operator/(const Vector3&) const;
+        Vector3 operator/(const float) const;
+        bool operator==(const Vector3&) const;
+        bool operator!=(const Vector3&) const;
 
         static Vector3 zero();
     };
@@ -78,18 +78,22 @@ namespace M2PGeo {
         Vector3 normal;
         float distance;
     public:
-        float distanceToPoint(Vector3 point) const;
-        PointRelation pointRelation(const Vector3& point) const;
+        HessianPlane(Vector3, float);
+        HessianPlane() : HessianPlane({}, 0.0f) {};
+        float distanceToPoint(Vector3) const;
+        PointRelation pointRelation(const Vector3&) const;
     };
 
     class Plane : HessianPlane
     {
-        Vector3 planePoints[3];
-        Texture texture;
+    public:
+        Plane(const Vector3[3], const Texture&);
     };
 
-    Vector3 segmentsCross(const Vector3 planePoints[3]);
+    Vector3 segmentsCross(const Vector3[3]);
 
 }
 
-std::ostream& operator<<(std::ostream& os, const M2PGeo::Vector3& v);
+std::ostream& operator<<(std::ostream&, const M2PGeo::Vector3&);
+
+

@@ -32,12 +32,12 @@ namespace M2PConfig
 
     extern Config config;
 
-    void handleArgs(int argc, char** argv);
+    void handleArgs(int, char**);
 
     class ConfigFile
     {
     public:
-        ConfigFile(const std::filesystem::path& configFile);
+        ConfigFile(const std::filesystem::path&);
         ~ConfigFile();
     private:
         std::filesystem::path m_filepath;

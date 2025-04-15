@@ -31,9 +31,9 @@ namespace Logging
 		LogLevel m_loglevel;
 	public:
 		LogHandler();
-		LogHandler(const LogLevel& loglevel);
-		void setLevel(const LogLevel& loglevel);
-		virtual void log(const LogLevel& level, const char* message) = 0;
+		LogHandler(const LogLevel&);
+		void setLevel(const LogLevel&);
+		virtual void log(const LogLevel&, const char*) = 0;
 	};
 
 	class ConsoleHandler : LogHandler
@@ -41,7 +41,7 @@ namespace Logging
 	public:
 		using LogHandler::LogHandler;
 		using LogHandler::setLevel;
-		void log(const LogLevel& level, const char* message) override;
+		void log(const LogLevel&, const char*) override;
 	};
 	class FileHandler : LogHandler
 	{
@@ -52,12 +52,12 @@ namespace Logging
 		std::filesystem::path m_logdir;
 		std::ofstream m_logfile;
 	public:
-		FileHandler(const std::filesystem::path& logdir, const LogLevel& loglevel);
+		FileHandler(const std::filesystem::path&, const LogLevel&);
 		FileHandler() : FileHandler("logs", LogLevel::LOG_WARNING) {}
 		~FileHandler();
 		using LogHandler::setLevel;
-		void setLogDir(const std::filesystem::path& logdir);
-		void log(const LogLevel& level, const char* message);
+		void setLogDir(const std::filesystem::path&);
+		void log(const LogLevel&, const char*);
 	};
 
 	class Logger
@@ -70,30 +70,30 @@ namespace Logging
 			{LogLevel::LOG_WARNING, "WARNING: "},
 			{LogLevel::LOG_ERROR,   "ERROR:   "},
 		};
-		static Logger& getLogger(const std::string& loggerName);
+		static Logger& getLogger(const std::string&);
 
-		Logger(const std::string& name);
+		Logger(const std::string&);
 		Logger() : Logger("logger") {}
 		Logger(const Logger&) = delete;
 
-		void debug(const char* message);
-		void log(const char* message);
-		void info(const char* message);
-		void warning(const char* message);
-		void warn(const char* message);
-		void error(const char* message);
+		void debug(const char*);
+		void log(const char*);
+		void info(const char*);
+		void warning(const char*);
+		void warn(const char*);
+		void error(const char*);
 
-		void debug(const std::string& message);
-		void log(const std::string& message);
-		void info(const std::string& message);
-		void warning(const std::string& message);
-		void warn(const std::string& message);
-		void error(const std::string& message);
+		void debug(const std::string&);
+		void log(const std::string&);
+		void info(const std::string&);
+		void warning(const std::string&);
+		void warn(const std::string&);
+		void error(const std::string&);
 
 		std::string getName() const;
-		void setLevel(const LogLevel& loglevel);
-		void setConsoleHandlerLevel(const LogLevel& loglevel);
-		void setFileHandlerLevel(const LogLevel& loglevel);
+		void setLevel(const LogLevel&);
+		void setConsoleHandlerLevel(const LogLevel&);
+		void setFileHandlerLevel(const LogLevel&);
 	private:
 		static inline std::map<std::string, Logger> s_loggers {};
 		static inline ConsoleHandler s_defaultConsoleHandler { DEFAULT_LOG_LEVEL };
@@ -104,7 +104,7 @@ namespace Logging
 		ConsoleHandler& m_consoleHandler = s_defaultConsoleHandler;
 		FileHandler& m_fileHandler = s_defaultFileHandler;
 
-		void _log(const LogLevel& level, const char* message);
+		void _log(const LogLevel&, const char*);
 	};
 
 
