@@ -1,8 +1,8 @@
 #include <format>
 #include "geometry.h"
 
-using namespace M2PGeo;
 
+using namespace M2PGeo;
 
 Vector2 Vector2::zero()
 {
@@ -68,7 +68,7 @@ Vector3 Vector3::operator*(const Vector3& other) const
 {
 	return Vector3(x * other.x, y * other.y, z * other.z);
 }
-Vector3 Vector3::operator*(const float& other) const
+Vector3 Vector3::operator*(const float other) const
 {
 	return Vector3(x * other, y * other, z * other);
 }
@@ -76,7 +76,7 @@ Vector3 Vector3::operator/(const Vector3& other) const
 {
 	return Vector3(x / other.x, y / other.y, z / other.z);
 }
-Vector3 Vector3::operator/(const float& other) const
+Vector3 Vector3::operator/(const float other) const
 {
 	return Vector3(x / other, y / other, z / other);
 }
@@ -108,16 +108,32 @@ Vector3 Polygon::normal() const
 }
 
 
+HessianPlane::HessianPlane(Vector3 normal, float distance)
+{
+	m_normal = normal;
+	m_distance = distance;
+}
 float HessianPlane::distanceToPoint(Vector3 point) const
 {
-	return normal.dot(point - (normal * distance));
+	return m_normal.dot(point - (m_normal * m_distance));
 }
 PointRelation HessianPlane::pointRelation(const Vector3& point) const
 {
-	float distance = distanceToPoint(point);
-	if (abs(distance) < M2PGeo::c_EPSILON)
+	float m_distance = distanceToPoint(point);
+	if (abs(m_distance) < M2PGeo::c_EPSILON)
 		return PointRelation::ON_PLANE;
-	return distance > 0 ? PointRelation::INFRONT : PointRelation::BEHIND;
+	return m_distance > 0 ? PointRelation::INFRONT : PointRelation::BEHIND;
+}
+Plane::Plane(const Vector3 planePoints[3], const Texture& texture)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		m_planePoints[2-i] = planePoints[i];
+	}
+	m_normal = segmentsCross(m_planePoints).normalised();
+	m_distance = m_normal.dot(m_planePoints[0]);
+
+	m_texture = texture;
 }
 
 

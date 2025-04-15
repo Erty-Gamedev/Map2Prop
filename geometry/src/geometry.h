@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <map>
 
 namespace M2PGeo {
     /*
@@ -9,7 +10,7 @@ namespace M2PGeo {
     */ 
     constexpr int c_MAX_TEXTURE_NAME = 16;
     constexpr float c_EPSILON = 1 / 1024;
-
+    constexpr int c_MAP_DIGITS_PRECISION = 6;
 
     struct Vector2
     {
@@ -45,14 +46,14 @@ namespace M2PGeo {
 
     struct Vertex
     {
-        Vector3 coord, normal;
+        Vector3 coord, m_normal;
         Vector2 uv;
         bool flipped;
     };
 
     struct Polygon
     {
-        char texture_name[c_MAX_TEXTURE_NAME];
+        std::string texture_name;
         bool flipped;
         std::vector<Vertex> vertices;
     public:
@@ -61,7 +62,7 @@ namespace M2PGeo {
 
     struct Texture
     {
-        char name[c_MAX_TEXTURE_NAME];
+        std::string name;
         float shiftx, shifty, angle, scalex, scaley, width, height;
         Vector3 rightaxis, downaxis;
     };
@@ -75,8 +76,9 @@ namespace M2PGeo {
 
     class HessianPlane
     {
-        Vector3 normal;
-        float distance;
+    protected:
+        Vector3 m_normal;
+        float m_distance;
     public:
         HessianPlane(Vector3, float);
         HessianPlane() : HessianPlane({}, 0.0f) {};
@@ -86,6 +88,8 @@ namespace M2PGeo {
 
     class Plane : HessianPlane
     {
+        Texture m_texture;
+        Vector3 m_planePoints[3];
     public:
         Plane(const Vector3[3], const Texture&);
     };
