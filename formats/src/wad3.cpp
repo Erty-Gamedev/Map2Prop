@@ -1,4 +1,4 @@
-
+#include "utils.h"
 #include "config.h"
 #include "logging.h"
 #include "wad3.h"
@@ -9,23 +9,7 @@ static inline Logging::Logger& logger = Logging::Logger::getLogger("wad3reader")
 using M2PConfig::config;
 
 using namespace M2PWad3;
-
-
-
-static std::string toLowerCase(std::string str)
-{
-	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) {
-		return std::tolower(c);
-	});
-	return str;
-}
-static std::string toUpperCase(std::string str)
-{
-	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) {
-		return std::toupper(c);
-	});
-	return str;
-}
+using namespace M2PUtils;
 
 
 Wad3Reader::Wad3Reader(const std::filesystem::path& filepath)
@@ -78,16 +62,9 @@ bool Wad3Handler::checkTexture(const std::string& textureName)
 }
 bool Wad3Handler::isToolTexture(const std::string& textureName)
 {
-	return std::find(
-		c_TOOLTEXTURES.begin(),
-		c_TOOLTEXTURES.end(),
-		toLowerCase(textureName)) != c_TOOLTEXTURES.end();
+	return contains(c_TOOLTEXTURES, toLowerCase(textureName));
 }
 bool Wad3Handler::isSkipTexture(const std::string& textureName)
 {
-	return std::find(
-		c_SKIPTEXTURES.begin(),
-		c_SKIPTEXTURES.end(),
-		toLowerCase(textureName)) != c_SKIPTEXTURES.end();
+	return contains(c_SKIPTEXTURES, toLowerCase(textureName));
 }
-
