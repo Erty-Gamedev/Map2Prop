@@ -7,6 +7,37 @@
 #include <map>
 
 
+namespace Styling
+{
+	static inline const char* reset = "\033[0m";
+
+	static inline const char* fgBlack = "\033[30m";
+	static inline const char* fgRed = "\033[31m";
+	static inline const char* fgGreen = "\033[32m";
+	static inline const char* fgYellow = "\033[33m";
+	static inline const char* fgBlue = "\033[34m";
+	static inline const char* fgMagenta = "\033[35m";
+	static inline const char* fgCyan = "\033[36m";
+	static inline const char* fgWhite = "\033[37m";
+
+	static inline const char* fgBrightBlack = "\033[90m";
+	static inline const char* fgBrightRed = "\033[91m";
+	static inline const char* fgBrightGreen = "\033[92m";
+	static inline const char* fgBrightYellow = "\033[93m";
+	static inline const char* fgBrightBlue = "\033[94m";
+	static inline const char* fgBrightMagenta = "\033[95m";
+	static inline const char* fgBrightCyan = "\033[96m";
+	static inline const char* fgBrightWhite = "\033[97m";
+
+	static inline const char* bold = "\033[1m"; // works
+	static inline const char* dim = "\033[2m";
+	static inline const char* italic = "\033[3m";
+	static inline const char* underline = "\033[4m"; // works
+	static inline const char* blinking = "\033[5m";
+	static inline const char* reverse = "\033[6m";
+	static inline const char* hidden = "\033[8m";
+	static inline const char* strikethrough = "\033[8m";
+}
 
 namespace Logging
 {
@@ -19,11 +50,21 @@ namespace Logging
 		LOG_ERROR,
 	};
 
+	extern inline const std::map<LogLevel, const char*> c_LOGLEVELNAME{
+		{LogLevel::LOG_DEBUG,   "DEBUG:   "},
+		{LogLevel::LOG_LOG,     ""         },
+		{LogLevel::LOG_INFO,    "INFO:    "},
+		{LogLevel::LOG_WARNING, "WARNING: "},
+		{LogLevel::LOG_ERROR,   "ERROR:   "},
+	};
+
 #ifdef _DEBUG
 	static inline const LogLevel DEFAULT_LOG_LEVEL = LogLevel::LOG_DEBUG;
 #else
 	static inline const LogLevel DEFAULT_LOG_LEVEL = LogLevel::LOG_INFO;
 #endif
+
+	extern bool g_isVirtual;
 
 	class LogHandler
 	{
@@ -33,7 +74,6 @@ namespace Logging
 		LogHandler();
 		LogHandler(const LogLevel&);
 		void setLevel(const LogLevel&);
-		virtual void log(const LogLevel&, const char*) = 0;
 	};
 
 	class ConsoleHandler : LogHandler
@@ -41,8 +81,39 @@ namespace Logging
 	public:
 		using LogHandler::LogHandler;
 		using LogHandler::setLevel;
-		void log(const LogLevel&, const char*) override;
+
+		template <typename T>
+		void log(const LogLevel& level, T message)
+		{
+			if (level < m_loglevel) { return; }
+
+			std::ostream& os = (level > LogLevel::LOG_DEBUG) ? std::cout : std::clog;
+			const char* levelName = c_LOGLEVELNAME.at(level);
+
+			if (!g_isVirtual)
+			{
+				os << levelName << message << std::endl;
+				return;
+			}
+
+			os << Styling::bold << levelName << Styling::reset;
+			switch (level)
+			{
+			case LogLevel::LOG_INFO:
+				os << Styling::fgCyan;
+				break;
+			case LogLevel::LOG_WARNING:
+				os << Styling::bold << Styling::fgYellow;
+				break;
+			case LogLevel::LOG_ERROR:
+				os << Styling::bold << Styling::fgRed;
+				break;
+			}
+
+			os << message << Styling::reset << std::endl;
+		}
 	};
+
 	class FileHandler : LogHandler
 	{
 	private:
@@ -57,38 +128,55 @@ namespace Logging
 		~FileHandler();
 		using LogHandler::setLevel;
 		void setLogDir(const std::filesystem::path&);
-		void log(const LogLevel&, const char*);
+
+		template <typename T>
+		void log(const LogLevel& level, T message)
+		{
+			if (level < m_loglevel || m_fileError) { return; }
+
+			if (!m_logdirChecked && !std::filesystem::exists(m_logdir) && !std::filesystem::is_directory(m_logdir))
+			{
+				if (!std::filesystem::create_directories(m_logdir)) {
+					std::cerr << "###  Log Error: Could not create log directory \""
+						<< std::filesystem::absolute(m_logdir).string() << "\"  ###" << std::endl;
+					return;
+				}
+			}
+			m_logdirChecked = true;
+
+			if (!m_logfileChecked)
+			{
+				std::filesystem::path filepath = m_logdir / "log.txt";
+				m_logfile.open(filepath, std::ios::app);
+				if (!m_logfile.is_open() || !m_logfile.good())
+				{
+					m_logfile.close();
+					m_fileError = true;
+					std::cerr << "###  Log Error: Could not create/open log file \""
+						<< std::filesystem::absolute(filepath).string() << "\"  ###" << std::endl;
+				}
+				m_logfileChecked = true;
+			}
+
+			m_logfile << c_LOGLEVELNAME.at(level) << message << std::endl;
+		}
 	};
 
 	class Logger
 	{
 	public:
-		static inline const std::map<LogLevel, const char*> s_logLevelName{
-			{LogLevel::LOG_DEBUG,   "DEBUG:   "},
-			{LogLevel::LOG_LOG,     ""         },
-			{LogLevel::LOG_INFO,    "INFO:    "},
-			{LogLevel::LOG_WARNING, "WARNING: "},
-			{LogLevel::LOG_ERROR,   "ERROR:   "},
-		};
 		static Logger& getLogger(const std::string&);
 
 		Logger(const std::string&);
 		Logger() : Logger("logger") {}
 		Logger(const Logger&) = delete;
 
-		void debug(const char*);
-		void log(const char*);
-		void info(const char*);
-		void warning(const char*);
-		void warn(const char*);
-		void error(const char*);
-
-		void debug(const std::string&);
-		void log(const std::string&);
-		void info(const std::string&);
-		void warning(const std::string&);
-		void warn(const std::string&);
-		void error(const std::string&);
+		template <typename T> void debug(T message) { _log(LogLevel::LOG_DEBUG, message); }
+		template <typename T> void log(T message) { _log(LogLevel::LOG_LOG, message); }
+		template <typename T> void info(T message) { _log(LogLevel::LOG_INFO, message); }
+		template <typename T> void warning(T message) { _log(LogLevel::LOG_WARNING, message); }
+		template <typename T> void warn(T message) { Logger::warning(message); }
+		template <typename T> void error(T message) { _log(LogLevel::LOG_ERROR, message); }
 
 		std::string getName() const;
 		void setLevel(const LogLevel&);
@@ -104,40 +192,13 @@ namespace Logging
 		ConsoleHandler& m_consoleHandler = s_defaultConsoleHandler;
 		FileHandler& m_fileHandler = s_defaultFileHandler;
 
-		void _log(const LogLevel&, const char*);
+		template <typename T>
+		void _log(const LogLevel& level, T message)
+		{
+			if (level < m_loglevel) { return; }
+			m_consoleHandler.log(level, message);
+			m_fileHandler.log(level, message);
+		}
 	};
-
-
-	namespace Styling
-	{
-		static inline const char* reset = "\033[0m";
-
-		static inline const char* fgBlack =		"\033[30m";
-		static inline const char* fgRed =		"\033[31m";
-		static inline const char* fgGreen =		"\033[32m";
-		static inline const char* fgYellow =	"\033[33m";
-		static inline const char* fgBlue =		"\033[34m";
-		static inline const char* fgMagenta =	"\033[35m";
-		static inline const char* fgCyan =		"\033[36m";
-		static inline const char* fgWhite =		"\033[37m";
-
-		static inline const char* fgBrightBlack =	"\033[90m";
-		static inline const char* fgBrightRed =		"\033[91m";
-		static inline const char* fgBrightGreen =	"\033[92m";
-		static inline const char* fgBrightYellow =	"\033[93m";
-		static inline const char* fgBrightBlue =	"\033[94m";
-		static inline const char* fgBrightMagenta =	"\033[95m";
-		static inline const char* fgBrightCyan =	"\033[96m";
-		static inline const char* fgBrightWhite =	"\033[97m";
-
-		static inline const char* bold =			"\033[1m"; // works
-		static inline const char* dim =				"\033[2m";
-		static inline const char* italic =			"\033[3m";
-		static inline const char* underline =		"\033[4m"; // works
-		static inline const char* blinking =		"\033[5m";
-		static inline const char* reverse =			"\033[6m";
-		static inline const char* hidden =			"\033[8m";
-		static inline const char* strikethrough =	"\033[8m";
-	}
 
 }
