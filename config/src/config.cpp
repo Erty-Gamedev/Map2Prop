@@ -144,7 +144,33 @@ void M2PConfig::handleArgs(int argc, char** argv)
         {
             i++;
             if (i < argc)
-                config.wadList = argv[i];
+            {
+                std::filesystem::path wadListFilepath = argv[i];
+                if (!std::filesystem::exists(wadListFilepath))
+                {
+                    logger.error("Could not find file \"" + wadListFilepath.string() + "\"");
+                    exit(EXIT_FAILURE);
+                }
+
+                std::ifstream wadListFile;
+                wadListFile.open(wadListFilepath);
+                if (!wadListFile.is_open() || !wadListFile.good())
+                {
+                    wadListFile.close();
+                    logger.error("Could not open file \"" + wadListFilepath.string() + "\"");
+                    exit(EXIT_FAILURE);
+                }
+
+                config.wadList.reserve(16);
+                std::string line;
+                line.reserve(256);
+                while (std::getline(wadListFile, line))
+                {
+                    config.wadList.emplace_back(line);
+                }
+
+                wadListFile.close();
+            }
             continue;
         }
         if (strcmp(argv[i], "--wadcache") == 0 || strcmp(argv[i], "-n") == 0)
