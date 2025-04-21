@@ -407,3 +407,6 @@ FodyWeavers.xsd
 
 # Test files
 test/
+
+# Config files
+config.ini

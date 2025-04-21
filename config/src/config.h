@@ -3,6 +3,7 @@
 #include <string>
 #include <filesystem>
 #include <fstream>
+#include "configfile.h"
 
 
 namespace M2PConfig
@@ -33,16 +34,4 @@ namespace M2PConfig
     extern Config config;
 
     void handleArgs(int, char**);
-
-    class ConfigFile
-    {
-    public:
-        ConfigFile(const std::filesystem::path&);
-        ~ConfigFile();
-    private:
-        std::filesystem::path m_filepath;
-        std::ifstream m_file;
-        bool createConfigFile();
-    };
-
 }
