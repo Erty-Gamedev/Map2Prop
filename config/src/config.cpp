@@ -37,8 +37,8 @@ QC options:
 )USAGE";
 
 
-using M2PConfig::config;
-M2PConfig::Config config{};
+using M2PConfig::g_config;
+M2PConfig::Config g_config{};
 
 
 static Logging::Logger& logger = Logging::Logger::getLogger("map2prop");
@@ -48,25 +48,25 @@ static inline void loadFromFileConfig(const M2PConfig::ConfigFile& configFile)
 {
     std::string value;
     if (!(value = configFile.getConfig("output directory")).empty())
-        config.outputDir = value;
+        g_config.outputDir = value;
 
     if (!(value = configFile.getConfig("steam directory")).empty())
-        config.steamDir = value;
+        g_config.steamDir = value;
 
     if (!(value = configFile.getConfig("game config")).empty())
-        config.gameConfig = value;
+        g_config.gameConfig = value;
 
     if (!(value = configFile.getConfig("studiomdl")).empty())
-        config.studiomdl = value;
+        g_config.studiomdl = value;
 
     if (!(value = configFile.getConfig("autocompile")).empty())
-        config.autocompile = M2PUtils::strToBool(value);
+        g_config.autocompile = M2PUtils::strToBool(value);
 
     if (!(value = configFile.getConfig("timeout")).empty())
-        config.timeout = std::stof(value);
+        g_config.timeout = std::stof(value);
 
     if (!(value = configFile.getConfig("wad cache")).empty())
-        config.wadCache = std::stoi(value);
+        g_config.wadCache = std::stoi(value);
 }
 
 
@@ -90,33 +90,33 @@ void M2PConfig::handleArgs(int argc, char** argv)
 
         if (strcmp(argv[i], "--noautocompile") == 0 || strcmp(argv[i], "-a") == 0)
         {
-            config.autocompile = false;
+            g_config.autocompile = false;
             continue;
         }
         if (strcmp(argv[i], "--mapcompile") == 0 || strcmp(argv[i], "-c") == 0)
         {
-            config.mapcompile = true;
+            g_config.mapcompile = true;
             continue;
         }
         if (strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0)
         {
             i++;
             if (i < argc)
-                config.output = argv[i];
+                g_config.output = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--gameconfig") == 0 || strcmp(argv[i], "-g") == 0)
         {
             i++;
             if (i < argc)
-                config.gameConfig = argv[i];
+                g_config.gameConfig = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--studiomdl") == 0 || strcmp(argv[i], "-m") == 0)
         {
             i++;
             if (i < argc)
-                config.studiomdl = argv[i];
+                g_config.studiomdl = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--wadlist") == 0 || strcmp(argv[i], "-w") == 0)
@@ -140,12 +140,12 @@ void M2PConfig::handleArgs(int argc, char** argv)
                     exit(EXIT_FAILURE);
                 }
 
-                config.wadList.reserve(16);
+                g_config.wadList.reserve(16);
                 std::string line;
                 line.reserve(256);
                 while (std::getline(wadListFile, line))
                 {
-                    config.wadList.emplace_back(line);
+                    g_config.wadList.emplace_back(line);
                 }
 
                 wadListFile.close();
@@ -156,26 +156,26 @@ void M2PConfig::handleArgs(int argc, char** argv)
         {
             i++;
             if (i < argc)
-                config.wadCache = std::stoi(argv[i]);
+                g_config.wadCache = std::stoi(argv[i]);
             continue;
         }
         if (strcmp(argv[i], "--smoothing") == 0 || strcmp(argv[i], "-s") == 0)
         {
             i++;
             if (i < argc)
-                config.smoothing = std::stof(argv[i]);
+                g_config.smoothing = std::stof(argv[i]);
             continue;
         }
         if (strcmp(argv[i], "--timeout") == 0 || strcmp(argv[i], "-t") == 0)
         {
             i++;
             if (i < argc)
-                config.timeout = std::stof(argv[i]);
+                g_config.timeout = std::stof(argv[i]);
             continue;
         }
         if (strcmp(argv[i], "--renamechrome") == 0)
         {
-            config.renameChrome = false;
+            g_config.renameChrome = false;
             continue;
         }
 
@@ -186,43 +186,43 @@ void M2PConfig::handleArgs(int argc, char** argv)
             exit(EXIT_FAILURE);
         }
 
-        if (!config.input.empty())
+        if (!g_config.input.empty())
         {
             logger.error(std::string{ "Unknown argument: \"" } + argv[i] + "\"\n");
             exit(EXIT_FAILURE);
         }
-        config.input = argv[i];
+        g_config.input = argv[i];
     }
 
-    if (config.input.empty())
+    if (g_config.input.empty())
     {
         logger.log("Missing positional argument: input (.map/.rmf/.jmf/.obj file to convert)");
         logger.log(USAGE);
         exit(EXIT_FAILURE);
     }
 
-    if (!std::filesystem::exists(config.input))
+    if (!std::filesystem::exists(g_config.input))
     {
-        logger.error("Could not open file \"" + config.input + "\"");
+        logger.error("Could not open file \"" + g_config.input + "\"");
         exit(EXIT_FAILURE);
     }
 
-    config.inputFilepath = config.input;
-    config.inputDir = config.inputFilepath.parent_path();
+    g_config.inputFilepath = g_config.input;
+    g_config.inputDir = g_config.inputFilepath.parent_path();
 
-    if (!config.output.empty())
-        config.outputDir = config.output;
+    if (!g_config.output.empty())
+        g_config.outputDir = g_config.output;
     else
-        config.outputDir = config.inputDir;
+        g_config.outputDir = g_config.inputDir;
 
-    configFile.setGameConfig(config.gameConfig);
-    M2PUtils::extendVector(config.wadList, configFile.getWadList());
+    configFile.setGameConfig(g_config.gameConfig);
+    M2PUtils::extendVector(g_config.wadList, configFile.getWadList());
 
     std::string value;
     if (!(value = configFile.getConfig("game")).empty())
-        config.game = value;
+        g_config.game = value;
     if (!(value = configFile.getConfig("mod")).empty())
-        config.mod = value;
+        g_config.mod = value;
 
     logger.debug("Configs loaded");
 }

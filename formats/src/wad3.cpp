@@ -6,7 +6,7 @@
 
 
 static inline Logging::Logger& logger = Logging::Logger::getLogger("wad3reader");
-using M2PConfig::config;
+using M2PConfig::g_config;
 
 using namespace M2PWad3;
 using namespace M2PUtils;
@@ -33,7 +33,7 @@ textureMap Wad3Reader::getTextures() const { return m_textures; }
 
 ImageInfo::ImageInfo(const std::string& textureName)
 {
-	std::filesystem::path textureFile = config.outputDir / (textureName + ".bmp");
+	std::filesystem::path textureFile = g_config.outputDir / (textureName + ".bmp");
 	m_file.open(textureFile, std::ios::binary);
 	if (!m_file.is_open() || !m_file.good())
 	{

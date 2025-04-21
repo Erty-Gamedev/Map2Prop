@@ -33,7 +33,7 @@ namespace M2PConfig
         std::filesystem::path studiomdl;
         std::vector<std::filesystem::path> wadList;
     };
-    extern Config config;
+    extern Config g_config;
 
     void handleArgs(int, char**);
 }
