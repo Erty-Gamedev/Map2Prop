@@ -1,6 +1,9 @@
 #include <iostream>
+#include <fstream>
+#include <format>
 #include "config.h"
 #include "logging.h"
+#include "utils.h"
 
 
 const char* NAME = { "Map2Prop++ v0.1.0" };
@@ -35,66 +38,42 @@ QC options:
 
 
 using M2PConfig::config;
-M2PConfig::Config config = {
-    .autocompile = true,
-    .mapcompile = false,
-    .renameChrome = false,
-    .wadCache = 10,
-    .smoothing = 60.0f,
-    .timeout = 60.0f,
-    .qcScale = 1.0f,
-    .qcGamma = 1.8f,
-    .qcRotate = 0.0f,
-    .qcOffset = { 0.0f, 0.0f, 0.0f }
-};
+M2PConfig::Config config{};
+
 
 static Logging::Logger& logger = Logging::Logger::getLogger("map2prop");
 
 
-
-M2PConfig::ConfigFile::ConfigFile(const std::filesystem::path& configFile = "config.ini")
+static inline void loadFromFileConfig(const M2PConfig::ConfigFile& configFile)
 {
-    m_filepath = configFile;
+    std::string value;
+    if (!(value = configFile.getConfig("output directory")).empty())
+        config.outputDir = value;
 
-    m_file.open(m_filepath, std::ios::in);
-    if (!m_file.is_open() || !m_file.good())
-    {
-        m_file.close();
-        logger.info("Could not read config file \"" + m_filepath.string() + "\", creating default config file...");
+    if (!(value = configFile.getConfig("steam directory")).empty())
+        config.steamDir = value;
 
-        if (!createConfigFile())
-        {
-            logger.warning("Could not create default config file \"" + m_filepath.string() + "\"");
-        }
-    }
+    if (!(value = configFile.getConfig("game config")).empty())
+        config.gameConfig = value;
 
-    // TODO: Read from config file
+    if (!(value = configFile.getConfig("studiomdl")).empty())
+        config.studiomdl = value;
+
+    if (!(value = configFile.getConfig("autocompile")).empty())
+        config.autocompile = M2PUtils::strToBool(value);
+
+    if (!(value = configFile.getConfig("timeout")).empty())
+        config.timeout = std::stof(value);
+
+    if (!(value = configFile.getConfig("wad cache")).empty())
+        config.wadCache = std::stoi(value);
 }
-M2PConfig::ConfigFile::~ConfigFile()
-{
-    if (m_file.is_open())
-        m_file.close();
-}
-bool M2PConfig::ConfigFile::createConfigFile()
-{
-    return true;
-
-    m_file.open(m_filepath, std::ios::out);
-    if (!m_file.is_open() || !m_file.good())
-    {
-        m_file.close();
-        return false;
-    }
-
-    // TODO: Write default config file
-}
-
-
 
 
 void M2PConfig::handleArgs(int argc, char** argv)
 {
-    M2PConfig::ConfigFile configfile{};
+    M2PConfig::ConfigFile configFile{};
+    loadFromFileConfig(configFile);
 
     for (int i = 1; i < argc; i++)
     {
@@ -235,4 +214,15 @@ void M2PConfig::handleArgs(int argc, char** argv)
         config.outputDir = config.output;
     else
         config.outputDir = config.inputDir;
+
+    configFile.setGameConfig(config.gameConfig);
+    M2PUtils::extendVector(config.wadList, configFile.getWadList());
+
+    std::string value;
+    if (!(value = configFile.getConfig("game")).empty())
+        config.game = value;
+    if (!(value = configFile.getConfig("mod")).empty())
+        config.mod = value;
+
+    logger.debug("Configs loaded");
 }
