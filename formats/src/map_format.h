@@ -15,7 +15,8 @@ using namespace M2PEntity;
 
 namespace M2PMap
 {
-	
+	bool intersection3Planes(const HessianPlane&, const HessianPlane&, const HessianPlane&, Vector3&);
+	std::vector<Face> planesToFaces(const std::vector<Plane>&);
 
 	class MapReader
 	{
@@ -24,7 +25,6 @@ namespace M2PMap
 		~MapReader();
 		bool hasMissingTextures() const;
 	private:
-		bool m_missingTextures = false;
 		std::filesystem::path m_filepath;
 		std::filesystem::path m_outputDir;
 		std::ifstream m_file;

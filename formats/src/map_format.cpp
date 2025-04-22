@@ -4,6 +4,7 @@
 #include "map_format.h"
 #include "config.h"
 #include "logging.h"
+#include "utils.h"
 
 
 static inline Logging::Logger& logger = Logging::Logger::getLogger("mapreader");
@@ -45,29 +46,12 @@ void MapReader::parse()
 }
 
 
-
-
-static std::vector<std::string> split(std::string& str, const char delimiter = ' ')
-{
-	std::istringstream strStream{ str };
-	std::vector<std::string> segments;
-	std::string segment;
-	while (std::getline(strStream, segment, delimiter))
-	{
-		segments.push_back(segment);
-	}
-	return segments;
-}
-
-
 Entity MapReader::readEntity()
 {
 	Entity entity;
 	entity.raw += "{\n";
 
-	std::string key, value;
-
-	std::string line;
+	std::string line, key, value;
 	line.reserve(1024);
 	while (std::getline(m_file, line))
 	{
@@ -79,7 +63,7 @@ Entity MapReader::readEntity()
 		}
 		else if (line.starts_with('"'))
 		{
-			std::vector<std::string> parts = split(line, '"');
+			std::vector<std::string> parts = M2PUtils::split(line, '"');
 			if (parts.size() > 5)
 			{
 				logger.error("Invalid entity property: \"" + line + "\"");
@@ -110,6 +94,76 @@ Entity MapReader::readEntity()
 	return entity;
 }
 
+
+bool M2PMap::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersection)
+{
+	Vector3 n1 = p1.normal(); Vector3 n2 = p2.normal(); Vector3 n3 = p3.normal();
+	float d1 = p1.distance(); float d2 = p2.distance(); float d3 = p3.distance();
+
+	float denominator = n1.dot(n2.cross(n3));
+	if (abs(denominator) < c_EPSILON)
+		return false;
+
+	intersection = -(
+		-d1 * n2.cross(n3)
+		- d2 * n3.cross(n1)
+		- d3 * n1.cross(n2)
+	) / denominator;
+
+	return true;
+}
+
+static bool isPointOutsidePlanes(const std::vector<Plane>& planes, const Vector3& point)
+{
+	for (Plane plane : planes)
+	{
+		if (plane.pointRelation(point) > PointRelation::INFRONT)
+			return true;
+	}
+	return false;
+}
+
+std::vector<Face> M2PMap::planesToFaces(const std::vector<Plane>& planes)
+{
+	size_t numPlanes = planes.size();
+	std::vector<Face> faces(numPlanes, {});
+
+	for (int i = 0; i < numPlanes - 2; i++)
+	{
+		for (int j = i; j < numPlanes - 1; j++)
+		{
+			for (int k = j; k < numPlanes - 0; k++)
+			{
+				if (i == j && i == k)
+					continue;
+
+				Vector3 intersection;
+
+				if (!intersection3Planes(planes[i], planes[j], planes[k], intersection))
+					continue;
+
+				if (isPointOutsidePlanes(planes, intersection))
+					continue;
+
+				faces[i].vertices.push_back(intersection);
+				faces[j].vertices.push_back(intersection);
+				faces[k].vertices.push_back(intersection);
+
+				faces[i].texture = planes[i].texture();
+				faces[j].texture = planes[j].texture();
+				faces[k].texture = planes[k].texture();
+
+				faces[i].normal = planes[i].normal();
+				faces[j].normal = planes[j].normal();
+				faces[k].normal = planes[k].normal();
+			}
+		}
+	}
+
+	return faces;
+}
+
+
 Brush MapReader::readBrush()
 {
 	Brush brush;
@@ -126,7 +180,7 @@ Brush MapReader::readBrush()
 
 		if (line.starts_with('('))
 		{
-			std::vector<std::string> parts = split(line, ' ');
+			std::vector<std::string> parts = M2PUtils::split(line, ' ');
 			if (parts.size() != 31)
 			{
 				logger.error("Unexpected face data: \"" + line + "\"");
@@ -140,8 +194,9 @@ Brush MapReader::readBrush()
 			};
 			std::string textureName = parts[15];
 
-			if (!m_wadHandler.checkTexture(textureName))
-				m_missingTextures = true;
+
+			M2PWad3::ImageInfo& imageInfo = m_wadHandler.checkTexture(textureName);
+
 
 			int width, height;
 			if (m_wadHandler.isSkipTexture(textureName) || m_wadHandler.isToolTexture(textureName))
@@ -181,7 +236,10 @@ Brush MapReader::readBrush()
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	brush.faces = planesToFaces(planes);
+
 	return brush;
 }
 
-bool MapReader::hasMissingTextures() const { return m_missingTextures; }
+bool MapReader::hasMissingTextures() const { return m_wadHandler.hasMissingTextures(); }

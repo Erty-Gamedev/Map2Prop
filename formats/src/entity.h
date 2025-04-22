@@ -7,11 +7,9 @@ namespace M2PEntity
 {
     struct Face
     {
-        std::vector<M2PGeo::Vector3> points;
-        std::vector<M2PGeo::Vertex> vertices;
-        std::vector<M2PGeo::Polygon> polygons;
+        M2PGeo::Vector3 normal;
         M2PGeo::Texture texture;
-        M2PGeo::Vector3 m_normal;
+        std::vector<M2PGeo::Vector3> vertices;
     };
 
     struct Brush
