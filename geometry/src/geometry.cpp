@@ -90,7 +90,12 @@ bool Vector3::operator!=(const Vector3& other) const
 {
 	return !(*this == other);
 }
-std::ostream& operator<<(std::ostream& os, const Vector3& v)
+
+Vector3 M2PGeo::operator*(const float& lhs, const Vector3& rhs)
+{
+	return Vector3(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
+}
+std::ostream& M2PGeo::operator<<(std::ostream& os, const Vector3& v)
 {
 	os << std::format("Vector3D({:.2f}, {:.2f}, {:.2f})", v.x, v.y, v.z);
 	return os;
@@ -113,6 +118,8 @@ HessianPlane::HessianPlane(Vector3 normal, float distance)
 	m_normal = normal;
 	m_distance = distance;
 }
+Vector3 HessianPlane::normal() const { return m_normal; }
+float HessianPlane::distance() const { return m_distance; }
 float HessianPlane::distanceToPoint(Vector3 point) const
 {
 	return m_normal.dot(point - (m_normal * m_distance));
@@ -135,6 +142,7 @@ Plane::Plane(const Vector3 planePoints[3], const Texture& texture)
 
 	m_texture = texture;
 }
+Texture Plane::texture() const { return m_texture; }
 
 
 Vector3 M2PGeo::segmentsCross(const Vector3 planePoints[3])
