@@ -6,7 +6,7 @@
 #include <array>
 #include <map>
 #include "geometry.h"
-#include "wad3.h"
+#include "wad3handler.h"
 #include "entity.h"
 
 
