@@ -7,18 +7,18 @@ std::string M2PUtils::toLowerCase(std::string str)
 {
 	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) {
 		return std::tolower(c);
-		});
+	});
 	return str;
 }
 std::string M2PUtils::toUpperCase(std::string str)
 {
 	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) {
 		return std::toupper(c);
-		});
+	});
 	return str;
 }
 
-std::vector<std::string> M2PUtils::split(std::string& str, const char delimiter)
+std::vector<std::string> M2PUtils::split(const std::string& str, const char delimiter)
 {
 	std::istringstream strStream{ str };
 	std::vector<std::string> segments;
