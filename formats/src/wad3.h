@@ -76,12 +76,25 @@ namespace M2PWad3
     //typedef std::map<std::string, std::reference_wrapper<MMData>> textureMap;
     typedef std::map<std::string, MMData> textureMap;
 
+
+    struct Wad3Miptex
+    {
+        MMData data;
+    public:
+        bool save(const std::filesystem::path&) { return true; }
+        //ImageInfo getImageInfo() { return ImageInfo(std::pair(16, 16)); }
+    };
+
+
     class Wad3Reader
     {
     public:
+        Wad3Reader() {};
         Wad3Reader(const std::filesystem::path&);
         ~Wad3Reader();
-        textureMap getTextures() const;
+
+        //textureMap& getTextures() const;
+        std::string getFilename() const;
     private:
         std::filesystem::path m_filepath;
         textureMap m_textures;
@@ -101,6 +114,8 @@ namespace M2PWad3
     {
     public:
         int width, height;
+        ImageInfo() { width = 16; height = 16; }
+        ImageInfo(const std::pair<int, int>&);
         ImageInfo(const std::string&);
         ~ImageInfo();
     private:
@@ -110,9 +125,24 @@ namespace M2PWad3
     class Wad3Handler
     {
     public:
-        bool checkTexture(const std::string&);
+        ImageInfo& checkTexture(const std::string&);
+
         bool isSkipTexture(const std::string&);
         bool isToolTexture(const std::string&);
+        bool hasMissingTextures() const;
+
+        static ImageInfo& s_getImageInfo(const std::string&);
+    private:
+        bool m_missingTextures = false;
+        std::vector<std::string> m_checked;
+        std::map<std::filesystem::path, Wad3Reader> m_wads;
+
+        std::vector<std::filesystem::path>& getWadList();
+        Wad3Reader& getWad3Reader(const std::filesystem::path& wad);
+        Wad3Reader* checkWads(const std::string&);
+
+        static inline std::vector<std::filesystem::path> s_wadList;
+        static inline std::map<std::string, ImageInfo> s_images;
     };
 
 }
