@@ -97,7 +97,6 @@ Logger& Logger::getLogger(const std::string& loggerName)
 }
 
 
-
 LogHandler::LogHandler() { m_loglevel = LogLevel::LOG_INFO; }
 LogHandler::LogHandler(const LogLevel& loglevel) { m_loglevel = loglevel; }
 void LogHandler::setLevel(const LogLevel& loglevel) { m_loglevel = loglevel; }

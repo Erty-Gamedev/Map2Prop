@@ -12,7 +12,6 @@ namespace M2PWad3
     constexpr size_t c_MAXTEXTURENAME = 16;
     constexpr size_t c_MIPLEVELS = 4;
     constexpr size_t c_PALETTESIZE = 768;
-    constexpr size_t c_BMPPALETTESIZE = 256;
     constexpr size_t c_MAXMIPTEXSIZE = 16384 * 16384;
 
 #pragma pack(push, 1)
@@ -48,26 +47,6 @@ namespace M2PWad3
         std::uint32_t nWidth, nHeight;       // Extends of the texture
         std::uint32_t nOffsets[c_MIPLEVELS]; // Offsets to texture mipmaps
     };
-
-
-    struct MMData
-    {
-        std::uint32_t width, height;
-        unsigned char palette[c_PALETTESIZE];
-        std::vector<unsigned char> data;
-    };
-
-    //typedef std::map<std::string, std::reference_wrapper<MMData>> textureMap;
-    typedef std::map<std::string, MMData> textureMap;
-
-
-    struct Wad3Miptex
-    {
-        MMData data;
-    public:
-        bool save(const std::filesystem::path&) { return true; }
-        //ImageInfo getImageInfo() { return ImageInfo(std::pair(16, 16)); }
-    };
 #pragma pack(pop)
 
 
@@ -78,15 +57,16 @@ namespace M2PWad3
         Wad3Reader(const std::filesystem::path&);
         ~Wad3Reader();
 
-        //textureMap& getTextures() const;
         std::string getFilename() const;
-        bool containsTexture(const std::string& textureName);
+        bool contains(const std::string& textureName);
+        Wad3MipTex extract(const std::string& textureName, const std::filesystem::path& filepath);
     private:
         std::filesystem::path m_filepath;
-        textureMap m_textures;
+        std::vector<Wad3DirEntry> m_dirEntries;
         std::ifstream m_file;
+        std::ofstream m_outfile;
+
+        void open();
+        Wad3DirEntry* getDirEntry(const std::string& textureName);
     };
-
-    bool saveTexture(const MMData&, const std::filesystem::path&);
-
 }
