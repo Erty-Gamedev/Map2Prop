@@ -5,6 +5,8 @@
 
 static Logging::Logger& logger = Logging::Logger::getLogger("map2prop");
 
+// TODO: TOML style arrays?
+
 
 M2PConfig::ConfigFile::ConfigFile(const std::filesystem::path& configFile)
 {
