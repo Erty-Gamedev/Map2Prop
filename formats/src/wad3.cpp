@@ -42,8 +42,6 @@ Wad3Reader::~Wad3Reader()
 {
 	if (m_file.is_open())
 		m_file.close();
-	if (m_outfile.is_open())
-		m_outfile.close();
 }
 void M2PWad3::Wad3Reader::open()
 {

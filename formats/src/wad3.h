@@ -64,7 +64,6 @@ namespace M2PWad3
         std::filesystem::path m_filepath;
         std::vector<Wad3DirEntry> m_dirEntries;
         std::ifstream m_file;
-        std::ofstream m_outfile;
 
         void open();
         Wad3DirEntry* getDirEntry(const std::string& textureName);
