@@ -4,10 +4,18 @@
 #include <sstream>
 #include <algorithm>
 #include <vector>
+#include <array>
 
 namespace M2PUtils
 {
 	static inline const char* c_DEFAULT_TRIM = " \t";
+	static inline const std::array<std::string, 6> c_WADSKIPLIST{
+		"cached", "decals", "fonts",
+		"gfx", "spraypaint", "tempdecal"
+	};
+	static inline const std::array<std::string, 3> c_STEAMPIPES{
+		"_addon", "_hd", "_downloads"
+	};
 
 	std::string toLowerCase(std::string str);
 	std::string toUpperCase(std::string str);
@@ -20,6 +28,11 @@ namespace M2PUtils
 	bool contains(const std::vector<T>& vect, const T& needle)
 	{
 		return std::find(vect.begin(), vect.end(), needle) != vect.end();
+	}
+	template<typename T, size_t n>
+	bool contains(const std::array<T, n>& arr, const T& needle)
+	{
+		return std::find(arr.begin(), arr.end(), needle) != arr.end();
 	}
 	template<typename T>
 	void extendVector(std::vector<T>& first, const std::vector<T>& second)
