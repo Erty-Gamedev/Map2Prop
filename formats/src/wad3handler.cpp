@@ -41,28 +41,28 @@ ImageInfo::~ImageInfo()
 	if (m_file.is_open())
 		m_file.close();
 }
+std::ostream& M2PWad3::operator<<(std::ostream& os, const ImageInfo& info)
+{
+	os << std::format("ImageInfo({}, {})", info.width, info.height);
+	return os;
+}
 
 
-ImageInfo& Wad3Handler::s_getImageInfo(const std::string& textureName)
+ImageSize Wad3Handler::s_getImageInfo(const std::string& textureName)
 {
 	if (s_images.contains(textureName))
 		return s_images[textureName];
 
-	s_images.insert(std::pair{ textureName, textureName });
+	ImageInfo info{ textureName };
+	s_images[textureName] = { info.width, info.height };
+
+	//s_images.insert(std::pair{ textureName, ImageSize(info.width, info.height) });
 	return s_images[textureName];
 }
-
-std::vector<std::filesystem::path>& Wad3Handler::getWadList()
+std::ostream& M2PWad3::operator<<(std::ostream& os, const ImageSize& size)
 {
-	if (!m_wadpathList.empty())
-		return m_wadpathList;
-
-	if (!g_config.wadList.empty())
-	{
-		M2PUtils::extendVectorUnique(m_wadpathList, g_config.wadList);
-	}
-
-	return m_wadpathList;
+	os << std::format("ImageSize({}, {})", size.width, size.height);
+	return os;
 }
 
 Wad3Reader& Wad3Handler::getWad3Reader(const std::filesystem::path& wad)
@@ -72,35 +72,43 @@ Wad3Reader& Wad3Handler::getWad3Reader(const std::filesystem::path& wad)
 		// Remove the first element before inserting a new element if cache is full
 		if (g_config.wadCache > 0 && m_wadCache.size() >= g_config.wadCache)
 			m_wadCache.erase(m_wadCache.begin());
+
 		m_wadCache.insert(std::pair(wad, wad));
+
 	}
 	return m_wadCache[wad];
 }
 
 Wad3Reader* Wad3Handler::checkWads(const std::string& textureName)
 {
-	std::vector<std::filesystem::path> wadList = getWadList();
-	for (const std::filesystem::path& wad : wadList)
+	for (const std::filesystem::path& wad : g_config.wadList)
 	{
-		Wad3Reader& reader = getWad3Reader(wad);
-		if (reader.containsTexture(textureName))
+		try
 		{
-			if (!contains(m_usedWads, wad))
-				m_usedWads.push_back(wad);
-
+			Wad3Reader& reader = getWad3Reader(wad);
+			if (reader.contains(textureName))
+			{
+				if (!contains(m_usedWads, wad))
+					m_usedWads.push_back(wad);
+				return &reader;
+			}
+		}
+		catch (std::runtime_error&)
+		{
+			continue;
 		}
 	}
 	return nullptr;
 }
 
-ImageInfo& Wad3Handler::checkTexture(const std::string& textureName)
+ImageSize Wad3Handler::checkTexture(const std::string& textureName)
 {
 	if (s_images.contains(textureName))
 		return s_images[textureName];
 
 	if (isSkipTexture(textureName) || isToolTexture(textureName))
 	{
-		s_images.insert(std::pair{ textureName, std::pair(16, 16) });
+		s_images.insert(std::pair{ textureName, ImageSize(16, 16) });
 		return Wad3Handler::s_images[textureName];
 	}
 
@@ -128,8 +136,10 @@ ImageInfo& Wad3Handler::checkTexture(const std::string& textureName)
 
 	logger.info("Extracting " + textureName + " from " + reader->getFilename());
 
-	ImageInfo* info = new ImageInfo();
-	return *info;
+	Wad3MipTex miptex = reader->extract(textureName, g_config.outputDir);
+
+	s_images.insert(std::pair{ textureName, ImageSize((int)miptex.nWidth, (int)miptex.nHeight) });
+	return Wad3Handler::s_images[textureName];
 }
 bool Wad3Handler::isToolTexture(const std::string& textureName)
 {

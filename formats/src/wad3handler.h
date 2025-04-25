@@ -2,16 +2,13 @@
 
 #include <string>
 #include <vector>
+#include <format>
 #include <map>
 #include "wad3.h"
 
 
 namespace M2PWad3
 {
-    const std::vector< std::string> c_WADSKIPLIST{
-        "cached", "decals", "fonts",
-        "gfx", "spraypaint", "tempdecal"
-    };
     const std::vector< std::string> c_TOOLTEXTURES{
         "bevel", "boundingbox", "clipbevel",
         "clip", "contentwater", "origin"
@@ -32,32 +29,39 @@ namespace M2PWad3
         ImageInfo(const std::pair<int, int>&);
         ImageInfo(const std::string&);
         ~ImageInfo();
+
+        friend std::ostream& operator<<(std::ostream& os, const M2PWad3::ImageInfo& info);
     private:
         std::ifstream m_file;
+    };
+
+    struct ImageSize
+    {
+        int width = 16, height = 16;
+
+        friend std::ostream& operator<<(std::ostream& os, const M2PWad3::ImageSize& size);
     };
 
 
     class Wad3Handler
     {
     public:
-        ImageInfo& checkTexture(const std::string& textureName);
+        ImageSize checkTexture(const std::string& textureName);
 
         bool isSkipTexture(const std::string& textureName);
         bool isToolTexture(const std::string& textureName);
         bool hasMissingTextures() const;
 
-        static ImageInfo& s_getImageInfo(const std::string& textureName);
+        static ImageSize s_getImageInfo(const std::string& textureName);
     private:
         bool m_missingTextures = false;
         std::vector<std::string> m_checked;
         std::map<std::filesystem::path, Wad3Reader> m_wadCache;
-        std::vector<std::filesystem::path> m_wadpathList;
         std::vector<std::filesystem::path> m_usedWads;
 
-        std::vector<std::filesystem::path>& getWadList();
         Wad3Reader& getWad3Reader(const std::filesystem::path& wad);
         Wad3Reader* checkWads(const std::string&);
 
-        static inline std::map<std::string, ImageInfo> s_images;
+        static inline std::map<std::string, ImageSize> s_images;
     };
 }
