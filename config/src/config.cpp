@@ -70,8 +70,75 @@ static inline void loadFromFileConfig(const M2PConfig::ConfigFile& configFile)
 }
 
 
+static inline void findWadsInDir(const std::filesystem::path& dir)
+{
+    std::filesystem::path filepath;
+    std::string filestem;
+
+    for (auto const& dirEntry : std::filesystem::directory_iterator{ dir })
+    {
+        filepath = dirEntry.path();
+        if (M2PUtils::toLowerCase(filepath.extension().string()) != ".wad")
+            continue;
+        
+        filestem = M2PUtils::toLowerCase(filepath.stem().string());
+        if (M2PUtils::contains(M2PUtils::c_WADSKIPLIST, filestem))
+            continue;
+
+        if (M2PUtils::contains(g_config.wadList, filepath))
+            continue;
+
+        g_config.wadList.push_back(filepath);
+    }
+}
+
+
+static inline std::string unSteamPipe(std::string str)
+{
+    for (auto const& steampipe : M2PUtils::c_STEAMPIPES)
+    {
+        size_t matchPosition = str.rfind(steampipe);
+        if (matchPosition != std::string::npos)
+        {
+            str.replace(matchPosition, steampipe.length(), "");
+            return str;
+        }
+    }
+    return str;
+}
+
+
+static inline void populateWadList(M2PConfig::ConfigFile& configFile)
+{
+    M2PUtils::extendVectorUnique(g_config.wadList, configFile.getWadList());
+
+    // Find WADs in input directory and output directory
+    findWadsInDir(g_config.inputDir);
+    findWadsInDir(g_config.outputDir);
+
+    // Find WADs in mod directory
+    std::filesystem::path modDir;
+    std::filesystem::path gameDir = M2PConfig::gameDir();
+    std::string mod = unSteamPipe(g_config.mod);
+
+    modDir = { M2PConfig::gameDir() / mod };
+    if (std::filesystem::is_directory(modDir))
+        findWadsInDir(modDir);
+
+    // Check steampipes
+    for (const std::string& pipe : M2PUtils::c_STEAMPIPES)
+    {
+        modDir = { M2PConfig::gameDir() / (mod + pipe) };
+        if (std::filesystem::is_directory(modDir))
+            findWadsInDir(modDir);
+    }
+}
+
+
 void M2PConfig::handleArgs(int argc, char** argv)
 {
+    g_config.wadList.reserve(128);
+
     M2PConfig::ConfigFile configFile{};
     loadFromFileConfig(configFile);
 
@@ -216,7 +283,6 @@ void M2PConfig::handleArgs(int argc, char** argv)
         g_config.outputDir = g_config.inputDir;
 
     configFile.setGameConfig(g_config.gameConfig);
-    M2PUtils::extendVector(g_config.wadList, configFile.getWadList());
 
     std::string value;
     if (!(value = configFile.getConfig("game")).empty())
@@ -224,5 +290,16 @@ void M2PConfig::handleArgs(int argc, char** argv)
     if (!(value = configFile.getConfig("mod")).empty())
         g_config.mod = value;
 
+    populateWadList(configFile);
+
     logger.debug("Configs loaded");
+}
+
+std::filesystem::path M2PConfig::gameDir()
+{
+    return g_config.steamDir / "steamapps" / "common" / g_config.game;
+}
+std::filesystem::path M2PConfig::modDir()
+{
+    return gameDir() / g_config.mod;
 }

@@ -36,4 +36,7 @@ namespace M2PConfig
     extern Config g_config;
 
     void handleArgs(int, char**);
+
+    std::filesystem::path gameDir();
+    std::filesystem::path modDir();
 }
