@@ -4,6 +4,7 @@
 
 using namespace M2PGeo;
 
+
 Vector2 Vector2::zero()
 {
 	return Vector2(0.0f, 0.0f);
@@ -56,6 +57,11 @@ Vector3 Vector3::operator+(const Vector3& other) const
 {
 	return Vector3(x + other.x, y + other.y, z + other.z);
 }
+Vector3& M2PGeo::Vector3::operator+=(const Vector3& other)
+{
+	x += other.x;    y += other.y;    z += other.z;
+	return *this;
+}
 Vector3 Vector3::operator-() const
 {
 	return Vector3(-x, -y, -z);
@@ -63,6 +69,11 @@ Vector3 Vector3::operator-() const
 Vector3 Vector3::operator-(const Vector3& other) const
 {
 	return Vector3(x - other.x, y - other.y, z - other.z);
+}
+Vector3& M2PGeo::Vector3::operator-=(const Vector3& other)
+{
+	x -= other.x;    y -= other.y;    z -= other.z;
+	return *this;
 }
 Vector3 Vector3::operator*(const Vector3& other) const
 {
@@ -77,6 +88,10 @@ Vector3 Vector3::operator/(const Vector3& other) const
 	return Vector3(x / other.x, y / other.y, z / other.z);
 }
 Vector3 Vector3::operator/(const float other) const
+{
+	return Vector3(x / other, y / other, z / other);
+}
+Vector3 Vector3::operator/(const int other) const
 {
 	return Vector3(x / other, y / other, z / other);
 }
@@ -102,14 +117,23 @@ std::ostream& M2PGeo::operator<<(std::ostream& os, const Vector3& v)
 }
 
 
-Vector3 Polygon::normal() const
+//Vector3 Polygon::normal() const
+//{
+//	Vector3 cc[3]{};
+//	for (int i = 0; i < 3; ++i)
+//	{
+//		cc[i] = vertices[i].coord;
+//	}
+//	return segmentsCross(cc).normalised();
+//}
+
+
+UV M2PGeo::Texture::uvForPoint(const Vector3& point) const
 {
-	Vector3 cc[3]{};
-	for (int i = 0; i < 3; i++)
-	{
-		cc[i] = vertices[i].coord;
-	}
-	return segmentsCross(cc).normalised();
+	return {
+		.u = (point.dot(rightaxis) / width) / scalex + shiftx / width,
+		.v = (point.dot(downaxis) / height) / scaley + shifty / height
+	};
 }
 
 
@@ -117,6 +141,16 @@ HessianPlane::HessianPlane(Vector3 normal, float distance)
 {
 	m_normal = normal;
 	m_distance = distance;
+}
+HessianPlane::HessianPlane(const Vector3 planePoints[3])
+{
+	Vector3 reversed[3]{};
+	for (int i = 0; i < 3; ++i)
+	{
+		reversed[2 - i] = planePoints[i];
+	}
+	m_normal = planeNormal(reversed);
+	m_distance = m_normal.dot(reversed[0]);
 }
 Vector3 HessianPlane::normal() const { return m_normal; }
 float HessianPlane::distance() const { return m_distance; }
@@ -131,13 +165,15 @@ PointRelation HessianPlane::pointRelation(const Vector3& point) const
 		return PointRelation::ON_PLANE;
 	return m_distance > 0 ? PointRelation::INFRONT : PointRelation::BEHIND;
 }
+
+
 Plane::Plane(const Vector3 planePoints[3], const Texture& texture)
 {
 	for (int i = 0; i < 3; ++i)
 	{
-		m_planePoints[2-i] = planePoints[i];
+		m_planePoints[2 - i] = planePoints[i];
 	}
-	m_normal = segmentsCross(m_planePoints).normalised();
+	m_normal = planeNormal(m_planePoints);
 	m_distance = m_normal.dot(m_planePoints[0]);
 
 	m_texture = texture;
@@ -148,4 +184,69 @@ Texture Plane::texture() const { return m_texture; }
 Vector3 M2PGeo::segmentsCross(const Vector3 planePoints[3])
 {
 	return (planePoints[2] - planePoints[1]).cross(planePoints[0] - planePoints[1]);
+}
+
+Vector3 M2PGeo::planeNormal(const Vector3 planePoints[3])
+{
+	return (planePoints[2] - planePoints[1]).cross(planePoints[0] - planePoints[1]).normalised();
+}
+
+Vector3 M2PGeo::sumVectors(const std::vector<Vector3>& vectors)
+{
+	Vector3 sum = Vector3::zero();
+	for (const Vector3& vector : vectors)
+	{
+		sum += vector;
+	}
+	return sum;
+}
+
+Vector3 M2PGeo::geometricCenter(const std::vector<Vector3>& vectors)
+{
+	return sumVectors(vectors) / (int)vectors.size();
+}
+
+void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3& normal)
+{
+	size_t numVectors = vectors.size();
+	Vector3 center = geometricCenter(vectors);
+	std::vector<Vector3> rest;
+	rest.reserve(numVectors - 1);
+	rest.insert(rest.begin(), vectors.begin() + 1, vectors.end());
+	vectors.erase(vectors.begin() + 1, vectors.end());
+
+	Vector3 currentVect, vectOther;
+	HessianPlane plane;
+	float dotNormal, angleSmallest;
+	size_t indexSmallest;
+	while (vectors.size() < numVectors)
+	{
+		angleSmallest = -1.0f;
+		indexSmallest = -1;
+
+		currentVect = vectors.back();
+		Vector3 planePoints[3]{currentVect, center, center + normal};
+		plane = HessianPlane(planePoints);
+
+		for (int i = 0, numRest = rest.size(); i < numRest; ++i)
+		{
+			vectOther = rest[i];
+			dotNormal = (currentVect - center).normalised().dot((vectOther - center).normalised());
+
+			if (plane.pointRelation(vectOther) == PointRelation::INFRONT && dotNormal > angleSmallest)
+			{
+				angleSmallest = dotNormal;
+				indexSmallest = i;
+			}
+		}
+		vectors.push_back(rest[indexSmallest]);
+		rest.erase(rest.begin() + indexSmallest);
+	}
+
+	Vector3 sortedPlanePoints[3]{ vectors[0], vectors[1], vectors[2] };
+	Vector3 sortedNormal = planeNormal(sortedPlanePoints);
+	if (normal.dot(sortedNormal) < 0.0f)
+	{
+		std::reverse(vectors.begin(), vectors.end());
+	}
 }

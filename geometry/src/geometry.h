@@ -32,12 +32,15 @@ namespace M2PGeo {
         Vector3 normalised() const;
         Vector3 operator+() const;
         Vector3 operator+(const Vector3& other) const;
+        Vector3& operator+=(const Vector3& other);
         Vector3 operator-() const;
         Vector3 operator-(const Vector3& other) const;
+        Vector3& operator-=(const Vector3& other);
         Vector3 operator*(const Vector3& other) const;
         Vector3 operator*(const float other) const;
         Vector3 operator/(const Vector3& other) const;
         Vector3 operator/(const float other) const;
+        Vector3 operator/(const int other) const;
         bool operator==(const Vector3& other) const;
         bool operator!=(const Vector3& other) const;
 
@@ -54,20 +57,24 @@ namespace M2PGeo {
         bool flipped;
     };
 
-    struct Polygon
-    {
-        std::string texture_name;
-        bool flipped;
-        std::vector<Vertex> vertices;
-    public:
-        Vector3 normal() const;
-    };
+    //struct Polygon
+    //{
+    //    std::string texture_name;
+    //    bool flipped;
+    //    std::vector<Vertex> vertices;
+    //public:
+    //    Vector3 normal() const;
+    //};
+
+    struct UV { float u, v; };
 
     struct Texture
     {
         std::string name;
         float shiftx{}, shifty{}, angle{}, scalex{}, scaley{}, width{}, height{};
         Vector3 rightaxis{}, downaxis{};
+    public:
+        UV uvForPoint(const Vector3& point) const;
     };
 
     enum PointRelation
@@ -83,7 +90,8 @@ namespace M2PGeo {
         Vector3 m_normal;
         float m_distance;
     public:
-        HessianPlane(Vector3 normal, float distance);
+        HessianPlane(const Vector3 normal, float distance);
+        HessianPlane(const Vector3 planePoints[3]);
         HessianPlane() : HessianPlane({}, 0.0f) {};
         Vector3 normal() const;
         float distance() const;
@@ -102,4 +110,11 @@ namespace M2PGeo {
 
     Vector3 segmentsCross(const Vector3 planePoints[3]);
 
+    Vector3 planeNormal(const Vector3 planePoints[3]);
+
+    Vector3 sumVectors(const std::vector<Vector3>& vectors);
+
+    Vector3 geometricCenter(const std::vector<Vector3> &vectors);
+
+    void sortVectors(std::vector<Vector3> &vectors, const Vector3 &normal);
 }
