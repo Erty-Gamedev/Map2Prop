@@ -35,7 +35,7 @@ M2PConfig::ConfigFile::ConfigFile(const std::filesystem::path& configFile)
     int lineNumber = 0;
     while (std::getline(m_file, line))
     {
-        lineNumber++;
+        ++lineNumber;
 
         // Skip comments and empty lines
         if (line.starts_with("//") || line.starts_with(";")
@@ -75,7 +75,7 @@ M2PConfig::ConfigFile::ConfigFile(const std::filesystem::path& configFile)
             m_wadLists[currentConfig].emplace_back(value);
             while (std::getline(m_file, line))
             {
-                lineNumber++;
+                ++lineNumber;
 
                 M2PUtils::trim(line);
                 if (line.ends_with(','))

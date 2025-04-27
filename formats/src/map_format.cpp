@@ -128,11 +128,11 @@ std::vector<Face> M2PMap::planesToFaces(const std::vector<Plane>& planes)
 	size_t numPlanes = planes.size();
 	std::vector<Face> faces(numPlanes, {});
 
-	for (int i = 0; i < numPlanes - 2; i++)
+	for (int i = 0; i < numPlanes - 2; ++i)
 	{
-		for (int j = i; j < numPlanes - 1; j++)
+		for (int j = i; j < numPlanes - 1; ++j)
 		{
-			for (int k = j; k < numPlanes - 0; k++)
+			for (int k = j; k < numPlanes - 0; ++k)
 			{
 				if (i == j && i == k)
 					continue;

@@ -133,7 +133,7 @@ PointRelation HessianPlane::pointRelation(const Vector3& point) const
 }
 Plane::Plane(const Vector3 planePoints[3], const Texture& texture)
 {
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; ++i)
 	{
 		m_planePoints[2-i] = planePoints[i];
 	}

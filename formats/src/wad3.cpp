@@ -31,7 +31,7 @@ Wad3Reader::Wad3Reader(const std::filesystem::path& filepath)
 
 	m_file.seekg(header.nDirOffset, std::ios::beg);
 	m_dirEntries = std::vector<Wad3DirEntry>(header.nDir, {});
-	for (int i = 0; i < header.nDir; i++)
+	for (int i = 0; i < header.nDir; ++i)
 	{
 		m_file.read(reinterpret_cast<char*>(&(m_dirEntries[i])), sizeof(Wad3DirEntry));
 	}
@@ -120,7 +120,7 @@ Wad3MipTex Wad3Reader::extract(const std::string& textureName, const std::filesy
 	// Vertically flip data
 
 	size_t currentPos = (height - 1) * width;
-	for (int i = 0; i < height; i++)
+	for (int i = 0; i < height; ++i)
 	{
 		std::copy_n(&data[currentPos], width, &bmp.m_data[width * i]);
 		currentPos -= width;
@@ -130,7 +130,7 @@ Wad3MipTex Wad3Reader::extract(const std::string& textureName, const std::filesy
 
 	bmp.m_palette = std::vector<unsigned char>(c_BMPPALETTESIZE * 4);
 	BGRA bgra;
-	for (int i = 0, j = 0; i < c_BMPPALETTESIZE; i++)
+	for (int i = 0, j = 0; i < c_BMPPALETTESIZE; ++i)
 	{
 		bgra = {
 			palette[i * 3 + 2],

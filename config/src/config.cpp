@@ -142,7 +142,7 @@ void M2PConfig::handleArgs(int argc, char** argv)
     M2PConfig::ConfigFile configFile{};
     loadFromFileConfig(configFile);
 
-    for (int i = 1; i < argc; i++)
+    for (int i = 1; i < argc; ++i)
     {
         if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)
         {
@@ -167,28 +167,28 @@ void M2PConfig::handleArgs(int argc, char** argv)
         }
         if (strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0)
         {
-            i++;
+            ++i;
             if (i < argc)
                 g_config.output = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--gameconfig") == 0 || strcmp(argv[i], "-g") == 0)
         {
-            i++;
+            ++i;
             if (i < argc)
                 g_config.gameConfig = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--studiomdl") == 0 || strcmp(argv[i], "-m") == 0)
         {
-            i++;
+            ++i;
             if (i < argc)
                 g_config.studiomdl = argv[i];
             continue;
         }
         if (strcmp(argv[i], "--wadlist") == 0 || strcmp(argv[i], "-w") == 0)
         {
-            i++;
+            ++i;
             if (i < argc)
             {
                 std::filesystem::path wadListFilepath = argv[i];
@@ -221,21 +221,21 @@ void M2PConfig::handleArgs(int argc, char** argv)
         }
         if (strcmp(argv[i], "--wadcache") == 0 || strcmp(argv[i], "-n") == 0)
         {
-            i++;
+            ++;i
             if (i < argc)
                 g_config.wadCache = std::stoi(argv[i]);
             continue;
         }
         if (strcmp(argv[i], "--smoothing") == 0 || strcmp(argv[i], "-s") == 0)
         {
-            i++;
+            ++i;
             if (i < argc)
                 g_config.smoothing = std::stof(argv[i]);
             continue;
         }
         if (strcmp(argv[i], "--timeout") == 0 || strcmp(argv[i], "-t") == 0)
         {
-            i++;
+            ++i;
             if (i < argc)
                 g_config.timeout = std::stof(argv[i]);
             continue;
@@ -277,6 +277,8 @@ void M2PConfig::handleArgs(int argc, char** argv)
     g_config.inputFilepath = g_config.input;
     g_config.inputDir = g_config.inputFilepath.parent_path();
 
+    logger.info(g_config.input);
+
     if (!g_config.output.empty())
         g_config.outputDir = g_config.output;
     else
@@ -293,6 +295,9 @@ void M2PConfig::handleArgs(int argc, char** argv)
     populateWadList(configFile);
 
     logger.debug("Configs loaded");
+
+    if (g_config.mapcompile)
+        logger.info("Using --mapcompile");
 }
 
 std::filesystem::path M2PConfig::gameDir()
