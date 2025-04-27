@@ -221,7 +221,7 @@ void M2PConfig::handleArgs(int argc, char** argv)
         }
         if (strcmp(argv[i], "--wadcache") == 0 || strcmp(argv[i], "-n") == 0)
         {
-            ++;i
+            ++i;
             if (i < argc)
                 g_config.wadCache = std::stoi(argv[i]);
             continue;
