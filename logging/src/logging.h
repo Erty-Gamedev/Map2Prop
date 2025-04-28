@@ -4,7 +4,7 @@
 #include <iostream>
 #include <filesystem>
 #include <string>
-#include <map>
+#include <unordered_map>
 
 
 namespace Styling
@@ -50,7 +50,7 @@ namespace Logging
 		LOG_ERROR,
 	};
 
-	extern inline const std::map<LogLevel, const char*> c_LOGLEVELNAME{
+	extern inline const std::unordered_map<LogLevel, const char*> c_LOGLEVELNAME{
 		{LogLevel::LOG_DEBUG,   "DEBUG:   "},
 		{LogLevel::LOG_LOG,     ""         },
 		{LogLevel::LOG_INFO,    "INFO:    "},
@@ -183,7 +183,7 @@ namespace Logging
 		void setConsoleHandlerLevel(const LogLevel&);
 		void setFileHandlerLevel(const LogLevel&);
 	private:
-		static inline std::map<std::string, Logger> s_loggers {};
+		static inline std::unordered_map<std::string, Logger> s_loggers {};
 		static inline ConsoleHandler s_defaultConsoleHandler { DEFAULT_LOG_LEVEL };
 		static inline FileHandler s_defaultFileHandler;
 

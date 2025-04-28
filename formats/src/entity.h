@@ -7,16 +7,15 @@ namespace M2PEntity
 {
     struct Face
     {
-        M2PGeo::Vector3 normal;
+        M2PGeo::Vector3 normal{};
         M2PGeo::Texture texture;
-        std::vector<M2PGeo::Vector3> vertices;
+        std::vector<M2PGeo::Vector3> points;
+        std::vector<M2PGeo::Vertex> vertices;
     };
 
     struct Brush
     {
         std::vector<Face> faces;
-        std::vector<M2PGeo::Vector3> allPoints;
-        std::vector<M2PGeo::Vector3> allPolygons;
         std::vector<std::string> maskedTextures;
         std::string raw;
     public:
@@ -33,5 +32,13 @@ namespace M2PEntity
         std::vector<Brush> brushes;
         std::string raw;
         Entity();
+    };
+
+
+    class BaseReader
+    {
+    public:
+        virtual bool hasMissingTextures() const = 0;
+        virtual std::vector<Entity>& getEntities() = 0;
     };
 }

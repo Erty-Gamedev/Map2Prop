@@ -1,4 +1,3 @@
-#include <filesystem>
 #include <string>
 #include <sstream>
 #include "map_format.h"
@@ -10,6 +9,8 @@
 static inline Logging::Logger& logger = Logging::Logger::getLogger("mapreader");
 
 using namespace M2PMap;
+using namespace M2PGeo;
+using namespace M2PEntity;
 
 MapReader::MapReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir)
 {
@@ -95,7 +96,7 @@ Entity MapReader::readEntity()
 }
 
 
-bool M2PMap::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersection)
+bool M2PMap::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersectionOut)
 {
 	Vector3 n1 = p1.normal(); Vector3 n2 = p2.normal(); Vector3 n3 = p3.normal();
 	float d1 = p1.distance(); float d2 = p2.distance(); float d3 = p3.distance();
@@ -104,7 +105,7 @@ bool M2PMap::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2,
 	if (abs(denominator) < c_EPSILON)
 		return false;
 
-	intersection = -(
+	intersectionOut = -(
 		-d1 * n2.cross(n3)
 		- d2 * n3.cross(n1)
 		- d3 * n1.cross(n2)
@@ -145,9 +146,9 @@ std::vector<Face> M2PMap::planesToFaces(const std::vector<Plane>& planes)
 				if (isPointOutsidePlanes(planes, intersection))
 					continue;
 
-				faces[i].vertices.push_back(intersection);
-				faces[j].vertices.push_back(intersection);
-				faces[k].vertices.push_back(intersection);
+				faces[i].points.push_back(intersection);
+				faces[j].points.push_back(intersection);
+				faces[k].points.push_back(intersection);
 
 				faces[i].texture = planes[i].texture();
 				faces[j].texture = planes[j].texture();
@@ -158,6 +159,17 @@ std::vector<Face> M2PMap::planesToFaces(const std::vector<Plane>& planes)
 				faces[k].normal = planes[k].normal();
 			}
 		}
+	}
+
+	for (Face& face : faces)
+	{
+		sortVectors(face.points, face.normal);
+		for (auto const& point : face.points)
+		{
+			Vector2 uv = face.texture.uvForPoint(point);
+			face.vertices.emplace_back(point, face.normal, uv, false);
+		}
+
 	}
 
 	return faces;
@@ -195,21 +207,7 @@ Brush MapReader::readBrush()
 			std::string textureName = parts[15];
 
 
-			M2PWad3::ImageInfo& imageInfo = m_wadHandler.checkTexture(textureName);
-
-
-			int width, height;
-			if (m_wadHandler.isSkipTexture(textureName) || m_wadHandler.isToolTexture(textureName))
-			{
-				width = 16;
-				height = 16;
-			}
-			else
-			{
-				M2PWad3::ImageInfo imageInfo{ textureName };
-				width = imageInfo.width;
-				height = imageInfo.height;
-			}
+			M2PWad3::ImageSize imageInfo = m_wadHandler.checkTexture(textureName);
 
 			Texture texture{
 				.name = textureName,
@@ -218,8 +216,8 @@ Brush MapReader::readBrush()
 				.angle = std::stof(parts[28]),
 				.scalex = std::stof(parts[29]),
 				.scaley = std::stof(parts[30]),
-				.width = (float)width,
-				.height = (float)height,
+				.width = (float)imageInfo.width,
+				.height = (float)imageInfo.height,
 				.rightaxis = { std::stof(parts[17]), std::stof(parts[18]), std::stof(parts[19]) },
 				.downaxis = { std::stof(parts[23]), std::stof(parts[24]), std::stof(parts[25]) }
 			};
@@ -243,3 +241,7 @@ Brush MapReader::readBrush()
 }
 
 bool MapReader::hasMissingTextures() const { return m_wadHandler.hasMissingTextures(); }
+std::vector<Entity>& MapReader::getEntities()
+{
+	return m_entities;
+}

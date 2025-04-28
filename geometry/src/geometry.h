@@ -54,7 +54,7 @@ namespace M2PGeo {
     {
         Vector3 coord, normal;
         Vector2 uv;
-        bool flipped;
+        bool flipped = false;
     };
 
     //struct Polygon
@@ -66,15 +66,13 @@ namespace M2PGeo {
     //    Vector3 normal() const;
     //};
 
-    struct UV { float u, v; };
-
     struct Texture
     {
         std::string name;
         float shiftx{}, shifty{}, angle{}, scalex{}, scaley{}, width{}, height{};
         Vector3 rightaxis{}, downaxis{};
     public:
-        UV uvForPoint(const Vector3& point) const;
+        Vector2 uvForPoint(const Vector3& point) const;
     };
 
     enum PointRelation

@@ -4,6 +4,7 @@
 #include <vector>
 #include <format>
 #include <map>
+#include <unordered_map>
 #include "wad3.h"
 
 
@@ -47,12 +48,11 @@ namespace M2PWad3
     {
     public:
         ImageSize checkTexture(const std::string& textureName);
-
-        bool isSkipTexture(const std::string& textureName);
-        bool isToolTexture(const std::string& textureName);
         bool hasMissingTextures() const;
 
-        static ImageSize s_getImageInfo(const std::string& textureName);
+        static inline ImageSize s_getImageInfo(const std::string& textureName);
+        static bool inline isSkipTexture(const std::string& textureName);
+        static bool inline isToolTexture(const std::string& textureName);
     private:
         bool m_missingTextures = false;
         std::vector<std::string> m_checked;
@@ -62,6 +62,6 @@ namespace M2PWad3
         Wad3Reader& getWad3Reader(const std::filesystem::path& wad);
         Wad3Reader* checkWads(const std::string&);
 
-        static inline std::map<std::string, ImageSize> s_images;
+        static inline std::unordered_map<std::string, ImageSize> s_images;
     };
 }

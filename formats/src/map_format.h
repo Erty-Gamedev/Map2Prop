@@ -3,36 +3,38 @@
 #include <fstream>
 #include <filesystem>
 #include <vector>
-#include <array>
-#include <map>
 #include "geometry.h"
 #include "wad3handler.h"
 #include "entity.h"
 
 
-using namespace M2PGeo;
-using namespace M2PEntity;
-
 namespace M2PMap
 {
-	bool intersection3Planes(const HessianPlane&, const HessianPlane&, const HessianPlane&, Vector3&);
-	std::vector<Face> planesToFaces(const std::vector<Plane>&);
 
-	class MapReader
+	class MapReader : M2PEntity::BaseReader
 	{
 	public:
-		MapReader(const std::filesystem::path&, const std::filesystem::path&);
+		MapReader(const std::filesystem::path &filepath, const std::filesystem::path &outputDir);
 		~MapReader();
-		bool hasMissingTextures() const;
+		bool hasMissingTextures() const override;
+		std::vector<M2PEntity::Entity>& getEntities() override;
 	private:
 		std::filesystem::path m_filepath;
 		std::filesystem::path m_outputDir;
 		std::ifstream m_file;
-		std::vector<Entity> m_entities;
+		std::vector<M2PEntity::Entity> m_entities;
 		M2PWad3::Wad3Handler m_wadHandler;
 
 		void parse();
-		Entity readEntity();
-		Brush readBrush();
+		M2PEntity::Entity readEntity();
+		M2PEntity::Brush readBrush();
 	};
+
+
+	bool intersection3Planes(
+		const M2PGeo::HessianPlane &p1,
+		const M2PGeo::HessianPlane &p2,
+		const M2PGeo::HessianPlane &p3,
+		M2PGeo::Vector3 &intersectionOut);
+	std::vector<M2PEntity::Face> planesToFaces(const std::vector<M2PGeo::Plane> &planes);
 }

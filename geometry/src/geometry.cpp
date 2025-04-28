@@ -117,22 +117,11 @@ std::ostream& M2PGeo::operator<<(std::ostream& os, const Vector3& v)
 }
 
 
-//Vector3 Polygon::normal() const
-//{
-//	Vector3 cc[3]{};
-//	for (int i = 0; i < 3; ++i)
-//	{
-//		cc[i] = vertices[i].coord;
-//	}
-//	return segmentsCross(cc).normalised();
-//}
-
-
-UV M2PGeo::Texture::uvForPoint(const Vector3& point) const
+Vector2 M2PGeo::Texture::uvForPoint(const Vector3& point) const
 {
 	return {
-		.u = (point.dot(rightaxis) / width) / scalex + shiftx / width,
-		.v = (point.dot(downaxis) / height) / scaley + shifty / height
+		(point.dot(rightaxis) / width) / scalex + shiftx / width,
+		(point.dot(downaxis) / height) / scaley + shifty / height
 	};
 }
 
@@ -218,7 +207,7 @@ void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3& normal)
 	Vector3 currentVect, vectOther;
 	HessianPlane plane;
 	float dotNormal, angleSmallest;
-	size_t indexSmallest;
+	size_t indexSmallest, numRest;
 	while (vectors.size() < numVectors)
 	{
 		angleSmallest = -1.0f;
@@ -228,7 +217,8 @@ void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3& normal)
 		Vector3 planePoints[3]{currentVect, center, center + normal};
 		plane = HessianPlane(planePoints);
 
-		for (int i = 0, numRest = rest.size(); i < numRest; ++i)
+		numRest = rest.size();
+		for (int i = 0; i < numRest; ++i)
 		{
 			vectOther = rest[i];
 			dotNormal = (currentVect - center).normalised().dot((vectOther - center).normalised());
