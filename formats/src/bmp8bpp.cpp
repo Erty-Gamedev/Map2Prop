@@ -40,7 +40,7 @@ bool M2PBmp::BMP8Bpp::save(const std::filesystem::path& filepath)
 	m_file.write((char*)&m_header, sizeof(m_header));
 	m_file.write((char*)&m_infoHeader, sizeof(m_infoHeader));
 	m_file.write((char*)&m_palette[0], c_BMPPALETTESIZE * 4);
-	m_file.write((char*)&m_data[0], (size_t)m_infoHeader.width * m_infoHeader.height);
+	m_file.write((char*)&m_data[0], static_cast<size_t>(m_infoHeader.width) * m_infoHeader.height);
 
 	m_file.close();
 

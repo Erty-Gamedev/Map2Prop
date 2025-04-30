@@ -1,7 +1,6 @@
 #include <string>
 #include <sstream>
 #include "map_format.h"
-#include "config.h"
 #include "logging.h"
 #include "utils.h"
 
@@ -11,6 +10,7 @@ static inline Logging::Logger& logger = Logging::Logger::getLogger("mapreader");
 using namespace M2PMap;
 using namespace M2PGeo;
 using namespace M2PEntity;
+
 
 MapReader::MapReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir)
 {
@@ -50,13 +50,16 @@ void MapReader::parse()
 Entity MapReader::readEntity()
 {
 	Entity entity;
+
+	// Reseve .5M for worldspawn, 2048 otherwise
+	entity.raw.reserve((m_entities.size() == 0) ? static_cast<size_t>(5e5) : 2048);
 	entity.raw += "{\n";
 
 	std::string line, key, value;
-	line.reserve(1024);
+	line.reserve(512);
 	while (std::getline(m_file, line))
 	{
-		entity.raw += line;
+		entity.raw += line + "\n";
 
 		if (line.starts_with("//"))
 		{
@@ -74,12 +77,13 @@ Entity MapReader::readEntity()
 			value = parts.at(3);
 			if (key == "classname")
 				entity.classname = value;
-			entity.properties[key] = value;
+			entity.keyvalues.emplace_back(key, value);
 		}
 		else if (line.starts_with('{'))
 		{
-			Brush brush = readBrush();
+			Brush brush = readBrush(line);
 			entity.brushes.push_back(brush);
+			entity.raw += brush.raw;
 		}
 		else if (line.starts_with('}'))
 		{
@@ -96,102 +100,22 @@ Entity MapReader::readEntity()
 }
 
 
-bool M2PMap::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersectionOut)
-{
-	Vector3 n1 = p1.normal(); Vector3 n2 = p2.normal(); Vector3 n3 = p3.normal();
-	float d1 = p1.distance(); float d2 = p2.distance(); float d3 = p3.distance();
-
-	float denominator = n1.dot(n2.cross(n3));
-	if (abs(denominator) < c_EPSILON)
-		return false;
-
-	intersectionOut = -(
-		-d1 * n2.cross(n3)
-		- d2 * n3.cross(n1)
-		- d3 * n1.cross(n2)
-	) / denominator;
-
-	return true;
-}
-
-static bool isPointOutsidePlanes(const std::vector<Plane>& planes, const Vector3& point)
-{
-	for (Plane plane : planes)
-	{
-		if (plane.pointRelation(point) > PointRelation::INFRONT)
-			return true;
-	}
-	return false;
-}
-
-std::vector<Face> M2PMap::planesToFaces(const std::vector<Plane>& planes)
-{
-	size_t numPlanes = planes.size();
-	std::vector<Face> faces(numPlanes, {});
-
-	for (int i = 0; i < numPlanes - 2; ++i)
-	{
-		for (int j = i; j < numPlanes - 1; ++j)
-		{
-			for (int k = j; k < numPlanes - 0; ++k)
-			{
-				if (i == j && i == k)
-					continue;
-
-				Vector3 intersection;
-
-				if (!intersection3Planes(planes[i], planes[j], planes[k], intersection))
-					continue;
-
-				if (isPointOutsidePlanes(planes, intersection))
-					continue;
-
-				faces[i].points.push_back(intersection);
-				faces[j].points.push_back(intersection);
-				faces[k].points.push_back(intersection);
-
-				faces[i].texture = planes[i].texture();
-				faces[j].texture = planes[j].texture();
-				faces[k].texture = planes[k].texture();
-
-				faces[i].normal = planes[i].normal();
-				faces[j].normal = planes[j].normal();
-				faces[k].normal = planes[k].normal();
-			}
-		}
-	}
-
-	for (Face& face : faces)
-	{
-		sortVectors(face.points, face.normal);
-		for (auto const& point : face.points)
-		{
-			Vector2 uv = face.texture.uvForPoint(point);
-			face.vertices.emplace_back(point, face.normal, uv, false);
-		}
-
-	}
-
-	return faces;
-}
-
-
-Brush MapReader::readBrush()
+Brush MapReader::readBrush(std::string& line)
 {
 	Brush brush;
+	brush.raw.reserve(512);
 	brush.raw = "";
 	std::vector<Plane> planes;
 
-	std::string line;
-	line.reserve(1024);
 	while (std::getline(m_file, line))
 	{
 		if (line.starts_with("//"))
 			continue;
-		brush.raw += line;
 
 		if (line.starts_with('('))
 		{
+			brush.raw += line + "\n";
+
 			std::vector<std::string> parts = M2PUtils::split(line, ' ');
 			if (parts.size() != 31)
 			{
@@ -235,10 +159,89 @@ Brush MapReader::readBrush()
 		}
 	}
 
-	brush.faces = planesToFaces(planes);
+	planesToFaces(planes, brush.faces);
 
 	return brush;
 }
+
+
+bool M2PMap::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersectionOut)
+{
+	Vector3 n1 = p1.normal(); Vector3 n2 = p2.normal(); Vector3 n3 = p3.normal();
+	float d1 = p1.distance(); float d2 = p2.distance(); float d3 = p3.distance();
+
+	float denominator = n1.dot(n2.cross(n3));
+	if (abs(denominator) < c_EPSILON)
+		return false;
+
+	intersectionOut = -(
+		-d1 * n2.cross(n3)
+		- d2 * n3.cross(n1)
+		- d3 * n1.cross(n2)
+	) / denominator;
+
+	return true;
+}
+
+static bool isPointOutsidePlanes(const std::vector<Plane>& planes, const Vector3& point)
+{
+	for (const Plane& plane : planes)
+	{
+		if (plane.pointRelation(point) > PointRelation::INFRONT)
+			return true;
+	}
+	return false;
+}
+
+void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &faces)
+{
+	size_t numPlanes = planes.size();
+	faces.assign(numPlanes, {});
+
+	for (int i = 0; i < numPlanes - 2; ++i)
+	{
+		for (int j = i; j < numPlanes - 1; ++j)
+		{
+			for (int k = j; k < numPlanes - 0; ++k)
+			{
+				if (i == j && i == k)
+					continue;
+
+				Vector3 intersection;
+
+				if (!intersection3Planes(planes[i], planes[j], planes[k], intersection))
+					continue;
+
+				if (isPointOutsidePlanes(planes, intersection))
+					continue;
+
+				faces[i].points.push_back(intersection);
+				faces[j].points.push_back(intersection);
+				faces[k].points.push_back(intersection);
+
+				faces[i].texture = planes[i].texture();
+				faces[j].texture = planes[j].texture();
+				faces[k].texture = planes[k].texture();
+
+				faces[i].normal = planes[i].normal();
+				faces[j].normal = planes[j].normal();
+				faces[k].normal = planes[k].normal();
+			}
+		}
+	}
+
+	for (Face& face : faces)
+	{
+		sortVectors(face.points, face.normal);
+		for (auto const& point : face.points)
+		{
+			Vector2 uv = face.texture.uvForPoint(point);
+			face.vertices.emplace_back(point, face.normal, uv, false);
+		}
+
+	}
+}
+
 
 bool MapReader::hasMissingTextures() const { return m_wadHandler.hasMissingTextures(); }
 std::vector<Entity>& MapReader::getEntities()

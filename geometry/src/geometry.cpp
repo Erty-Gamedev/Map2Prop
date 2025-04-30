@@ -192,7 +192,7 @@ Vector3 M2PGeo::sumVectors(const std::vector<Vector3>& vectors)
 
 Vector3 M2PGeo::geometricCenter(const std::vector<Vector3>& vectors)
 {
-	return sumVectors(vectors) / (int)vectors.size();
+	return sumVectors(vectors) / static_cast<int>(vectors.size());
 }
 
 void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3& normal)

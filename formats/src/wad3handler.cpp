@@ -138,7 +138,10 @@ ImageSize Wad3Handler::checkTexture(const std::string& textureName)
 
 	Wad3MipTex miptex = reader->extract(textureName, g_config.outputDir);
 
-	s_images.insert(std::pair{ textureName, ImageSize((int)miptex.nWidth, (int)miptex.nHeight) });
+	s_images.insert(std::pair{
+		textureName,
+		ImageSize(static_cast<int>(miptex.nWidth), static_cast<int>(miptex.nHeight))
+	});
 	return Wad3Handler::s_images[textureName];
 }
 bool Wad3Handler::isToolTexture(const std::string& textureName)

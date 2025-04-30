@@ -27,7 +27,7 @@ namespace M2PMap
 
 		void parse();
 		M2PEntity::Entity readEntity();
-		M2PEntity::Brush readBrush();
+		M2PEntity::Brush readBrush(std::string& line);
 	};
 
 
@@ -36,5 +36,5 @@ namespace M2PMap
 		const M2PGeo::HessianPlane &p2,
 		const M2PGeo::HessianPlane &p3,
 		M2PGeo::Vector3 &intersectionOut);
-	std::vector<M2PEntity::Face> planesToFaces(const std::vector<M2PGeo::Plane> &planes);
+	void planesToFaces(const std::vector<M2PGeo::Plane> &planes, std::vector<M2PEntity::Face> &faces);
 }

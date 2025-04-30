@@ -28,10 +28,12 @@ namespace M2PEntity
     struct Entity
     {
         std::string classname;
-        std::map<std::string, std::string> properties;
+        std::vector< std::pair<std::string, std::string>> keyvalues;
         std::vector<Brush> brushes;
         std::string raw;
+    public:
         Entity();
+        std::string toString() const;
     };
 
 

@@ -114,7 +114,7 @@ Wad3MipTex Wad3Reader::extract(const std::string& textureName, const std::filesy
 
 	// Prepare data for BMP
 
-	BMP8Bpp bmp((int)width, (int)height);
+	BMP8Bpp bmp(static_cast<int>(width), static_cast<int>(height));
 	bmp.m_data = std::vector<unsigned char>(textureSize);
 
 	// Vertically flip data
