@@ -140,8 +140,8 @@ Brush MapReader::readBrush(std::string& line)
 				.angle = std::stof(parts[28]),
 				.scalex = std::stof(parts[29]),
 				.scaley = std::stof(parts[30]),
-				.width = (float)imageInfo.width,
-				.height = (float)imageInfo.height,
+				.width = imageInfo.width,
+				.height = imageInfo.height,
 				.rightaxis = { std::stof(parts[17]), std::stof(parts[18]), std::stof(parts[19]) },
 				.downaxis = { std::stof(parts[23]), std::stof(parts[24]), std::stof(parts[25]) }
 			};
@@ -168,9 +168,9 @@ Brush MapReader::readBrush(std::string& line)
 bool M2PMap::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersectionOut)
 {
 	Vector3 n1 = p1.normal(); Vector3 n2 = p2.normal(); Vector3 n3 = p3.normal();
-	float d1 = p1.distance(); float d2 = p2.distance(); float d3 = p3.distance();
+	FP d1 = p1.distance(); FP d2 = p2.distance(); FP d3 = p3.distance();
 
-	float denominator = n1.dot(n2.cross(n3));
+	FP denominator = n1.dot(n2.cross(n3));
 	if (abs(denominator) < c_EPSILON)
 		return false;
 

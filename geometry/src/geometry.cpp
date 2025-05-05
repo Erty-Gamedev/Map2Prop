@@ -9,17 +9,17 @@ Vector2 Vector2::zero()
 {
 	return Vector2(0.0f, 0.0f);
 }
-float Vector2::magnitude() const
+FP Vector2::magnitude() const
 {
 	return sqrt((x * x) + (y * y));
 }
-float Vector2::dot(const Vector2& other) const
+FP Vector2::dot(const Vector2& other) const
 {
 	return x * other.x + y * other.y;
 }
 Vector2 Vector2::normalised() const
 {
-	float mag = magnitude();
+	FP mag = magnitude();
 	return { x / mag, y / mag };
 }
 
@@ -28,11 +28,11 @@ Vector3 Vector3::zero()
 {
 	return Vector3(0.0f, 0.0f, 0.0f);
 }
-float Vector3::magnitude() const
+FP Vector3::magnitude() const
 {
 	return sqrt((x * x) + (y * y) + (z * z));
 }
-float Vector3::dot(const Vector3& other) const
+FP Vector3::dot(const Vector3& other) const
 {
 	return x * other.x + y * other.y + z * other.z;
 }
@@ -46,7 +46,7 @@ Vector3 Vector3::cross(const Vector3& other) const
 }
 Vector3 Vector3::normalised() const
 {
-	float mag = magnitude();
+	FP mag = magnitude();
 	return Vector3(x / mag, y / mag, z / mag);
 }
 Vector3 Vector3::operator+() const
@@ -79,7 +79,7 @@ Vector3 Vector3::operator*(const Vector3& other) const
 {
 	return Vector3(x * other.x, y * other.y, z * other.z);
 }
-Vector3 Vector3::operator*(const float other) const
+Vector3 Vector3::operator*(const FP other) const
 {
 	return Vector3(x * other, y * other, z * other);
 }
@@ -87,7 +87,7 @@ Vector3 Vector3::operator/(const Vector3& other) const
 {
 	return Vector3(x / other.x, y / other.y, z / other.z);
 }
-Vector3 Vector3::operator/(const float other) const
+Vector3 Vector3::operator/(const FP other) const
 {
 	return Vector3(x / other, y / other, z / other);
 }
@@ -106,7 +106,7 @@ bool Vector3::operator!=(const Vector3& other) const
 	return !(*this == other);
 }
 
-Vector3 M2PGeo::operator*(const float& lhs, const Vector3& rhs)
+Vector3 M2PGeo::operator*(const FP& lhs, const Vector3& rhs)
 {
 	return Vector3(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
 }
@@ -126,7 +126,7 @@ Vector2 M2PGeo::Texture::uvForPoint(const Vector3& point) const
 }
 
 
-HessianPlane::HessianPlane(Vector3 normal, float distance)
+HessianPlane::HessianPlane(Vector3 normal, FP distance)
 {
 	m_normal = normal;
 	m_distance = distance;
@@ -142,14 +142,14 @@ HessianPlane::HessianPlane(const Vector3 planePoints[3])
 	m_distance = m_normal.dot(reversed[0]);
 }
 Vector3 HessianPlane::normal() const { return m_normal; }
-float HessianPlane::distance() const { return m_distance; }
-float HessianPlane::distanceToPoint(Vector3 point) const
+FP HessianPlane::distance() const { return m_distance; }
+FP HessianPlane::distanceToPoint(Vector3 point) const
 {
 	return m_normal.dot(point - (m_normal * m_distance));
 }
 PointRelation HessianPlane::pointRelation(const Vector3& point) const
 {
-	float m_distance = distanceToPoint(point);
+	FP m_distance = distanceToPoint(point);
 	if (abs(m_distance) < M2PGeo::c_EPSILON)
 		return PointRelation::ON_PLANE;
 	return m_distance > 0 ? PointRelation::INFRONT : PointRelation::BEHIND;
@@ -206,7 +206,7 @@ void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3& normal)
 
 	Vector3 currentVect, vectOther;
 	HessianPlane plane;
-	float dotNormal, angleSmallest;
+	FP dotNormal, angleSmallest;
 	size_t indexSmallest, numRest;
 	while (vectors.size() < numVectors)
 	{
