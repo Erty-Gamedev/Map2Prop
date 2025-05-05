@@ -41,7 +41,7 @@ using M2PConfig::g_config;
 M2PConfig::Config g_config{};
 
 
-static Logging::Logger& logger = Logging::Logger::getLogger("map2prop");
+static Logging::Logger& logger = Logging::Logger::getLogger("config");
 
 
 static inline void loadFromFileConfig(const M2PConfig::ConfigFile& configFile)

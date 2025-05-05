@@ -17,8 +17,8 @@ namespace M2PUtils
 		"_addon", "_hd", "_downloads"
 	};
 
-	std::string toLowerCase(std::string str);
-	std::string toUpperCase(std::string str);
+	std::string& toLowerCase(std::string str);
+	std::string& toUpperCase(std::string str);
 	std::vector<std::string> split(const std::string& str, const char delimiter = ' ');
 	void trim(std::string& str, const char* trim = c_DEFAULT_TRIM);
 	bool strToBool(std::string str);

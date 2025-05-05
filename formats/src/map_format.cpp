@@ -67,7 +67,7 @@ Entity MapReader::readEntity()
 		}
 		else if (line.starts_with('"'))
 		{
-			std::vector<std::string> parts = M2PUtils::split(line, '"');
+			const std::vector<std::string>& parts = M2PUtils::split(line, '"');
 			if (parts.size() > 5)
 			{
 				logger.error("Invalid entity property: \"" + line + "\"");
@@ -116,7 +116,7 @@ Brush MapReader::readBrush(std::string& line)
 		{
 			brush.raw += line + "\n";
 
-			std::vector<std::string> parts = M2PUtils::split(line, ' ');
+			const std::vector<std::string>& parts = M2PUtils::split(line, ' ');
 			if (parts.size() != 31)
 			{
 				logger.error("Unexpected face data: \"" + line + "\"");

@@ -3,7 +3,7 @@
 #include "utils.h"
 
 
-static Logging::Logger& logger = Logging::Logger::getLogger("map2prop");
+static Logging::Logger& logger = Logging::Logger::getLogger("config");
 
 // TODO: TOML style arrays?
 
@@ -42,7 +42,7 @@ M2PConfig::ConfigFile::ConfigFile(const std::filesystem::path& configFile)
             || line.starts_with("#") || line.empty())
             continue;
 
-        std::vector<std::string> parts = M2PUtils::split(line, '=');
+        const std::vector<std::string>& parts = M2PUtils::split(line, '=');
         if (parts.empty())
         {
             logger.warning(std::format(
