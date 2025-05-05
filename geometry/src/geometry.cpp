@@ -13,15 +13,24 @@ FP Vector2::magnitude() const
 {
 	return sqrt((x * x) + (y * y));
 }
-FP Vector2::dot(const Vector2& other) const
+FP Vector2::dot(const Vector2 &other) const
 {
 	return x * other.x + y * other.y;
+}
+FP M2PGeo::Vector2::cross(const Vector2 &other) const
+{
+	return x * other.y - y * other.x;
 }
 Vector2 Vector2::normalised() const
 {
 	FP mag = magnitude();
 	return { x / mag, y / mag };
 }
+bool Vector2::operator==(const Vector2& other) const
+{
+	return abs(x - other.x) < c_EPSILON && abs(y - other.y) < c_EPSILON;
+}
+bool Vector2::operator!=(const Vector2& other) const { return !(*this == other); }
 
 
 Vector3 Vector3::zero()
@@ -101,10 +110,7 @@ bool Vector3::operator==(const Vector3& other) const
 		&& abs(y - other.y) < c_EPSILON
 		&& abs(z - other.z) < c_EPSILON;
 }
-bool Vector3::operator!=(const Vector3& other) const
-{
-	return !(*this == other);
-}
+bool Vector3::operator!=(const Vector3& other) const { return !(*this == other); }
 
 Vector3 M2PGeo::operator*(const FP& lhs, const Vector3& rhs)
 {
@@ -115,6 +121,15 @@ std::ostream& M2PGeo::operator<<(std::ostream& os, const Vector3& v)
 	os << std::format("Vector3D({:.2f}, {:.2f}, {:.2f})", v.x, v.y, v.z);
 	return os;
 }
+
+
+bool Vertex::operator==(const Vertex& other) const
+{
+	// TODO: Do we need to check if both are flipped?
+	return uv == other.uv && normal == other.normal && static_cast<Vector3>(*this) == static_cast<Vector3>(other);
+}
+bool Vertex::operator!=(const Vertex& other) const { return !(*this == other); }
+
 
 
 Vector2 M2PGeo::Texture::uvForPoint(const Vector3& point) const
@@ -180,7 +195,7 @@ Vector3 M2PGeo::planeNormal(const Vector3 planePoints[3])
 	return (planePoints[2] - planePoints[1]).cross(planePoints[0] - planePoints[1]).normalised();
 }
 
-Vector3 M2PGeo::sumVectors(const std::vector<Vector3>& vectors)
+Vector3 M2PGeo::sumVectors(const std::vector<Vector3> &vectors)
 {
 	Vector3 sum = Vector3::zero();
 	for (const Vector3& vector : vectors)
@@ -189,13 +204,26 @@ Vector3 M2PGeo::sumVectors(const std::vector<Vector3>& vectors)
 	}
 	return sum;
 }
+Vector3 M2PGeo::sumVertices(const std::vector<Vertex> &vertices)
+{
+	Vector3 sum = Vector3::zero();
+	for (const Vertex& vertex : vertices)
+	{
+		sum += vertex;
+	}
+	return sum;
+}
 
-Vector3 M2PGeo::geometricCenter(const std::vector<Vector3>& vectors)
+Vector3 M2PGeo::geometricCenter(const std::vector<Vector3> &vectors)
 {
 	return sumVectors(vectors) / static_cast<int>(vectors.size());
 }
+Vector3 M2PGeo::geometricCenter(const std::vector<Vertex> &vertices)
+{
+	return sumVertices(vertices) / static_cast<int>(vertices.size());
+}
 
-void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3& normal)
+void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3 &normal)
 {
 	size_t numVectors = vectors.size();
 	Vector3 center = geometricCenter(vectors);
@@ -240,3 +268,50 @@ void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3& normal)
 		std::reverse(vectors.begin(), vectors.end());
 	}
 }
+
+void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
+{
+	size_t numVectors = vertices.size();
+	Vector3 center = geometricCenter(vertices);
+	std::vector<Vertex> rest;
+	rest.reserve(numVectors - 1);
+	rest.insert(rest.begin(), vertices.begin() + 1, vertices.end());
+	vertices.erase(vertices.begin() + 1, vertices.end());
+
+	Vector3 currentVect, vectOther;
+	HessianPlane plane;
+	FP dotNormal, angleSmallest;
+	size_t indexSmallest, numRest;
+	while (vertices.size() < numVectors)
+	{
+		angleSmallest = -1.0f;
+		indexSmallest = -1;
+
+		currentVect = static_cast<Vector3>(vertices.back());
+		Vector3 planePoints[3]{ currentVect, center, center + normal };
+		plane = HessianPlane(planePoints);
+
+		numRest = rest.size();
+		for (int i = 0; i < numRest; ++i)
+		{
+			vectOther = static_cast<Vector3>(rest[i]);
+			dotNormal = (currentVect - center).normalised().dot((vectOther - center).normalised());
+
+			if (plane.pointRelation(vectOther) == PointRelation::INFRONT && dotNormal > angleSmallest)
+			{
+				angleSmallest = dotNormal;
+				indexSmallest = i;
+			}
+		}
+		vertices.push_back(rest[indexSmallest]);
+		rest.erase(rest.begin() + indexSmallest);
+	}
+
+	Vector3 sortedPlanePoints[3]{ vertices[0], vertices[1], vertices[2] };
+	Vector3 sortedNormal = planeNormal(sortedPlanePoints);
+	if (normal.dot(sortedNormal) < 0.0f)
+	{
+		std::reverse(vertices.begin(), vertices.end());
+	}
+}
+

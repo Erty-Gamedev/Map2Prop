@@ -7,9 +7,9 @@ using FP = float;
 
 namespace M2PGeo {
     /*
-    * While various project file formats allow for much longer names,
-    * texture names are ultimately limited by the 15 character limit of WAD.
-    */ 
+     * While various project file formats allow for much longer names,
+     * texture names are ultimately limited by the 15 character limit of WAD.
+     */
     constexpr int c_MAX_TEXTURE_NAME = 16;
     constexpr FP c_EPSILON = 1.0f / 1024.0f;
     constexpr int c_MAP_DIGITS_PRECISION = 6;
@@ -19,15 +19,23 @@ namespace M2PGeo {
         FP x, y;
     public:
         FP magnitude() const;
-        FP dot(const Vector2& other) const;
+        FP dot(const Vector2 &other) const;
+        /**
+         * Pseudo-cross product
+         * @return >0 if other is to the left, <0 if it's on the right
+         */
+        FP cross(const Vector2 &other) const;
         Vector2 normalised() const;
+        bool operator==(const Vector2& other) const;
+        bool operator!=(const Vector2& other) const;
+
         static Vector2 zero();
     };
 
-    struct Vector3
+    class Vector3
     {
-        FP x, y, z;
     public:
+        FP x, y, z;
         FP magnitude() const;
         FP dot(const Vector3& other) const;
         Vector3 cross(const Vector3& other) const;
@@ -52,21 +60,28 @@ namespace M2PGeo {
         static Vector3 zero();
     };
 
-    struct Vertex
+    class Vertex : public Vector3
     {
-        Vector3 coord, normal;
+    public:
+        FP x, y, z;
         Vector2 uv;
+        Vector3 normal;
         bool flipped = false;
+        Vertex(FP x, FP y, FP z) : Vector3(x, y, z) { uv = Vector2::zero(); normal = Vector3::zero(); };
+        Vertex(const Vector3& point) : Vertex(point.x, point.y, point.z) {};
+        bool operator==(const Vertex &other) const;
+        bool operator!=(const Vertex &other) const;
+
+        Vector3 coord() { return Vector3{x, y, z}; };
     };
 
-    //struct Polygon
-    //{
-    //    std::string texture_name;
-    //    bool flipped;
-    //    std::vector<Vertex> vertices;
-    //public:
-    //    Vector3 normal() const;
-    //};
+    struct Triangle
+    {
+        bool flipped;
+        Vertex vertices[3];
+        M2PGeo::Vector3 normal;
+        char texture_name[c_MAX_TEXTURE_NAME];
+    };
 
     struct Texture
     {
@@ -113,9 +128,13 @@ namespace M2PGeo {
 
     Vector3 planeNormal(const Vector3 planePoints[3]);
 
-    Vector3 sumVectors(const std::vector<Vector3>& vectors);
+    Vector3 sumVectors(const std::vector<Vector3> &vectors);
+    Vector3 sumVertices(const std::vector<Vertex>& vertices);
 
     Vector3 geometricCenter(const std::vector<Vector3> &vectors);
+    Vector3 geometricCenter(const std::vector<Vertex> &vertices);
 
     void sortVectors(std::vector<Vector3> &vectors, const Vector3 &normal);
+    void sortVertices(std::vector<Vertex> &vertices, const Vector3 &normal);
+
 }
