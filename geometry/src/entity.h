@@ -40,7 +40,8 @@ namespace M2PEntity
     class BaseReader
     {
     public:
+        std::vector<Entity> entities;
+
         virtual bool hasMissingTextures() const = 0;
-        virtual std::vector<Entity>& getEntities() = 0;
     };
 }
