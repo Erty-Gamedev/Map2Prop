@@ -41,7 +41,7 @@ void MapReader::parse()
 		if (line.starts_with('{'))
 		{
 			Entity entity = readEntity();
-			m_entities.push_back(entity);
+			entities.push_back(entity);
 		}
 	}
 }
@@ -52,7 +52,7 @@ Entity MapReader::readEntity()
 	Entity entity;
 
 	// Reseve .5M for worldspawn, 2048 otherwise
-	entity.raw.reserve((m_entities.size() == 0) ? static_cast<size_t>(5e5) : 2048);
+	entity.raw.reserve((entities.size() == 0) ? static_cast<size_t>(5e5) : 2048);
 	entity.raw += "{\n";
 
 	std::string line, key, value;
@@ -193,10 +193,10 @@ static bool isPointOutsidePlanes(const std::vector<Plane>& planes, const Vector3
 	return false;
 }
 
-void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &faces)
+void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &facesOut)
 {
 	size_t numPlanes = planes.size();
-	faces.assign(numPlanes, {});
+	facesOut.assign(numPlanes, {});
 
 	for (int i = 0; i < numPlanes - 2; ++i)
 	{
@@ -215,22 +215,22 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 				if (isPointOutsidePlanes(planes, intersection))
 					continue;
 
-				faces[i].points.push_back(intersection);
-				faces[j].points.push_back(intersection);
-				faces[k].points.push_back(intersection);
+				facesOut[i].points.push_back(intersection);
+				facesOut[j].points.push_back(intersection);
+				facesOut[k].points.push_back(intersection);
 
-				faces[i].texture = planes[i].texture();
-				faces[j].texture = planes[j].texture();
-				faces[k].texture = planes[k].texture();
+				facesOut[i].texture = planes[i].texture();
+				facesOut[j].texture = planes[j].texture();
+				facesOut[k].texture = planes[k].texture();
 
-				faces[i].normal = planes[i].normal();
-				faces[j].normal = planes[j].normal();
-				faces[k].normal = planes[k].normal();
+				facesOut[i].normal = planes[i].normal();
+				facesOut[j].normal = planes[j].normal();
+				facesOut[k].normal = planes[k].normal();
 			}
 		}
 	}
 
-	for (Face& face : faces)
+	for (Face& face : facesOut)
 	{
 		sortVectors(face.points, face.normal);
 		for (auto const& point : face.points)
@@ -244,7 +244,4 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 
 
 bool MapReader::hasMissingTextures() const { return m_wadHandler.hasMissingTextures(); }
-std::vector<Entity>& MapReader::getEntities()
-{
-	return m_entities;
-}
+

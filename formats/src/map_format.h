@@ -11,18 +11,16 @@
 namespace M2PMap
 {
 
-	class MapReader : M2PEntity::BaseReader
+	class MapReader : public M2PEntity::BaseReader
 	{
 	public:
 		MapReader(const std::filesystem::path &filepath, const std::filesystem::path &outputDir);
 		~MapReader();
 		bool hasMissingTextures() const override;
-		std::vector<M2PEntity::Entity>& getEntities() override;
 	private:
 		std::filesystem::path m_filepath;
 		std::filesystem::path m_outputDir;
 		std::ifstream m_file;
-		std::vector<M2PEntity::Entity> m_entities;
 		M2PWad3::Wad3Handler m_wadHandler;
 
 		void parse();
