@@ -215,9 +215,9 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 				if (isPointOutsidePlanes(planes, intersection))
 					continue;
 
-				facesOut[i].points.push_back(intersection);
-				facesOut[j].points.push_back(intersection);
-				facesOut[k].points.push_back(intersection);
+				facesOut[i].vertices.emplace_back(intersection);
+				facesOut[j].vertices.emplace_back(intersection);
+				facesOut[k].vertices.emplace_back(intersection);
 
 				facesOut[i].texture = planes[i].texture();
 				facesOut[j].texture = planes[j].texture();
@@ -232,13 +232,12 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 
 	for (Face& face : facesOut)
 	{
-		sortVectors(face.points, face.normal);
-		for (auto const& point : face.points)
+		sortVertices(face.vertices, face.normal);
+		for (M2PGeo::Vertex &vertex : face.vertices)
 		{
-			Vector2 uv = face.texture.uvForPoint(point);
-			face.vertices.emplace_back(point, face.normal, uv, false);
+			vertex.uv = face.texture.uvForPoint(vertex);
+			vertex.normal = face.normal;
 		}
-
 	}
 }
 

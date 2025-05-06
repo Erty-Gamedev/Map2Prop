@@ -126,7 +126,7 @@ std::ostream& M2PGeo::operator<<(std::ostream& os, const Vector3& v)
 bool Vertex::operator==(const Vertex& other) const
 {
 	// TODO: Do we need to check if both are flipped?
-	return uv == other.uv && normal == other.normal && static_cast<Vector3>(*this) == static_cast<Vector3>(other);
+	return uv == other.uv && normal == other.normal && (*this).coord() == other.coord();
 }
 bool Vertex::operator!=(const Vertex& other) const { return !(*this == other); }
 
@@ -209,7 +209,7 @@ Vector3 M2PGeo::sumVertices(const std::vector<Vertex> &vertices)
 	Vector3 sum = Vector3::zero();
 	for (const Vertex& vertex : vertices)
 	{
-		sum += vertex;
+		sum += vertex.coord();
 	}
 	return sum;
 }
@@ -287,14 +287,14 @@ void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
 		angleSmallest = -1.0f;
 		indexSmallest = -1;
 
-		currentVect = static_cast<Vector3>(vertices.back());
+		currentVect = vertices.back().coord();
 		Vector3 planePoints[3]{ currentVect, center, center + normal };
 		plane = HessianPlane(planePoints);
 
 		numRest = rest.size();
 		for (int i = 0; i < numRest; ++i)
 		{
-			vectOther = static_cast<Vector3>(rest[i]);
+			vectOther = rest[i].coord();
 			dotNormal = (currentVect - center).normalised().dot((vectOther - center).normalised());
 
 			if (plane.pointRelation(vectOther) == PointRelation::INFRONT && dotNormal > angleSmallest)

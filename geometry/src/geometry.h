@@ -40,6 +40,8 @@ namespace M2PGeo {
         FP dot(const Vector3& other) const;
         Vector3 cross(const Vector3& other) const;
         Vector3 normalised() const;
+        Vector3() : x(0), y(0), z(0) {}
+        Vector3(FP _x, FP _y, FP _z) : x(_x), y(_y), z(_z) {}
         Vector3 operator+() const;
         Vector3 operator+(const Vector3& other) const;
         Vector3& operator+=(const Vector3& other);
@@ -63,16 +65,16 @@ namespace M2PGeo {
     class Vertex : public Vector3
     {
     public:
-        FP x, y, z;
-        Vector2 uv;
-        Vector3 normal;
+        Vector2 uv = Vector2::zero();
+        Vector3 normal = Vector3::zero();
         bool flipped = false;
-        Vertex(FP x, FP y, FP z) : Vector3(x, y, z) { uv = Vector2::zero(); normal = Vector3::zero(); };
-        Vertex(const Vector3& point) : Vertex(point.x, point.y, point.z) {};
+        Vertex() : Vector3() {};
+        Vertex(FP _x, FP _y, FP _z) : Vector3(_x, _y, _z) {}
+        Vertex(const Vector3& point) { x = point.x; y = point.y; z = point.z; }
         bool operator==(const Vertex &other) const;
         bool operator!=(const Vertex &other) const;
 
-        Vector3 coord() { return Vector3{x, y, z}; };
+        Vector3 coord() const { return Vector3(x, y, z); };
     };
 
     struct Triangle

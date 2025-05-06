@@ -9,7 +9,6 @@ namespace M2PEntity
     {
         M2PGeo::Vector3 normal{};
         M2PGeo::Texture texture;
-        std::vector<M2PGeo::Vector3> points;
         std::vector<M2PGeo::Vertex> vertices;
     };
 
