@@ -126,6 +126,7 @@ namespace M2PGeo {
         Texture texture() const;
     };
 
+    Vector3 segmentsCross(const Vector3& a, const Vector3& b, const Vector3& c);
     Vector3 segmentsCross(const Vector3 planePoints[3]);
 
     Vector3 planeNormal(const Vector3 planePoints[3]);

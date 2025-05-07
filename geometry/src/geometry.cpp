@@ -118,7 +118,7 @@ Vector3 M2PGeo::operator*(const FP& lhs, const Vector3& rhs)
 }
 std::ostream& M2PGeo::operator<<(std::ostream& os, const Vector3& v)
 {
-	os << std::format("Vector3D({:.2f}, {:.2f}, {:.2f})", v.x, v.y, v.z);
+	os << std::format("Vector3D({:.3f}, {:.3f}, {:.3f})", v.x, v.y, v.z);
 	return os;
 }
 
@@ -148,13 +148,8 @@ HessianPlane::HessianPlane(Vector3 normal, FP distance)
 }
 HessianPlane::HessianPlane(const Vector3 planePoints[3])
 {
-	Vector3 reversed[3]{};
-	for (int i = 0; i < 3; ++i)
-	{
-		reversed[2 - i] = planePoints[i];
-	}
-	m_normal = planeNormal(reversed);
-	m_distance = m_normal.dot(reversed[0]);
+	m_normal = planeNormal(planePoints);
+	m_distance = m_normal.dot(planePoints[0]);
 }
 Vector3 HessianPlane::normal() const { return m_normal; }
 FP HessianPlane::distance() const { return m_distance; }
@@ -185,9 +180,13 @@ Plane::Plane(const Vector3 planePoints[3], const Texture& texture)
 Texture Plane::texture() const { return m_texture; }
 
 
+Vector3 M2PGeo::segmentsCross(const Vector3& a, const Vector3& b, const Vector3& c)
+{
+	return (b - a).cross(c - a);
+}
 Vector3 M2PGeo::segmentsCross(const Vector3 planePoints[3])
 {
-	return (planePoints[2] - planePoints[1]).cross(planePoints[0] - planePoints[1]);
+	return M2PGeo::segmentsCross(planePoints[0], planePoints[1], planePoints[2]);
 }
 
 Vector3 M2PGeo::planeNormal(const Vector3 planePoints[3])
