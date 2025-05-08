@@ -80,9 +80,9 @@ namespace M2PGeo {
     struct Triangle
     {
         bool flipped;
-        Vertex vertices[3];
         M2PGeo::Vector3 normal;
-        char texture_name[c_MAX_TEXTURE_NAME];
+        std::tuple<Vertex, Vertex, Vertex> vertices;
+        std::string textureName;
     };
 
     struct Texture

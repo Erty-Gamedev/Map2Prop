@@ -313,4 +313,3 @@ void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
 		std::reverse(vertices.begin(), vertices.end());
 	}
 }
-
