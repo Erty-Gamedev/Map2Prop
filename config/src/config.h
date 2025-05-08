@@ -19,6 +19,7 @@ namespace M2PConfig
         bool autocompile = true;
         bool mapcompile = false;
         bool renameChrome = false;
+        bool eager = false;
         int wadCache = 10;
         float smoothing = 60.0f;
         float timeout = 60.0f;

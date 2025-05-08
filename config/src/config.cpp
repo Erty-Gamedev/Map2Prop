@@ -27,6 +27,7 @@ Options:
   -s | --smoothing      angle threshold for applying smoothing (use 0 to smooth all edges)
   -t | --time           timeout for running studiomdl.exe (default 60.0 seconds)
   --renamechrome        rename chrome textures (disables chrome)
+  --eager               use eager triangulation algorithm (faster)
 
 QC options:
   --outputname          filename for the finished model
@@ -242,7 +243,12 @@ void M2PConfig::handleArgs(int argc, char** argv)
         }
         if (strcmp(argv[i], "--renamechrome") == 0)
         {
-            g_config.renameChrome = false;
+            g_config.renameChrome = true;
+            continue;
+        }
+        if (strcmp(argv[i], "--eager") == 0)
+        {
+            g_config.eager = true;
             continue;
         }
 
