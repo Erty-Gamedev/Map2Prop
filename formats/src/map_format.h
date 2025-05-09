@@ -21,7 +21,6 @@ namespace M2PMap
 		std::filesystem::path m_filepath;
 		std::filesystem::path m_outputDir;
 		std::ifstream m_file;
-		M2PWad3::Wad3Handler m_wadHandler;
 
 		void parse();
 		M2PEntity::Entity readEntity();

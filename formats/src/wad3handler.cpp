@@ -88,8 +88,8 @@ Wad3Reader* Wad3Handler::checkWads(const std::string& textureName)
 			Wad3Reader& reader = getWad3Reader(wad);
 			if (reader.contains(textureName))
 			{
-				if (!contains(m_usedWads, wad))
-					m_usedWads.push_back(wad);
+				if (!contains(usedWads, wad))
+					usedWads.push_back(wad);
 				return &reader;
 			}
 		}
@@ -114,6 +114,8 @@ ImageSize Wad3Handler::checkTexture(const std::string& textureName)
 
 	std::string textureFile = textureName + ".bmp";
 
+	Wad3Reader* reader = checkWads(textureName);
+
 	if (std::filesystem::exists(g_config.outputDir / textureFile))
 		return s_getImageInfo(textureName);
 
@@ -122,8 +124,6 @@ ImageSize Wad3Handler::checkTexture(const std::string& textureName)
 		std::filesystem::copy_file(g_config.inputDir / textureFile, g_config.outputDir / textureFile);
 		return s_getImageInfo(textureName);
 	}
-
-	Wad3Reader* reader = checkWads(textureName);
 
 	if (reader == nullptr)
 	{

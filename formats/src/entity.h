@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include "geometry.h"
+#include "wad3handler.h"
 
 namespace M2PEntity
 {
@@ -40,6 +41,7 @@ namespace M2PEntity
     {
     public:
         std::vector<Entity> entities;
+        M2PWad3::Wad3Handler wadHandler;
 
         virtual bool hasMissingTextures() const = 0;
     };

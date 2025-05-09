@@ -72,6 +72,9 @@ static inline int findOptimalEar(const std::vector<Vertex>& polygon, const std::
         }
     }
 
+    if (optimalIndex < 0)
+        throw std::runtime_error("Triangulation failed");
+
     return optimalIndex;
 }
 

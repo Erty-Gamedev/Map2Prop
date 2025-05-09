@@ -131,7 +131,7 @@ Brush MapReader::readBrush(std::string& line)
 			std::string textureName = parts[15];
 
 
-			M2PWad3::ImageSize imageInfo = m_wadHandler.checkTexture(textureName);
+			M2PWad3::ImageSize imageInfo = wadHandler.checkTexture(textureName);
 
 			Texture texture{
 				.name = textureName,
@@ -187,7 +187,7 @@ static bool isPointOutsidePlanes(const std::vector<Plane>& planes, const Vector3
 {
 	for (const Plane& plane : planes)
 	{
-		if (plane.pointRelation(point) > PointRelation::INFRONT)
+		if (plane.pointRelation(point) == PointRelation::INFRONT)
 			return true;
 	}
 	return false;
@@ -242,5 +242,5 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 }
 
 
-bool MapReader::hasMissingTextures() const { return m_wadHandler.hasMissingTextures(); }
+bool MapReader::hasMissingTextures() const { return wadHandler.hasMissingTextures(); }
 

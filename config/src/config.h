@@ -40,4 +40,6 @@ namespace M2PConfig
 
     std::filesystem::path gameDir();
     std::filesystem::path modDir();
+    bool isMap();
+    bool isObj();
 }

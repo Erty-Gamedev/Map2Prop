@@ -136,7 +136,7 @@ Vector2 M2PGeo::Texture::uvForPoint(const Vector3& point) const
 {
 	return {
 		(point.dot(rightaxis) / width) / scalex + shiftx / width,
-		(point.dot(downaxis) / height) / scaley + shifty / height
+		-((point.dot(downaxis) / height) / scaley + shifty / height)
 	};
 }
 

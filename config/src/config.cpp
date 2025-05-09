@@ -314,3 +314,12 @@ std::filesystem::path M2PConfig::modDir()
 {
     return gameDir() / g_config.mod;
 }
+
+bool M2PConfig::isMap()
+{
+    return M2PUtils::toLowerCase(g_config.inputFilepath.extension().string()) == ".map";
+}
+bool M2PConfig::isObj()
+{
+    return M2PUtils::toLowerCase(g_config.inputFilepath.extension().string()) == ".obj";
+}

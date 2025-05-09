@@ -47,6 +47,8 @@ namespace M2PWad3
     class Wad3Handler
     {
     public:
+        std::vector<std::filesystem::path> usedWads;
+
         ImageSize checkTexture(const std::string& textureName);
         bool hasMissingTextures() const;
 
@@ -57,7 +59,6 @@ namespace M2PWad3
         bool m_missingTextures = false;
         std::vector<std::string> m_checked;
         std::map<std::filesystem::path, Wad3Reader> m_wadCache;
-        std::vector<std::filesystem::path> m_usedWads;
 
         Wad3Reader& getWad3Reader(const std::filesystem::path& wad);
         Wad3Reader* checkWads(const std::string&);
