@@ -202,7 +202,7 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 	{
 		for (int j = i; j < numPlanes - 1; ++j)
 		{
-			for (int k = j; k < numPlanes - 0; ++k)
+			for (int k = j; k < numPlanes; ++k)
 			{
 				if (i == j && i == k)
 					continue;
