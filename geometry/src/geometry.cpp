@@ -121,6 +121,14 @@ std::ostream& M2PGeo::operator<<(std::ostream& os, const Vector3& v)
 	os << std::format("Vector3D({:.3f}, {:.3f}, {:.3f})", v.x, v.y, v.z);
 	return os;
 }
+bool M2PGeo::operator==(const Vector3& lhs, const Vertex& rhs)
+{
+	return lhs == rhs.coord();
+}
+bool M2PGeo::operator==(const Vertex& lhs, const Vector3& rhs)
+{
+	return lhs.coord() == rhs;
+}
 
 
 bool Vertex::operator==(const Vertex& other) const
@@ -280,7 +288,7 @@ void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
 	Vector3 currentVect, vectOther;
 	HessianPlane plane;
 	FP dotNormal, angleSmallest;
-	size_t indexSmallest, numRest;
+	int indexSmallest, numRest;
 	while (vertices.size() < numVectors)
 	{
 		angleSmallest = -1.0f;
@@ -290,7 +298,7 @@ void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
 		Vector3 planePoints[3]{ currentVect, center, center + normal };
 		plane = HessianPlane(planePoints);
 
-		numRest = rest.size();
+		numRest = static_cast<int>(rest.size());
 		for (int i = 0; i < numRest; ++i)
 		{
 			vectOther = rest[i].coord();

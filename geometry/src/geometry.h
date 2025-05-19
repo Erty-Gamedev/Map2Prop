@@ -74,6 +74,9 @@ namespace M2PGeo {
         bool operator==(const Vertex &other) const;
         bool operator!=(const Vertex &other) const;
 
+        friend bool operator==(const Vector3& lhs, const Vertex& rhs);
+        friend bool operator==(const Vertex& lhs, const Vector3& rhs);
+
         Vector3 coord() const { return Vector3(x, y, z); };
     };
 
