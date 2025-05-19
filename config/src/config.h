@@ -25,7 +25,7 @@ namespace M2PConfig
         float timeout = 60.0f;
         float qcScale = 1.0f;
         float qcGamma = 1.8f;
-        float qcRotate = 0.0f;
+        float qcRotate = 270.0f;
         float qcOffset[3] = { 0.0f, 0.0f, 0.0f };
         std::filesystem::path inputFilepath;
         std::filesystem::path inputDir;
