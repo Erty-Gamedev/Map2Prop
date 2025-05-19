@@ -8,14 +8,21 @@
 
 namespace M2PExport
 {
+	enum Spawnflags
+	{
+		DISABLE = 1,
+		IS_SUBMODEL = 2,
+		RENAME_CHROME = 4,
+	};
+
 	struct ModelData
 	{
-		int qcFlags = 0;
 		FP smoothing = 0.0, scale = 1.0, rotation = 270.0;
 		bool renameChrome = false;
 		M2PGeo::Vector3 offset;
 		M2PGeo::Vector3 bounds[2];
 		M2PGeo::Vector3 clip[2];
+		std::string qcFlags = "";
 		std::string outname;
 		std::string subdir;
 		std::vector<M2PGeo::Triangle> triangles;

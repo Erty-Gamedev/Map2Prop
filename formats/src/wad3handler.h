@@ -52,9 +52,9 @@ namespace M2PWad3
         ImageSize checkTexture(const std::string& textureName);
         bool hasMissingTextures() const;
 
-        static inline ImageSize s_getImageInfo(const std::string& textureName);
-        static bool inline isSkipTexture(const std::string& textureName);
-        static bool inline isToolTexture(const std::string& textureName);
+        static ImageSize s_getImageInfo(const std::string& textureName);
+        static bool isSkipTexture(const std::string& textureName);
+        static bool isToolTexture(const std::string& textureName);
     private:
         bool m_missingTextures = false;
         std::vector<std::string> m_checked;

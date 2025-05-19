@@ -35,10 +35,17 @@ void M2PExport::writeEntitiesToMap(const std::vector<M2PEntity::Entity>& entitie
 
 std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& entities, const M2PWad3::Wad3Handler& wadHandler)
 {
+	int n = 0;
 	std::unordered_map<std::string, ModelData> modelsMap;
+	std::string keyvalue;
+	keyvalue.reserve(256);
+
 	for (M2PEntity::Entity& entity : entities)
 	{
-		if (entity.classname == "worldspawn")
+		bool isWorldspawn = entity.classname == "worldspawn";
+		bool isFuncM2P = entity.classname == "func_map2prop";
+
+		if (isWorldspawn)
 		{
 			if (!M2PConfig::isMap())
 			{
@@ -60,19 +67,125 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 		if (entity.brushes.empty())
 			continue;
 
-		if (g_config.mapcompile && entity.classname != "func_map2prop")
+		if (g_config.mapcompile && !isFuncM2P)
 			continue;
 
-		std::string outname = !g_config.outputName.empty() ? g_config.outputName : g_config.inputFilepath.stem().string();
+		std::string filename = g_config.inputFilepath.stem().string();
+		std::string outname = !g_config.outputName.empty() ? g_config.outputName : filename;
+		bool ownModel = false;
+		std::string subdir = "";
+
+		if (isFuncM2P)
+		{
+			if (entity.getKeyInt("spawnflags") & Spawnflags::DISABLE)
+				continue;
+
+			keyvalue = entity.getKey("parent_model");
+			if (keyvalue != "")
+			{
+				for (const auto& brush : entity.brushes)
+				{
+					if (brush.faces.empty())
+						continue;
+
+					if (brush.isToolBrush(M2PEntity::ToolTexture::ORIGIN))
+					{
+						M2PGeo::Vector3 ori = brush.getCenter();
+						entity.setKey("origin", std::format("{:.1f} {:.1f} {:.1f}", ori.x, ori.y, ori.z));
+						break;
+					}
+				}
+				continue;
+			}
+
+			if (g_config.mapcompile || entity.getKeyInt("own_model") > 0)
+			{
+				ownModel = true;
+				outname = std::format("{}_{}", filename, n);
+				keyvalue = entity.getKey("outname");
+				if (!keyvalue.empty())
+				{
+					outname = keyvalue;
+					M2PUtils::replaceToken(outname, ".mdl", "");
+					if (modelsMap.contains(outname))
+					{
+						outname = std::format("{}_{}", outname, n);
+						++n;
+					}
+				}
+			}
+
+			keyvalue = entity.getKey("subdir");
+			if (!keyvalue.empty())
+			{
+				subdir = keyvalue;
+			}
+
+			fs::path parentFolder;
+			if (g_config.mapcompile && !M2PConfig::modDir().empty())
+				parentFolder = M2PConfig::modDir() / "models" / g_config.outputDir / subdir;
+			else
+				parentFolder = g_config.outputDir / subdir;
+
+			if (!fs::is_directory(parentFolder))
+				fs::create_directories(parentFolder);
+
+			std::string modelPath = ("models" / g_config.outputDir / subdir / (outname + ".mdl")).string();
+			std::replace(modelPath.begin(), modelPath.end(), '\\', '/');
+			entity.setKey("model", modelPath);
+		}
+
+
+		float scale = g_config.qcScale;
+		float rotation = g_config.qcRotate;
+		float smoothing = g_config.smoothing;
+		bool chrome = g_config.renameChrome;
+		std::string qcFlags = "";
+
+		if (isWorldspawn || ownModel)
+		{
+			if (!(keyvalue = entity.getKey("scale")).empty())
+			{
+				scale = std::stof(keyvalue);
+				if (scale == 0)
+					scale = 1.0;
+			}
+
+			if (!(keyvalue = entity.getKey("angles")).empty())
+			{
+				std::vector<std::string> angles = M2PUtils::split(keyvalue, ' ');
+				if (angles.size() == 1)
+					rotation = fmod(rotation + std::stof(angles[0]), 360.0f);
+				else if (angles.size() > 2)
+					rotation = fmod(rotation + std::stof(angles[1]), 360.0f);
+			}
+
+			if (!(keyvalue = entity.getKey("smoothing")).empty())
+				smoothing = std::stof(keyvalue);
+
+			if (!(keyvalue = entity.getKey("qc_flags")).empty())
+				qcFlags = keyvalue;
+
+			chrome = entity.getKeyInt("chrome") == 1;
+		}
+
+		
 		if (!modelsMap.contains(outname))
 		{
 			modelsMap[outname].outname = outname;
-			modelsMap[outname].triangles.reserve(64);
+			modelsMap[outname].triangles.reserve(256);
+			modelsMap[outname].scale = scale;
+			modelsMap[outname].rotation = rotation;
+			modelsMap[outname].smoothing = smoothing;
+			modelsMap[outname].renameChrome = chrome;
+			modelsMap[outname].qcFlags = qcFlags;
 		}
 		for (const M2PEntity::Brush& brush : entity.brushes)
 		{
 			for (const M2PEntity::Face& face : brush.faces)
 			{
+				if (M2PWad3::Wad3Handler::isSkipTexture(face.texture.name) || M2PWad3::Wad3Handler::isToolTexture(face.texture.name))
+					continue;
 				M2PUtils::extendVector(modelsMap[outname].triangles, M2PGeo::earClip(face.vertices, face.normal, face.texture.name));
 			}
 		}
@@ -148,7 +261,7 @@ bool Qc::writeQc(const ModelData& model)
 
 	std::string rendermodes{ "" };
 	std::string offset{ "0 0 0" };
-	std::string qcFlags = model.qcFlags ? std::format("$flags {}\n", model.qcFlags) : "";
+	std::string qcFlags = !model.qcFlags.empty() ? std::format("$flags {}\n", model.qcFlags) : "";
 	std::string bbox{ "" };
 	std::string cbox{ "" };
 
