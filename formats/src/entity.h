@@ -6,6 +6,16 @@
 
 namespace M2PEntity
 {
+    enum ToolTexture
+    {
+        BEVEL,
+        BOUNDINGBOX,
+        CLIP,
+        CLIPBEVEL,
+        CONTENTWATER,
+        ORIGIN,
+    };
+
     struct Face
     {
         M2PGeo::Vector3 normal{};
@@ -19,10 +29,10 @@ namespace M2PEntity
         std::vector<std::string> maskedTextures;
         std::string raw;
     public:
-        bool hasToolTexture(const char*);
-        bool hasContentWater();
-        std::tuple<M2PGeo::Vector3, M2PGeo::Vector3> getBounds();
-        M2PGeo::Vector3 getCenter();
+        bool isToolBrush(ToolTexture toolTexture) const;
+        bool hasContentWater() const;
+        std::pair<M2PGeo::Vector3, M2PGeo::Vector3> getBounds() const;
+        M2PGeo::Vector3 getCenter() const;
     };
 
     struct Entity
@@ -34,6 +44,11 @@ namespace M2PEntity
     public:
         Entity();
         std::string toString() const;
+        bool hasKey(const std::string& key) const;
+        std::string getKey(const std::string& key) const;
+        void setKey(const std::string& key, const std::string& value);
+        int getKeyInt(const std::string& key) const;
+        bool getKeyBool(const std::string& key) const;
     };
 
 

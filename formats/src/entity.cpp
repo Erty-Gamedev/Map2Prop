@@ -108,3 +108,46 @@ std::string Entity::toString() const
 
 	return str;
 }
+
+bool Entity::hasKey(const std::string& key) const
+{
+	for (const std::pair<std::string, std::string>& kv : keyvalues)
+	{
+		if (key == kv.first)
+			return true;
+	}
+	return false;
+}
+
+std::string Entity::getKey(const std::string& key) const
+{
+	for (const std::pair<std::string, std::string>& kv : keyvalues)
+	{
+		if (key == kv.first)
+			return kv.second;
+	}
+	return "";
+}
+
+void Entity::setKey(const std::string& key, const std::string& value)
+{
+	for (int i = 0; i < keyvalues.size(); ++i)
+	{
+		if (key == keyvalues[i].first)
+		{
+			keyvalues[i].second = value;
+			return;
+		}
+	}
+	keyvalues.emplace_back(key, value);
+}
+
+int Entity::getKeyInt(const std::string& key) const
+{
+	return atoi(getKey(key).c_str());
+}
+
+bool Entity::getKeyBool(const std::string& key) const
+{
+	return getKeyInt(key) != 0;
+}
