@@ -308,10 +308,14 @@ void M2PConfig::handleArgs(int argc, char** argv)
 
 std::filesystem::path M2PConfig::gameDir()
 {
+    if (g_config.steamDir.empty() || g_config.game.empty())
+        return "";
     return g_config.steamDir / "steamapps" / "common" / g_config.game;
 }
 std::filesystem::path M2PConfig::modDir()
 {
+    if (gameDir().empty() || g_config.mod.empty())
+        return "";
     return gameDir() / g_config.mod;
 }
 

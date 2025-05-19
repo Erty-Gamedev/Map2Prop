@@ -40,7 +40,6 @@ namespace M2PUtils
 		first.reserve(second.size());
 		first.insert(first.end(), second.begin(), second.end());
 	}
-
 	template<typename T>
 	void extendVectorUnique(std::vector<T>& first, const std::vector<T>& second)
 	{
