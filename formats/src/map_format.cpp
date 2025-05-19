@@ -171,7 +171,7 @@ bool M2PMap::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2,
 	FP d1 = p1.distance(); FP d2 = p2.distance(); FP d3 = p3.distance();
 
 	FP denominator = n1.dot(n2.cross(n3));
-	if (abs(denominator) < c_EPSILON)
+	if (abs(denominator) < c_EPSILON/100)
 		return false;
 
 	intersectionOut = -(
@@ -191,6 +191,16 @@ static bool isPointOutsidePlanes(const std::vector<Plane>& planes, const Vector3
 			return true;
 	}
 	return false;
+}
+
+static inline void addPointUnique(std::vector<Vertex>& vertices, const Vector3 &point)
+{
+	for (const auto& vertex : vertices)
+	{
+		if (vertex == point)
+			return;
+	}
+	vertices.emplace_back(point);
 }
 
 void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &facesOut)
@@ -215,9 +225,9 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 				if (isPointOutsidePlanes(planes, intersection))
 					continue;
 
-				facesOut[i].vertices.emplace_back(intersection);
-				facesOut[j].vertices.emplace_back(intersection);
-				facesOut[k].vertices.emplace_back(intersection);
+				addPointUnique(facesOut[i].vertices, intersection);
+				addPointUnique(facesOut[j].vertices, intersection);
+				addPointUnique(facesOut[k].vertices, intersection);
 
 				facesOut[i].texture = planes[i].texture();
 				facesOut[j].texture = planes[j].texture();
