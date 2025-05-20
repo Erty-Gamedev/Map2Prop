@@ -13,6 +13,7 @@ static inline Logging::Logger& logger = Logging::Logger::getLogger("export");
 using M2PConfig::g_config;
 
 using namespace M2PExport;
+using namespace M2PGeo;
 namespace fs = std::filesystem;
 
 
@@ -90,7 +91,7 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 
 					if (brush.isToolBrush(M2PEntity::ToolTexture::ORIGIN))
 					{
-						M2PGeo::Vector3 ori = brush.getCenter();
+						Vector3 ori = brush.getCenter();
 						entity.setKey("origin", std::format("{:.1f} {:.1f} {:.1f}", ori.x, ori.y, ori.z));
 						break;
 					}
@@ -180,14 +181,44 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 			modelsMap[outname].renameChrome = chrome;
 			modelsMap[outname].qcFlags = qcFlags;
 		}
+
+		bool originFound = false, boundsFound = false, clipFound = false;
 		for (const M2PEntity::Brush& brush : entity.brushes)
 		{
 			for (const M2PEntity::Face& face : brush.faces)
 			{
 				if (M2PWad3::Wad3Handler::isSkipTexture(face.texture.name) || M2PWad3::Wad3Handler::isToolTexture(face.texture.name))
 					continue;
-				M2PUtils::extendVector(modelsMap[outname].triangles, M2PGeo::earClip(face.vertices, face.normal, face.texture.name));
+				M2PUtils::extendVector(modelsMap[outname].triangles, earClip(face.vertices, face.normal, face.texture.name));
 			}
+		}
+
+		if (modelsMap[outname].offset == Vector3::zero()
+			&& (!entity.hasKey("use_world_origin") || entity.getKeyInt("use_world_origin")))
+		{
+			Vector3 aabbMin = std::get<0>(modelsMap[outname].triangles[0].vertices).coord();
+			Vector3 aabbMax = std::get<0>(modelsMap[outname].triangles[0].vertices).coord();
+
+			for (const auto& triangle : modelsMap[outname].triangles)
+			{
+				std::array<M2PGeo::Vertex, 3> vertices = {
+					std::get<0>(triangle.vertices),
+					std::get<1>(triangle.vertices),
+					std::get<2>(triangle.vertices)
+				};
+				for (const auto& vertex : vertices)
+				{
+					if (vertex.x < aabbMin.x) aabbMin.x = vertex.x;
+					if (vertex.y < aabbMin.y) aabbMin.y = vertex.y;
+					if (vertex.z < aabbMin.z) aabbMin.z = vertex.z;
+
+					if (vertex.x > aabbMax.x) aabbMax.x = vertex.x;
+					if (vertex.y > aabbMax.y) aabbMax.y = vertex.y;
+					if (vertex.z > aabbMax.z) aabbMax.z = vertex.z;
+				}
+			}
+			modelsMap[outname].offset = geometricCenter(std::vector{ aabbMin, aabbMax });
+			modelsMap[outname].offset.z -= (aabbMax.z - aabbMin.z) / 2;
 		}
 	}
 
@@ -264,6 +295,16 @@ bool Qc::writeQc(const ModelData& model)
 	std::string qcFlags = !model.qcFlags.empty() ? std::format("$flags {}\n", model.qcFlags) : "";
 	std::string bbox{ "" };
 	std::string cbox{ "" };
+
+	Vector3 qcOffset{ g_config.qcOffset[0], g_config.qcOffset[1], g_config.qcOffset[2] };
+	if (model.offset != Vector3::zero())
+	{
+		offset = std::format("{:.1f} {:.1f} {:.1f}", model.offset.x, model.offset.y, model.offset.z);
+	}
+	else if (qcOffset != Vector3::zero())
+	{
+		offset = std::format("{:.1f} {:.1f} {:.1f}", qcOffset.x, qcOffset.y, qcOffset.z);
+	}
 
 	logger.debug("Writing " + filepath.string());
 
