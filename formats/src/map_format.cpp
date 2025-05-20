@@ -81,9 +81,14 @@ Entity MapReader::readEntity()
 		}
 		else if (line.starts_with('{'))
 		{
-			Brush brush = readBrush(line);
-			entity.brushes.push_back(brush);
-			entity.raw += brush.raw;
+			bool valid = true;
+			Brush brush = readBrush(line, valid);
+
+			if (valid)
+			{
+				entity.brushes.push_back(brush);
+				entity.raw += brush.raw;
+			}
 		}
 		else if (line.starts_with('}'))
 		{
@@ -100,7 +105,7 @@ Entity MapReader::readEntity()
 }
 
 
-Brush MapReader::readBrush(std::string& line)
+Brush MapReader::readBrush(std::string& line, bool &outValid)
 {
 	Brush brush;
 	brush.raw.reserve(512);
@@ -114,6 +119,9 @@ Brush MapReader::readBrush(std::string& line)
 
 		if (line.starts_with('('))
 		{
+			if (!outValid)
+				continue;
+
 			brush.raw += line + "\n";
 
 			const std::vector<std::string>& parts = M2PUtils::split(line, ' ');
@@ -123,7 +131,7 @@ Brush MapReader::readBrush(std::string& line)
 				exit(EXIT_FAILURE);
 			}
 
-			Vector3 plane_points[3] = {
+			Vector3 planePoints[3] = {
 				Vector3{ std::stof(parts[1]), std::stof(parts[2]), std::stof(parts[3]) },
 				Vector3{ std::stof(parts[6]), std::stof(parts[7]), std::stof(parts[8]) },
 				Vector3{ std::stof(parts[11]), std::stof(parts[12]), std::stof(parts[13]) }
@@ -146,7 +154,15 @@ Brush MapReader::readBrush(std::string& line)
 				.downaxis = { std::stof(parts[23]), std::stof(parts[24]), std::stof(parts[25]) }
 			};
 
-			planes.emplace_back(plane_points, texture);
+			if (M2PGeo::segmentsCross(planePoints) == Vector3::zero())
+			{
+				logger.warning("Plane points may not form a line. Near " +
+					std::format("({} {} {})", parts[1], parts[2], parts[3]));
+				outValid = false;
+				continue;
+			}
+
+			planes.emplace_back(planePoints, texture);
 		}
 		else if (line.starts_with('}'))
 		{
@@ -159,7 +175,8 @@ Brush MapReader::readBrush(std::string& line)
 		}
 	}
 
-	planesToFaces(planes, brush.faces);
+	if (outValid && !planes.empty())
+		planesToFaces(planes, brush.faces);
 
 	return brush;
 }
@@ -240,6 +257,9 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 		}
 	}
 
+	if (std::erase_if(facesOut, [](Face face) { return face.vertices.size() < 3; }))
+		logger.warning("Faces with fewer than 3 vertices skipped");
+
 	for (Face& face : facesOut)
 	{
 		sortVertices(face.vertices, face.normal);
@@ -253,4 +273,3 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 
 
 bool MapReader::hasMissingTextures() const { return wadHandler.hasMissingTextures(); }
-

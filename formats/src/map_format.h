@@ -24,7 +24,7 @@ namespace M2PMap
 
 		void parse();
 		M2PEntity::Entity readEntity();
-		M2PEntity::Brush readBrush(std::string& line);
+		M2PEntity::Brush readBrush(std::string& line, bool &outValid);
 	};
 
 
