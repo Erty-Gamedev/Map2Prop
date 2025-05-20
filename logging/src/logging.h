@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <string>
 #include <unordered_map>
+#include <chrono>
 
 
 namespace Styling
@@ -39,6 +40,20 @@ namespace Styling
 	static inline const char* strikethrough = "\033[8m";
 }
 
+
+static inline std::string formattedDatetime(const char* fmt)
+{
+	time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+	struct tm timeinfo;
+	localtime_s(&timeinfo, &t);
+
+	std::stringstream buffer;
+	buffer << std::put_time(&timeinfo, fmt);
+
+	return buffer.str();
+}
+
+
 namespace Logging
 {
 	enum class LogLevel
@@ -56,6 +71,14 @@ namespace Logging
 		{LogLevel::LOG_INFO,    "INFO:    "},
 		{LogLevel::LOG_WARNING, "WARNING: "},
 		{LogLevel::LOG_ERROR,   "ERROR:   "},
+	};
+	
+	extern inline const std::unordered_map<LogLevel, const char*> c_LOGLEVELTITLE{
+		{LogLevel::LOG_DEBUG,   "DEBUG"   },
+		{LogLevel::LOG_LOG,     ""        },
+		{LogLevel::LOG_INFO,    "INFO"    },
+		{LogLevel::LOG_WARNING, "WARNING" },
+		{LogLevel::LOG_ERROR,   "ERROR"   },
 	};
 
 #ifdef _DEBUG
@@ -130,7 +153,7 @@ namespace Logging
 		void setLogDir(const std::filesystem::path&);
 
 		template <typename T>
-		void log(const LogLevel& level, T message)
+		void log(const LogLevel& level, T message, std::string loggerName)
 		{
 			if (level < m_loglevel || m_fileError) { return; }
 
@@ -146,7 +169,7 @@ namespace Logging
 
 			if (!m_logfileChecked)
 			{
-				std::filesystem::path filepath = m_logdir / "log.txt";
+				std::filesystem::path filepath = m_logdir / formattedDatetime("log_%F.txt");
 				m_logfile.open(filepath, std::ios::app);
 				if (!m_logfile.is_open() || !m_logfile.good())
 				{
@@ -158,7 +181,8 @@ namespace Logging
 				m_logfileChecked = true;
 			}
 
-			m_logfile << c_LOGLEVELNAME.at(level) << message << std::endl;
+			m_logfile << formattedDatetime("[%FT%T]") << c_LOGLEVELTITLE.at(level) << "|"
+				<< loggerName << "|" << message << std::endl;
 		}
 	};
 
@@ -197,7 +221,7 @@ namespace Logging
 		{
 			if (level < m_loglevel) { return; }
 			m_consoleHandler.log(level, message);
-			m_fileHandler.log(level, message);
+			m_fileHandler.log(level, message, m_name);
 		}
 	};
 
