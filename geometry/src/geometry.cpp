@@ -242,7 +242,7 @@ void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3 &normal)
 	Vector3 currentVect, vectOther;
 	HessianPlane plane;
 	FP dotNormal, angleSmallest;
-	size_t indexSmallest, numRest;
+	int indexSmallest, numRest;
 	while (vectors.size() < numVectors)
 	{
 		angleSmallest = -1.0f;
@@ -252,9 +252,15 @@ void M2PGeo::sortVectors(std::vector<Vector3> &vectors, const Vector3 &normal)
 		Vector3 planePoints[3]{currentVect, center, center + normal};
 		plane = HessianPlane(planePoints);
 
-		numRest = rest.size();
+		numRest = static_cast<int>(rest.size());
 		for (int i = 0; i < numRest; ++i)
 		{
+			if (numRest == 1)
+			{
+				indexSmallest = 0;
+				break;
+			}
+
 			vectOther = rest[i];
 			dotNormal = (currentVect - center).normalised().dot((vectOther - center).normalised());
 
@@ -301,6 +307,12 @@ void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
 		numRest = static_cast<int>(rest.size());
 		for (int i = 0; i < numRest; ++i)
 		{
+			if (numRest == 1)
+			{
+				indexSmallest = 0;
+				break;
+			}
+
 			vectOther = rest[i].coord();
 			dotNormal = (currentVect - center).normalised().dot((vectOther - center).normalised());
 
