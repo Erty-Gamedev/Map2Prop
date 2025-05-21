@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <format>
 
 using FP = float;
 
@@ -138,9 +139,19 @@ namespace M2PGeo {
     Vector3 sumVertices(const std::vector<Vertex>& vertices);
 
     Vector3 geometricCenter(const std::vector<Vector3> &vectors);
+    Vector3 geometricCenter(const std::pair<Vector3, Vector3> &vectors);
     Vector3 geometricCenter(const std::vector<Vertex> &vertices);
 
     void sortVectors(std::vector<Vector3> &vectors, const Vector3 &normal);
     void sortVertices(std::vector<Vertex> &vertices, const Vector3 &normal);
 
 }
+
+template <>
+struct std::formatter<M2PGeo::Vector3> : std::formatter<std::string>
+{
+    auto format(M2PGeo::Vector3 v, format_context& ctx) const
+    {
+        return formatter<string>::format(std::format("{:.1f} {:.1f} {:.1f}", v.x, v.y, v.z), ctx);
+    }
+};
