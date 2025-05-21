@@ -191,6 +191,23 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 					continue;
 				M2PUtils::extendVector(modelsMap[outname].triangles, earClip(face.vertices, face.normal, face.texture.name));
 			}
+
+			if (modelsMap[outname].offset == Vector3::zero() && brush.isToolBrush(M2PEntity::ToolTexture::ORIGIN))
+			{
+				if (originFound)
+				{
+					logger.info(std::format("Multiple ORIGIN brushes found in {} near ({})", entity.classname, brush.getCenter()));
+					continue;
+				}
+				if (isWorldspawn || ownModel)
+				{
+					Vector3 origin = geometricCenter(brush.getBounds());
+					modelsMap[outname].offset = origin;
+					entity.setKey("origin", std::format("{}", origin));
+				}
+				originFound = true;
+			}
+
 		}
 
 		if (modelsMap[outname].offset == Vector3::zero()
