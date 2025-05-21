@@ -40,7 +40,7 @@ bool Brush::hasContentWater() const
 	return false;
 }
 
-std::pair<M2PGeo::Vector3, M2PGeo::Vector3> Brush::getBounds() const
+M2PGeo::Bounds Brush::getBounds() const
 {
 	M2PGeo::Vector3 min = faces[0].vertices[0].coord();
 	M2PGeo::Vector3 max = faces[0].vertices[0].coord();
@@ -52,29 +52,23 @@ std::pair<M2PGeo::Vector3, M2PGeo::Vector3> Brush::getBounds() const
 
 		for (const auto& vertex : face.vertices)
 		{
-			if (vertex.x < min.x)
-				min.x = vertex.x;
-			if (vertex.y < min.y)
-				min.y = vertex.y;
-			if (vertex.z < min.z)
-				min.z = vertex.z;
+			if (vertex.x < min.x) min.x = vertex.x;
+			if (vertex.y < min.y) min.y = vertex.y;
+			if (vertex.z < min.z) min.z = vertex.z;
 
-			if (vertex.x > max.x)
-				max.x = vertex.x;
-			if (vertex.y > max.y)
-				max.y = vertex.y;
-			if (vertex.z > max.z)
-				max.z = vertex.z;
+			if (vertex.x > max.x) max.x = vertex.x;
+			if (vertex.y > max.y) max.y = vertex.y;
+			if (vertex.z > max.z) max.z = vertex.z;
 		}
 	}
 
-	return std::make_pair(min, max);
+	return { min, max };
 }
 
 M2PGeo::Vector3 Brush::getCenter() const
 {
-	std::pair<M2PGeo::Vector3, M2PGeo::Vector3> bounds = getBounds();
-	return (bounds.first + bounds.second) / 2;
+	M2PGeo::Bounds bounds = getBounds();
+	return (bounds.min + bounds.max) / 2;
 }
 
 

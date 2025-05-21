@@ -31,7 +31,7 @@ namespace M2PEntity
     public:
         bool isToolBrush(ToolTexture toolTexture) const;
         bool hasContentWater() const;
-        std::pair<M2PGeo::Vector3, M2PGeo::Vector3> getBounds() const;
+        M2PGeo::Bounds getBounds() const;
         M2PGeo::Vector3 getCenter() const;
     };
 

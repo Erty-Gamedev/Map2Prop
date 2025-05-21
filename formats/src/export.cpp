@@ -185,13 +185,8 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 		bool originFound = false, boundsFound = false, clipFound = false;
 		for (const M2PEntity::Brush& brush : entity.brushes)
 		{
-			for (const M2PEntity::Face& face : brush.faces)
-			{
-				if (M2PWad3::Wad3Handler::isSkipTexture(face.texture.name) || M2PWad3::Wad3Handler::isToolTexture(face.texture.name))
-					continue;
-				M2PUtils::extendVector(modelsMap[outname].triangles, earClip(face.vertices, face.normal, face.texture.name));
-			}
 
+			// Look for ORIGIN brushes, use first found
 			if (modelsMap[outname].offset == Vector3::zero() && brush.isToolBrush(M2PEntity::ToolTexture::ORIGIN))
 			{
 				if (originFound)
@@ -206,8 +201,16 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 					entity.setKey("origin", std::format("{}", origin));
 				}
 				originFound = true;
+				continue;
 			}
 
+
+			for (const M2PEntity::Face& face : brush.faces)
+			{
+				if (M2PWad3::Wad3Handler::isSkipTexture(face.texture.name) || M2PWad3::Wad3Handler::isToolTexture(face.texture.name))
+					continue;
+				M2PUtils::extendVector(modelsMap[outname].triangles, earClip(face.vertices, face.normal, face.texture.name));
+			}
 		}
 
 		if (modelsMap[outname].offset == Vector3::zero()

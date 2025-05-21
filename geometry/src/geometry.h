@@ -63,6 +63,13 @@ namespace M2PGeo {
         static Vector3 zero();
     };
 
+    struct Bounds
+    {
+        Vector3 min, max;
+        static Bounds zero() { return { Vector3::zero(), Vector3::zero() }; }
+        bool operator==(const Bounds& other) const { return min == other.min && max == other.max; };
+    };
+
     class Vertex : public Vector3
     {
     public:
@@ -139,7 +146,7 @@ namespace M2PGeo {
     Vector3 sumVertices(const std::vector<Vertex>& vertices);
 
     Vector3 geometricCenter(const std::vector<Vector3> &vectors);
-    Vector3 geometricCenter(const std::pair<Vector3, Vector3> &vectors);
+    Vector3 geometricCenter(const Bounds& vectors);
     Vector3 geometricCenter(const std::vector<Vertex> &vertices);
 
     void sortVectors(std::vector<Vector3> &vectors, const Vector3 &normal);

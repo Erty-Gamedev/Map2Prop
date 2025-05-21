@@ -225,9 +225,9 @@ Vector3 M2PGeo::geometricCenter(const std::vector<Vector3> &vectors)
 {
 	return sumVectors(vectors) / static_cast<int>(vectors.size());
 }
-Vector3 M2PGeo::geometricCenter(const std::pair<Vector3, Vector3>& vectors)
+Vector3 M2PGeo::geometricCenter(const Bounds& vectors)
 {
-	return sumVectors(std::vector{ vectors.first, vectors.second }) / 2;
+	return (vectors.min + vectors.max) / 2;
 }
 Vector3 M2PGeo::geometricCenter(const std::vector<Vertex> &vertices)
 {

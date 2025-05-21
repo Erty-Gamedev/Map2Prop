@@ -20,14 +20,14 @@ namespace M2PExport
 		FP smoothing = 0.0, scale = 1.0, rotation = 270.0;
 		bool renameChrome = false;
 		M2PGeo::Vector3 offset;
-		M2PGeo::Vector3 bounds[2];
-		M2PGeo::Vector3 clip[2];
+		M2PGeo::Bounds bounds;
+		M2PGeo::Bounds clip;
 		std::string qcFlags = "";
 		std::string outname;
 		std::string subdir;
 		std::vector<M2PGeo::Triangle> triangles;
-		std::vector<std::array<M2PGeo::Vector3, 2>> alwaysSmooth;
-		std::vector<std::array<M2PGeo::Vector3, 2>> neverSmooth;
+		std::vector<M2PGeo::Bounds> alwaysSmooth;
+		std::vector<M2PGeo::Bounds> neverSmooth;
 		std::vector<std::string> maskedTextures;
 	};
 
