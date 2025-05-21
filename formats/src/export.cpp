@@ -204,6 +204,40 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 				continue;
 			}
 
+			// Look for BOUNDINGBOX brushes, use first found
+			if (modelsMap[outname].bounds == Bounds::zero()
+				&& brush.isToolBrush(M2PEntity::ToolTexture::BOUNDINGBOX))
+			{
+				if (boundsFound)
+				{
+					logger.info(std::format("Multiple BOUNDINGBOX brushes found in {} near ({})", entity.classname, brush.getCenter()));
+					continue;
+				}
+				if (isWorldspawn || ownModel)
+				{
+					modelsMap[outname].bounds = brush.getBounds();
+				}
+				boundsFound = true;
+				continue;
+			}
+			
+			// Look for CLIP brushes, use first found
+			if (modelsMap[outname].clip == Bounds::zero()
+				&& brush.isToolBrush(M2PEntity::ToolTexture::CLIP))
+			{
+				if (clipFound)
+				{
+					logger.info(std::format("Multiple CLIP brushes found in {} near ({})", entity.classname, brush.getCenter()));
+					continue;
+				}
+				if (isWorldspawn || ownModel)
+				{
+					modelsMap[outname].clip = brush.getBounds();
+				}
+				clipFound = true;
+				continue;
+			}
+			
 
 			for (const M2PEntity::Face& face : brush.faces)
 			{
@@ -324,6 +358,20 @@ bool Qc::writeQc(const ModelData& model)
 	else if (qcOffset != Vector3::zero())
 	{
 		offset = std::format("{:.1f} {:.1f} {:.1f}", qcOffset.x, qcOffset.y, qcOffset.z);
+	}
+
+	if (model.bounds != Bounds::zero())
+	{
+		Vector3 bmin = model.bounds.min - model.offset;
+		Vector3 bmax = model.bounds.max - model.offset;
+		bbox = std::format("$bbox {} {}\n", bmin, bmax);
+	}
+
+	if (model.clip != Bounds::zero())
+	{
+		Vector3 bmin = model.clip.min - model.offset;
+		Vector3 bmax = model.clip.max - model.offset;
+		cbox = std::format("$cbox {} {}\n", bmin, bmax);
 	}
 
 	logger.debug("Writing " + filepath.string());
