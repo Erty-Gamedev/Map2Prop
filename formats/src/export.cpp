@@ -265,6 +265,24 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 					continue;
 				M2PUtils::extendVector(modelsMap[outname].triangles, earClip(face.vertices, face.normal, face.texture.name));
 			}
+
+			if (brush.hasContentWater())
+			{
+				std::vector<Triangle> flipped{ modelsMap[outname].triangles };
+				for (Triangle& triangle : flipped)
+				{
+					triangle.normal = -triangle.normal;
+					std::tuple reversed = std::make_tuple(
+						std::get<2>(triangle.vertices),
+						std::get<1>(triangle.vertices),
+						std::get<0>(triangle.vertices)
+					);
+					triangle.vertices.swap(reversed);
+					triangle.flipped = true;
+				}
+				M2PUtils::extendVector(modelsMap[outname].triangles, flipped);
+			}
+
 		}
 
 		if (modelsMap[outname].offset == Vector3::zero()
