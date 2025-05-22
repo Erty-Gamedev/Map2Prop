@@ -238,6 +238,26 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 				continue;
 			}
 			
+			// Look for CLIPBEVEL brushes
+			if (brush.isToolBrush(M2PEntity::ToolTexture::CLIPBEVEL))
+			{
+				if (isWorldspawn || ownModel)
+				{
+					modelsMap[outname].neverSmooth.push_back(brush.getBounds());
+				}
+				continue;
+			}
+			
+			// Look for BEVEL brushes
+			if (brush.isToolBrush(M2PEntity::ToolTexture::BEVEL))
+			{
+				if (isWorldspawn || ownModel)
+				{
+					modelsMap[outname].alwaysSmooth.push_back(brush.getBounds());
+				}
+				continue;
+			}
+
 
 			for (const M2PEntity::Face& face : brush.faces)
 			{
