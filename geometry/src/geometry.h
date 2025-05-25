@@ -74,6 +74,8 @@ namespace M2PGeo {
         Vector3 min, max;
         static Bounds zero() { return { Vector3::zero(), Vector3::zero() }; }
         bool operator==(const Bounds& other) const { return min == other.min && max == other.max; };
+
+        bool pointInside(Vector3 p) const;
     };
 
     class Vertex : public Vector3

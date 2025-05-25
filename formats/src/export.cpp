@@ -34,6 +34,17 @@ void M2PExport::writeEntitiesToMap(const std::vector<M2PEntity::Entity>& entitie
 	file.close();
 }
 
+static inline bool pointInBounds(Vector3 point, const std::vector<Bounds>& bounds)
+{
+	for (const Bounds& b : bounds)
+	{
+		if (b.pointInside(point))
+			return true;
+	}
+	return false;
+}
+
+
 std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& entities, const M2PWad3::Wad3Handler& wadHandler)
 {
 	int n = 0;

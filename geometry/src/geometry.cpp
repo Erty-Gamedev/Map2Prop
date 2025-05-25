@@ -158,6 +158,12 @@ bool M2PGeo::operator==(const Vertex& lhs, const Vector3& rhs)
 }
 
 
+bool Bounds::pointInside(Vector3 p) const
+{
+	return p.x > min.x && p.x < max.x && p.y > min.y && p.y < max.y && p.z > min.z && p.z < max.z;
+}
+
+
 bool Vertex::operator==(const Vertex& other) const
 {
 	return uv == other.uv && normal == other.normal && (*this).coord() == other.coord();
