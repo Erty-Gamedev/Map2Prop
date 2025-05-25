@@ -52,7 +52,7 @@ namespace M2PUtils
 	template<typename T>
 	T getCircular(const std::vector<T>& vect, int index)
 	{
-		int maxIndex = vect.size();
+		int maxIndex = static_cast<int>(vect.size());
 		if (index < 0)
 			return vect[maxIndex + (index % maxIndex)];
 		return vect[index % maxIndex];
