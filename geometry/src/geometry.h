@@ -75,7 +75,6 @@ namespace M2PGeo {
     public:
         Vector2 uv = Vector2::zero();
         Vector3 normal = Vector3::zero();
-        bool flipped = false;
         Vertex() : Vector3() {};
         Vertex(FP _x, FP _y, FP _z) : Vector3(_x, _y, _z) {}
         Vertex(const Vector3& point) { x = point.x; y = point.y; z = point.z; }
@@ -92,7 +91,7 @@ namespace M2PGeo {
     {
         bool flipped;
         M2PGeo::Vector3 normal;
-        std::tuple<Vertex, Vertex, Vertex> vertices;
+        Vertex vertices[3] = { Vertex::zero(), Vertex::zero(), Vertex::zero() };
         std::string textureName;
     };
 

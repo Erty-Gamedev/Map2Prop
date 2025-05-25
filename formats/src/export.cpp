@@ -272,12 +272,7 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 				for (Triangle& triangle : flipped)
 				{
 					triangle.normal = -triangle.normal;
-					std::tuple reversed = std::make_tuple(
-						std::get<2>(triangle.vertices),
-						std::get<1>(triangle.vertices),
-						std::get<0>(triangle.vertices)
-					);
-					triangle.vertices.swap(reversed);
+					std::swap(triangle.vertices[0], triangle.vertices[2]);
 					triangle.flipped = true;
 				}
 				M2PUtils::extendVector(modelsMap[outname].triangles, flipped);
@@ -288,17 +283,12 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 		if (modelsMap[outname].offset == Vector3::zero()
 			&& (!entity.hasKey("use_world_origin") || entity.getKeyInt("use_world_origin")))
 		{
-			Vector3 aabbMin = std::get<0>(modelsMap[outname].triangles[0].vertices).coord();
-			Vector3 aabbMax = std::get<0>(modelsMap[outname].triangles[0].vertices).coord();
+			Vector3 aabbMin = modelsMap[outname].triangles[0].vertices[0].coord();
+			Vector3 aabbMax = modelsMap[outname].triangles[0].vertices[0].coord();
 
 			for (const auto& triangle : modelsMap[outname].triangles)
 			{
-				std::array<M2PGeo::Vertex, 3> vertices = {
-					std::get<0>(triangle.vertices),
-					std::get<1>(triangle.vertices),
-					std::get<2>(triangle.vertices)
-				};
-				for (const auto& vertex : vertices)
+				for (const auto& vertex : triangle.vertices)
 				{
 					if (vertex.x < aabbMin.x) aabbMin.x = vertex.x;
 					if (vertex.y < aabbMin.y) aabbMin.y = vertex.y;
@@ -340,12 +330,7 @@ bool Smd::writeSmd(const ModelData& model)
 	for (const M2PGeo::Triangle &triangle : model.triangles)
 	{
 		m_file << triangle.textureName << ".bmp\n";
-		std::array<M2PGeo::Vertex, 3> vertices = {
-			std::get<0>(triangle.vertices),
-			std::get<1>(triangle.vertices),
-			std::get<2>(triangle.vertices)
-		};
-		for (const M2PGeo::Vertex &vertex : vertices)
+		for (const M2PGeo::Vertex &vertex : triangle.vertices)
 		{
 			m_file << "0\t";
 			const M2PGeo::Vector3& normal = vertex.normal;

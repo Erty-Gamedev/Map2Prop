@@ -87,7 +87,7 @@ std::vector<Triangle> M2PGeo::earClip(const std::vector<Vertex>& _polygon, const
         return std::vector<Triangle>{Triangle{
             .flipped = false,
             .normal = normal,
-            .vertices = std::make_tuple(_polygon[0], _polygon[1], _polygon[2]),
+            .vertices = {_polygon[0], _polygon[1], _polygon[2]},
             .textureName = textureName
         }};
     if (numVertices < 3)
@@ -105,11 +105,11 @@ std::vector<Triangle> M2PGeo::earClip(const std::vector<Vertex>& _polygon, const
         triangles.push_back(Triangle{
             .flipped = false,
             .normal = normal,
-            .vertices = std::make_tuple(
+            .vertices = {
                 M2PUtils::getCircular(polygon, i - 1),
                 polygon[i],
                 M2PUtils::getCircular(polygon, i + 1)
-            ),
+            },
             .textureName = textureName
         });
 
@@ -119,7 +119,7 @@ std::vector<Triangle> M2PGeo::earClip(const std::vector<Vertex>& _polygon, const
     triangles.push_back(Triangle{
         .flipped = false,
         .normal = normal,
-        .vertices = std::make_tuple(polygon[0], polygon[1], polygon[2]),
+        .vertices = {polygon[0], polygon[1], polygon[2]},
         .textureName = textureName
     });
 

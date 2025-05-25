@@ -133,7 +133,6 @@ bool M2PGeo::operator==(const Vertex& lhs, const Vector3& rhs)
 
 bool Vertex::operator==(const Vertex& other) const
 {
-	// TODO: Do we need to check if both are flipped?
 	return uv == other.uv && normal == other.normal && (*this).coord() == other.coord();
 }
 bool Vertex::operator!=(const Vertex& other) const { return !(*this == other); }
