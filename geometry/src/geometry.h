@@ -3,6 +3,8 @@
 #include <vector>
 #include <map>
 #include <format>
+#include <unordered_map>
+#include <numbers>
 
 using FP = float;
 
@@ -12,8 +14,11 @@ namespace M2PGeo {
      * texture names are ultimately limited by the 15 character limit of WAD.
      */
     constexpr int c_MAX_TEXTURE_NAME = 16;
-    constexpr FP c_EPSILON = 1.0f / 1024.0f;
     constexpr int c_MAP_DIGITS_PRECISION = 6;
+    constexpr FP c_EPSILON = 1. / 1024.;
+    constexpr FP c_DEG2RAD = static_cast<FP>(std::numbers::pi / 180.);
+    constexpr FP c_RAD2DEG = static_cast<FP>(180. / std::numbers::pi);
+
 
     struct Vector2
     {
@@ -54,6 +59,7 @@ namespace M2PGeo {
         Vector3 operator/(const Vector3& other) const;
         Vector3 operator/(const FP other) const;
         Vector3 operator/(const int other) const;
+        Vector3 operator/(const size_t other) const;
         bool operator==(const Vector3& other) const;
         bool operator!=(const Vector3& other) const;
 
@@ -135,6 +141,12 @@ namespace M2PGeo {
         Plane(const Vector3 planePoints[3], const Texture& texture);
         Texture texture() const;
     };
+
+    FP deg2rad(FP degrees);
+    FP rad2deg(FP rad);
+
+    FP clip(FP value, FP minimum, FP maximum);
+    FP vectorsAngle(const Vector3& a, const Vector3& b);
 
     Vector3 segmentsCross(const Vector3& a, const Vector3& b, const Vector3& c);
     Vector3 segmentsCross(const Vector3 planePoints[3]);

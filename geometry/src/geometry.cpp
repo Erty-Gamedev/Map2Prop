@@ -5,6 +5,29 @@
 using namespace M2PGeo;
 
 
+FP M2PGeo::deg2rad(FP degrees)
+{
+	return static_cast<FP>(fmod(degrees * c_DEG2RAD, 2 * std::numbers::pi));
+}
+FP M2PGeo::rad2deg(FP rad)
+{
+	return static_cast<FP>(fmod(rad * c_RAD2DEG, 360.));
+}
+
+
+FP M2PGeo::clip(FP value, FP minimum, FP maximum)
+{
+	return std::min(maximum, std::max(minimum, value));
+}
+
+
+FP M2PGeo::vectorsAngle(const Vector3& a, const Vector3& b)
+{
+	Vector3 aNorm = a.normalised(), bNorm = b.normalised();
+	return acos(clip(aNorm.dot(bNorm) / aNorm.magnitude() * bNorm.magnitude(), -1., 1.));
+}
+
+
 Vector2 Vector2::zero()
 {
 	return Vector2(0.0f, 0.0f);
@@ -101,6 +124,10 @@ Vector3 Vector3::operator/(const FP other) const
 	return Vector3(x / other, y / other, z / other);
 }
 Vector3 Vector3::operator/(const int other) const
+{
+	return Vector3(x / other, y / other, z / other);
+}
+Vector3 M2PGeo::Vector3::operator/(const size_t other) const
 {
 	return Vector3(x / other, y / other, z / other);
 }
