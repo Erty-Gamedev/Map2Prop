@@ -352,11 +352,14 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 				continue;
 			}
 
-
 			for (const M2PEntity::Face& face : brush.faces)
 			{
 				if (M2PWad3::Wad3Handler::isSkipTexture(face.texture.name) || M2PWad3::Wad3Handler::isToolTexture(face.texture.name))
 					continue;
+
+				if (face.texture.name.starts_with('{') && !M2PUtils::contains(modelsMap[outname].maskedTextures, face.texture.name))
+					modelsMap[outname].maskedTextures.push_back(face.texture.name);
+
 				M2PUtils::extendVector(modelsMap[outname].triangles, earClip(face.vertices, face.normal, face.texture.name));
 			}
 
@@ -466,6 +469,14 @@ bool Qc::writeQc(const ModelData& model)
 	std::string qcFlags = !model.qcFlags.empty() ? std::format("$flags {}\n", model.qcFlags) : "";
 	std::string bbox{ "" };
 	std::string cbox{ "" };
+
+	if (!model.maskedTextures.empty())
+	{
+		for (const std::string& masked : model.maskedTextures)
+		{
+			rendermodes += "$texrendermode " + masked + ".bmp masked\n";
+		}
+	}
 
 	Vector3 qcOffset{ g_config.qcOffset[0], g_config.qcOffset[1], g_config.qcOffset[2] };
 	if (model.offset != Vector3::zero())
