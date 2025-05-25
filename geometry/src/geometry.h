@@ -165,6 +165,9 @@ namespace M2PGeo {
     void sortVectors(std::vector<Vector3> &vectors, const Vector3 &normal);
     void sortVertices(std::vector<Vertex> &vertices, const Vector3 &normal);
 
+    using GroupedVertices = std::unordered_map<std::string, std::vector<std::reference_wrapper<Vertex>>>;
+    void averageNormals(GroupedVertices& groupedVertices);
+    void averageNearNormals(GroupedVertices& groupedVertices, FP thresholdDegrees);
 }
 
 template <>

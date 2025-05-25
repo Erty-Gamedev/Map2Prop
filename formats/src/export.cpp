@@ -1,6 +1,7 @@
 #include <fstream>
 #include <filesystem>
 #include <format>
+#include <unordered_map>
 #include "export.h"
 #include "config.h"
 #include "logging.h"
@@ -34,6 +35,43 @@ void M2PExport::writeEntitiesToMap(const std::vector<M2PEntity::Entity>& entitie
 	file.close();
 }
 
+
+static inline std::string formatGroupedVector(const Vector3& vector)
+{
+	return std::format("{:.{}f},{:.{}f},{:.{}f}",
+		vector.x, c_VEC_GROUP_PRECISION,
+		vector.y, c_VEC_GROUP_PRECISION,
+		vector.z, c_VEC_GROUP_PRECISION
+	);
+}
+
+
+static inline void mergeNearby(ModelData& model)
+{
+	std::unordered_map<std::string, Vertex> vertices;
+	vertices.reserve(model.triangles.size() * 3);
+
+	for (Triangle& triangle : model.triangles)
+	{
+		for (Vertex& vertex : triangle.vertices)
+		{
+			std::string grouped = formatGroupedVector(vertex.coord());
+
+			if (vertices.contains(grouped))
+			{
+				vertex.x = vertices[grouped].x;
+				vertex.y = vertices[grouped].y;
+				vertex.z = vertices[grouped].z;
+			}
+			else
+			{
+				vertices[grouped] = vertex;
+			}
+		}
+	}
+}
+
+
 static inline bool pointInBounds(Vector3 point, const std::vector<Bounds>& bounds)
 {
 	for (const Bounds& b : bounds)
@@ -42,6 +80,51 @@ static inline bool pointInBounds(Vector3 point, const std::vector<Bounds>& bound
 			return true;
 	}
 	return false;
+}
+
+
+static inline void applySmooth(ModelData& model)
+{
+	mergeNearby(model);
+	if (model.smoothing == 0)
+		return;
+
+	size_t vertCount = model.triangles.size() * 3;
+	GroupedVertices vertices;
+	GroupedVertices flipped;
+	GroupedVertices alwaysSmooth;
+	GroupedVertices alwaysSmoothFlipped;
+	vertices.reserve(vertCount);
+	flipped.reserve(vertCount);
+	alwaysSmooth.reserve(vertCount);
+	alwaysSmoothFlipped.reserve(vertCount);
+
+	bool neverSmooth = !model.neverSmooth.empty();
+
+	for (Triangle& triangle : model.triangles)
+	{
+		for (Vertex& vertex : triangle.vertices)
+		{
+			if (neverSmooth && pointInBounds(vertex.coord(), model.neverSmooth))
+				continue;
+
+			bool shouldAlwaysSmooth = pointInBounds(vertex.coord(), model.alwaysSmooth);
+
+			GroupedVertices& vList = vertices;
+			if (triangle.flipped)
+				vList = shouldAlwaysSmooth ? alwaysSmoothFlipped : flipped;
+			else
+				vList = shouldAlwaysSmooth ? alwaysSmooth : vertices;
+
+			std::string grouped = formatGroupedVector(vertex.coord());
+			vList[grouped].push_back(vertex);
+		}
+	}
+
+	averageNearNormals(vertices, model.smoothing);
+	averageNearNormals(flipped, model.smoothing);
+	averageNormals(alwaysSmooth);
+	averageNormals(alwaysSmoothFlipped);
 }
 
 
@@ -434,14 +517,16 @@ static inline int compileModel(const ModelData& model)
 	return returnCode;
 }
 
-int M2PExport::processModels(const std::vector<ModelData>& models, bool missingTextures)
+int M2PExport::processModels(std::vector<ModelData>& models, bool missingTextures)
 {
 	int returnCodes = 0;
 
 	logger.debug(std::format("Processing {} model{}", models.size(), models.size() > 1 ? "s" : ""));
 
-	for (const ModelData& model : models)
+	for (ModelData& model : models)
 	{
+		applySmooth(model);
+
 		bool smdOk = Smd().writeSmd(model);
 		bool qcOk = Qc().writeQc(model);
 	}

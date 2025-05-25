@@ -369,3 +369,68 @@ void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
 		std::reverse(vertices.begin(), vertices.end());
 	}
 }
+
+void M2PGeo::averageNormals(GroupedVertices& groupedVertices)
+{
+	for (std::pair<std::string, std::vector<std::reference_wrapper<Vertex>>> kv : groupedVertices)
+	{
+		std::vector<Vector3> normals;
+		for (const Vertex& vertex : kv.second)
+		{
+			normals.push_back(vertex.normal);
+		}
+		Vector3 averaged = sumVectors(normals) / normals.size();
+		for (Vertex& vertex : kv.second)
+		{
+			vertex.normal = averaged;
+		}
+	}
+}
+
+void M2PGeo::averageNearNormals(GroupedVertices& groupedVertices, FP thresholdDegrees)
+{
+	FP threshold = deg2rad(thresholdDegrees);
+
+	for (std::pair<std::string, std::vector<std::reference_wrapper<Vertex>>> kv : groupedVertices)
+	{
+		std::vector<std::reference_wrapper<Vertex>> remaining{ kv.second };
+
+		while (!remaining.empty())
+		{
+			std::vector<std::reference_wrapper<Vertex>> near;
+			near.reserve(remaining.size());
+
+			Vertex& a = remaining.back();
+			remaining.pop_back();
+
+			near.push_back(a);
+
+			Vector3 averaged = Vector3::zero() + a.normal;
+			for (Vertex& b : remaining)
+			{
+				if (vectorsAngle(a.normal, b.normal) <= threshold)
+				{
+					near.push_back(b);
+					averaged += b.normal;
+				}
+			}
+
+			for (int i = 0; i < remaining.size(); ++i)
+			{
+				Vertex& b = remaining[i];
+				if (vectorsAngle(a.normal, b.normal) <= threshold)
+				{
+					near.push_back(b);
+					averaged += b.normal;
+					remaining.erase(remaining.begin() + i);
+				}
+			}
+
+			averaged = averaged / near.size();
+			for (Vertex& vertex : near)
+			{
+				vertex.normal = averaged;
+			}
+		}
+	}
+}
