@@ -1,4 +1,5 @@
 #include "ear_clip.h"
+#include "utils.h"
 
 using namespace M2PGeo;
 using M2PGeo::g_isEager;
@@ -48,8 +49,8 @@ static inline int findOptimalEar(const std::vector<Vertex>& polygon, const std::
     for (int i = 0; i < maxIndex; ++i)
     {
         Vector3 point = polygon[i].coord();
-        Vector3 pPrev = polygon[static_cast<size_t>(i - 1) % maxIndex].coord();
-        Vector3 pNext = polygon[static_cast<size_t>(i + 1) % maxIndex].coord();
+        Vector3 pPrev = M2PUtils::getCircular(polygon, i - 1).coord();
+        Vector3 pNext = M2PUtils::getCircular(polygon, i + 1).coord();
 
         Vector3 cross = (pPrev - point).normalised().cross((pNext - point).normalised());
         FP normalDot = -normal.dot(cross);
@@ -99,18 +100,19 @@ std::vector<Triangle> M2PGeo::earClip(const std::vector<Vertex>& _polygon, const
 
     while (polygon.size() > 3)
     {
-        size_t maxIndex = polygon.size();
         int i = findOptimalEar(polygon, _polygon, normal);
+
         triangles.push_back(Triangle{
             .flipped = false,
             .normal = normal,
             .vertices = std::make_tuple(
-                polygon[static_cast<size_t>(i - 1) % maxIndex],
+                M2PUtils::getCircular(polygon, i - 1),
                 polygon[i],
-                polygon[static_cast<size_t>(i + 1) % maxIndex]
+                M2PUtils::getCircular(polygon, i + 1)
             ),
             .textureName = textureName
         });
+
         polygon.erase(polygon.begin() + i);
     }
 
