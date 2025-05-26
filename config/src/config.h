@@ -27,6 +27,7 @@ namespace M2PConfig
         float qcGamma = 1.8f;
         float qcRotate = 270.0f;
         float qcOffset[3] = { 0.0f, 0.0f, 0.0f };
+        std::filesystem::path exeDir;
         std::filesystem::path inputFilepath;
         std::filesystem::path inputDir;
         std::filesystem::path outputDir;

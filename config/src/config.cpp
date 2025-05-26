@@ -42,6 +42,33 @@ using M2PConfig::g_config;
 M2PConfig::Config g_config{};
 
 
+#ifdef _WIN32
+#include <Windows.h>
+#elif __linux__
+#include <limits.h>
+#include <unistd.h>
+#endif
+static std::filesystem::path getExePath()
+{
+#ifdef _WIN32
+    std::vector<wchar_t> pathBuffer;
+    DWORD copied = 0;
+    do {
+        pathBuffer.resize(pathBuffer.size() + MAX_PATH);
+        copied = GetModuleFileName(NULL, &pathBuffer.at(0), static_cast<DWORD>(pathBuffer.size()));
+    } while (copied >= pathBuffer.size());
+    pathBuffer.resize(copied);
+    std::wstring exeDir(pathBuffer.begin(), pathBuffer.end());
+    return std::filesystem::path{ exeDir };
+#elif __linux__
+    // TODO: Needs testing
+    char pathBuffer[PATH_MAX];
+    ssize_t count = MIN(readlink("/proc/self/exe", pathBuffer, PATH_MAX));
+    return std::filesystem::path{ std::string(pathBuffer, (count > 0) ? count : 0) };
+#endif
+}
+
+
 static Logging::Logger& logger = Logging::Logger::getLogger("config");
 
 
@@ -152,6 +179,7 @@ void M2PConfig::handleArgs(int argc, char** argv)
             exit(EXIT_SUCCESS);
         }
     }
+    g_config.exeDir = getExePath().parent_path();
 
     g_config.wadList.reserve(128);
 
