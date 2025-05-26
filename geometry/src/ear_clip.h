@@ -3,8 +3,6 @@
 
 namespace M2PGeo
 {
-	extern bool g_isEager;
-
 	using Vertex3 = std::tuple<Vertex, Vertex, Vertex>;
 
 	std::vector<Triangle> earClip(

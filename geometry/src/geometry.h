@@ -19,6 +19,8 @@ namespace M2PGeo {
     constexpr FP c_DEG2RAD = static_cast<FP>(std::numbers::pi / 180.);
     constexpr FP c_RAD2DEG = static_cast<FP>(180. / std::numbers::pi);
 
+    extern bool g_isEager;
+
 
     struct Vector2
     {
