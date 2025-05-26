@@ -100,6 +100,9 @@ static inline void loadFromFileConfig(const M2PConfig::ConfigFile& configFile)
 
 static inline void findWadsInDir(const std::filesystem::path& dir)
 {
+    if (!std::filesystem::is_directory(dir))
+        return;
+
     std::filesystem::path filepath;
     std::string filestem;
 
@@ -326,8 +329,6 @@ void M2PConfig::handleArgs(int argc, char** argv)
 
     if (!g_config.output.empty())
         g_config.outputDir = g_config.output;
-    else
-        g_config.outputDir = g_config.inputDir;
 
     configFile.setGameConfig(g_config.gameConfig);
 
@@ -356,6 +357,12 @@ std::filesystem::path M2PConfig::modDir()
     if (gameDir().empty() || g_config.mod.empty())
         return "";
     return gameDir() / g_config.mod;
+}
+std::filesystem::path M2PConfig::extractDir()
+{
+    if (g_config.mapcompile && !(M2PConfig::modDir().empty()))
+        return M2PConfig::modDir() / "models" / g_config.outputDir;
+    return g_config.outputDir;
 }
 
 bool M2PConfig::isMap()
