@@ -18,7 +18,7 @@ namespace M2PConfig
         std::vector<std::filesystem::path>& getWadList();
     private:
         std::filesystem::path m_filepath;
-        std::ifstream m_file;
+        std::fstream m_file;
         std::string m_currentGameConfig;
         std::unordered_map<std::string, std::unordered_map<std::string, std::string>> m_gameConfigs;
         std::unordered_map<std::string, std::vector<std::filesystem::path>> m_wadLists;

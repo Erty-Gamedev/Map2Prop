@@ -29,6 +29,7 @@ M2PConfig::ConfigFile::ConfigFile(const std::filesystem::path& configFile)
         m_file.close();
         logger.info("Could not read config file \"" + std::filesystem::absolute(m_filepath).string() + "\", creating default config file...");
 
+        m_filepath = g_config.exeDir / configFile;
         if (!createConfigFile())
         {
             logger.warning("Could not create default config file \"" + m_filepath.string() + "\"");
@@ -147,10 +148,9 @@ void M2PConfig::ConfigFile::replaceToken(std::string& str) const
     if (!value.empty())
         M2PUtils::replaceToken(str, token, value);
 }
+
 bool M2PConfig::ConfigFile::createConfigFile()
 {
-    return true;
-
     m_file.open(m_filepath, std::ios::out);
     if (!m_file.is_open() || !m_file.good())
     {
@@ -158,5 +158,37 @@ bool M2PConfig::ConfigFile::createConfigFile()
         return false;
     }
 
-    // TODO: Write default config file
+    m_file << R"CONFIG([default]
+smoothing threshold = 60.0
+rename chrome = no
+output directory = converted
+steam directory = C:\Program Files (x86)\Steam
+game config = halflife
+studiomdl = %(steam directory)s\steamapps\common\Sven Co-op SDK\modelling\studiomdl.exe
+autocompile = yes
+timeout = 60.0
+autoexit = no
+wad cache = 10
+wad list = 
+;Example wad list:
+;wad list = %(steam directory)s\steamapps\common\Half-Life\valve\halflife.wad,
+;           %(steam directory)s\steamapps\common\Half-Life\valve\liquids.wad,
+
+[halflife]
+game = Half-Life
+mod = valve
+
+[svencoop]
+game = Sven Co-op
+mod = svencoop
+
+[cstrike]
+game = Half-Life
+mod = cstrike
+)CONFIG";
+    m_file.close();
+
+    // Re-open in read
+    m_file.open(m_filepath, std::ios::in);
+    return m_file.is_open() && m_file.good();
 }
