@@ -88,14 +88,14 @@ std::string Entity::toString() const
 		str += std::format("\"{}\" \"{}\"\n", pair.first, pair.second);
 	}
 
-	if (brushes.size() > 0)
+	if (!brushes.empty())
 	{
-		str += "{\n";
 		for (Brush const& brush : brushes)
 		{
+			str += "{\n";
 			str += brush.raw;
+			str += "}\n";
 		}
-		str += "}\n";
 	}
 
 	str += "}\n";
