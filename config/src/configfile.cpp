@@ -1,7 +1,10 @@
+#include "config.h"
 #include "configfile.h"
 #include "logging.h"
 #include "utils.h"
 
+
+using M2PConfig::g_config;
 
 static Logging::Logger& logger = Logging::Logger::getLogger("config");
 
@@ -10,7 +13,11 @@ static Logging::Logger& logger = Logging::Logger::getLogger("config");
 
 M2PConfig::ConfigFile::ConfigFile(const std::filesystem::path& configFile)
 {
-    m_filepath = configFile;
+    m_filepath = g_config.exeDir / configFile;
+#ifdef _DEBUG
+    if (!std::filesystem::exists(m_filepath))
+        m_filepath = configFile;
+#endif
     m_gameConfigs = {};
     m_wadLists = {};
     m_gameConfigs["default"] = {};
@@ -20,11 +27,12 @@ M2PConfig::ConfigFile::ConfigFile(const std::filesystem::path& configFile)
     if (!m_file.is_open() || !m_file.good())
     {
         m_file.close();
-        logger.info("Could not read config file \"" + m_filepath.string() + "\", creating default config file...");
+        logger.info("Could not read config file \"" + std::filesystem::absolute(m_filepath).string() + "\", creating default config file...");
 
         if (!createConfigFile())
         {
             logger.warning("Could not create default config file \"" + m_filepath.string() + "\"");
+            return;
         }
     }
 

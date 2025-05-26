@@ -85,6 +85,10 @@ void Logger::setFileHandlerLevel(const LogLevel& loglevel)
 {
     m_fileHandler.setLevel(loglevel);
 }
+void Logging::Logger::setFileHandlerLogDir(const std::filesystem::path& logDir)
+{
+    m_fileHandler.setLogDir(logDir);
+}
 
 
 Logger& Logger::getLogger(const std::string& loggerName)

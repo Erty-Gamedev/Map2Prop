@@ -206,6 +206,7 @@ namespace Logging
 		void setLevel(const LogLevel&);
 		void setConsoleHandlerLevel(const LogLevel&);
 		void setFileHandlerLevel(const LogLevel&);
+		void setFileHandlerLogDir(const std::filesystem::path& logDir);
 	private:
 		static inline std::unordered_map<std::string, Logger> s_loggers {};
 		static inline ConsoleHandler s_defaultConsoleHandler { DEFAULT_LOG_LEVEL };

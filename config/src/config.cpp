@@ -180,6 +180,7 @@ void M2PConfig::handleArgs(int argc, char** argv)
         }
     }
     g_config.exeDir = getExePath().parent_path();
+    logger.setFileHandlerLogDir(g_config.exeDir / "logs");
 
     g_config.wadList.reserve(128);
 
