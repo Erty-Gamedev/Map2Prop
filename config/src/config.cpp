@@ -307,13 +307,19 @@ void M2PConfig::handleArgs(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    if (!std::filesystem::exists(g_config.input))
+    g_config.inputFilepath = g_config.input;
+    if (g_config.inputFilepath.extension().string().empty())
+    {
+        g_config.input += ".map";
+        g_config.inputFilepath = g_config.input;
+    }
+
+    if (!std::filesystem::exists(g_config.inputFilepath))
     {
         logger.error("Could not open file \"" + g_config.input + "\"");
         exit(EXIT_FAILURE);
     }
 
-    g_config.inputFilepath = g_config.input;
     g_config.inputDir = g_config.inputFilepath.parent_path();
 
     logger.info(g_config.input);
