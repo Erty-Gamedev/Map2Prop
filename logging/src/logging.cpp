@@ -1,7 +1,9 @@
 #include "logging.h"
+
+#ifdef _WIN32
 #include <wchar.h>
 #include <windows.h>
-
+#endif
 
 /**
  * Check if we can enable virtual terminal (needed for ANSI escape sequences)
@@ -9,6 +11,9 @@
  */
 static bool enableVirtualTerminal()
 {
+
+#ifdef _WIN32
+
     // Set output mode to handle virtual terminal sequences
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hOut == INVALID_HANDLE_VALUE)
@@ -54,6 +59,10 @@ static bool enableVirtualTerminal()
         // Failed to set VT input mode, can't do anything here.
         return false;
     }
+
+#elif __linux__
+    return false;
+#endif
 
     return true;
 }
