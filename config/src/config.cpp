@@ -138,11 +138,7 @@ static inline void populateWadList(M2PConfig::ConfigFile& configFile)
 
 void M2PConfig::handleArgs(int argc, char** argv)
 {
-    g_config.wadList.reserve(128);
-
-    M2PConfig::ConfigFile configFile{};
-    loadFromFileConfig(configFile);
-
+    // Check eager args
     for (int i = 1; i < argc; ++i)
     {
         if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)
@@ -155,7 +151,15 @@ void M2PConfig::handleArgs(int argc, char** argv)
             logger.log(USAGE);
             exit(EXIT_SUCCESS);
         }
+    }
 
+    g_config.wadList.reserve(128);
+
+    M2PConfig::ConfigFile configFile{};
+    loadFromFileConfig(configFile);
+
+    for (int i = 1; i < argc; ++i)
+    {
         if (strcmp(argv[i], "--noautocompile") == 0 || strcmp(argv[i], "-a") == 0)
         {
             g_config.autocompile = false;
