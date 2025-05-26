@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <fstream>
+#include <set>
 #include "entity.h"
 #include "geometry.h"
 #include "wad3handler.h"
@@ -30,7 +31,7 @@ namespace M2PExport
 		std::vector<M2PGeo::Triangle> triangles;
 		std::vector<M2PGeo::Bounds> alwaysSmooth;
 		std::vector<M2PGeo::Bounds> neverSmooth;
-		std::vector<std::string> maskedTextures;
+		std::set<std::string> maskedTextures;
 	};
 
 	class Smd

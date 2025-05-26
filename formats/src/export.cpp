@@ -357,8 +357,8 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 				if (M2PWad3::Wad3Handler::isSkipTexture(face.texture.name) || M2PWad3::Wad3Handler::isToolTexture(face.texture.name))
 					continue;
 
-				if (face.texture.name.starts_with('{') && !M2PUtils::contains(modelsMap[outname].maskedTextures, face.texture.name))
-					modelsMap[outname].maskedTextures.push_back(face.texture.name);
+				if (face.texture.name.starts_with('{'))
+					modelsMap[outname].maskedTextures.insert(face.texture.name);
 
 				M2PUtils::extendVector(modelsMap[outname].triangles, earClip(face.vertices, face.normal, face.texture.name));
 			}
