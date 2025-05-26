@@ -18,24 +18,6 @@ using namespace M2PGeo;
 namespace fs = std::filesystem;
 
 
-void M2PExport::writeEntitiesToMap(const std::vector<M2PEntity::Entity>& entities)
-{
-	std::ofstream file{ "test/testout.map" };
-	if (!file.good())
-	{
-		logger.error("Could not open \"test/testout.map\" for writing");
-		exit(EXIT_FAILURE);
-	}
-
-	for (const M2PEntity::Entity& entity : entities)
-	{
-		file.write(entity.toString().c_str(), entity.toString().size());
-	}
-
-	file.close();
-}
-
-
 static inline std::string formatGroupedVector(const Vector3& vector)
 {
 	return std::format("{:.{}f},{:.{}f},{:.{}f}",
@@ -273,7 +255,7 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 				}
 				entity.keyvalues.emplace_back("wad", wads);
 			}
-			entity.keyvalues.emplace_back("_note", "Modified by Map2Prop");
+			entity.setKey(c_NOTE_KEY, c_NOTE_VALUE);
 		}
 
 		if (entity.brushes.empty())
@@ -574,4 +556,111 @@ int M2PExport::processModels(std::vector<ModelData>& models, bool missingTexture
 		logger.info(std::format("Finished compiling {} model{}", models.size(), models.size() > 1 ? "s" : ""));
 
 	return returnCodes;
+}
+
+void M2PExport::rewriteMap(std::vector<M2PEntity::Entity>& entities)
+{
+	std::string stem = g_config.inputFilepath.stem().string();
+
+	fs::path filepath;
+	if (M2PConfig::isMap())
+	{
+		// TODO: Only make a M2P copy if we're working on an unmodified MAP
+		fs::path copyPath = g_config.inputDir / (stem + ".m2p");
+		std::filesystem::copy_file(g_config.inputFilepath, copyPath, fs::copy_options::overwrite_existing);
+		logger.info(std::format("Created copy at \"{}\"", copyPath.string()));
+		
+		filepath = g_config.inputFilepath;
+	}
+	else
+		filepath = g_config.inputDir / (stem + ".map");
+
+	logger.info("Converting func_map2prop entities");
+
+	std::unordered_map<std::string, std::string> parentModels;
+	for (M2PEntity::Entity& entity : entities)
+	{
+		if (entity.classname != "func_map2prop")
+			continue;
+
+		if (!entity.hasKey("targetname"))
+			continue;
+
+		if (parentModels.contains(entity.getKey("targetname")))
+		{
+			logger.info(std::format(
+				"Naming conflict: Multiple func_map2prop entities with name \"{}\". "
+				"Only the first one will be used as template parent",
+				entity.getKey("targetname")
+			));
+			continue;
+		}
+
+		// Reset entity angles, as they're baked into the model now
+		entity.setKey("angles", "0 0 0");
+
+		parentModels[entity.getKey("targetname")] = entity.getKey("model");
+	}
+
+	logger.info("Writing modified MAP as " + filepath.string());
+
+	std::ofstream file{ filepath };
+	if (!file.good())
+	{
+		logger.error("Could not open \"" + filepath.string() + "\" for writing");
+		return;
+	}
+
+	// Convert func_map2prop entites
+	for (M2PEntity::Entity& entity : entities)
+	{
+		if (entity.classname != "func_map2prop")
+		{
+			file << entity.toString();
+			continue;
+		}
+
+		// Entity is disabled, skip
+		if (entity.getKeyInt("spawnflags") & 1)
+			continue;
+
+		if (entity.hasKey("parent_model"))
+		{
+			if (!parentModels.contains(entity.getKey("parent_model")))
+			{
+				logger.warning("");
+				continue;
+			}
+
+			entity.setKey("model", parentModels.at(entity.getKey("parent_model")));
+		}
+
+		std::string newClass = entity.hasKey("convert_to") ? entity.getKey("convert_to") : "env_sprite";
+
+		int spawnflags = 0;
+		if (newClass.starts_with("monster_"))
+			spawnflags |= 16; // Prisoner
+		if (newClass == "monster_generic")
+			spawnflags |= 4;  // Not solid
+
+		file << "{\n\"classname\" \"" << newClass << "\"\n";
+		file << "\"model\" \"" << entity.getKey("model") << "\"\n";
+		file << "\"spawnflags\" \"" << spawnflags << "\"\n";
+
+		if (entity.hasKey("targetname"))
+			file << "\"targetname\" \"" << entity.getKey("targetname") << "\"\n";
+
+		if (entity.hasKey("angles"))
+		{
+			std::vector<std::string> parts = M2PUtils::split(entity.getKey("angles"));
+			file << "\"angles\" \"360 " << parts.at(1) << " 360\"\n";
+		}
+
+		if (entity.hasKey("origin"))
+			file << "\"origin\" \"" << entity.getKey("origin") << "\"\n";
+
+		file << "}\n";
+	}
+
+	logger.info("MAP successfully written. Ready for CSG");
 }

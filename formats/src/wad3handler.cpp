@@ -56,7 +56,6 @@ ImageSize Wad3Handler::s_getImageInfo(const std::string& textureName)
 	ImageInfo info{ textureName };
 	s_images[textureName] = { info.width, info.height };
 
-	//s_images.insert(std::pair{ textureName, ImageSize(info.width, info.height) });
 	return s_images[textureName];
 }
 std::ostream& M2PWad3::operator<<(std::ostream& os, const ImageSize& size)
@@ -74,7 +73,6 @@ Wad3Reader& Wad3Handler::getWad3Reader(const std::filesystem::path& wad)
 			m_wadCache.erase(m_wadCache.begin());
 
 		m_wadCache.insert(std::pair(wad, wad));
-
 	}
 	return m_wadCache[wad];
 }

@@ -10,6 +10,8 @@
 namespace M2PExport
 {
 	constexpr unsigned int c_VEC_GROUP_PRECISION = 1;
+	static inline const char* c_NOTE_KEY{ "_note" };
+	static inline const char* c_NOTE_VALUE{ "Modified by Map2Prop" };
 
 	enum Spawnflags
 	{
@@ -55,5 +57,5 @@ namespace M2PExport
 
 	std::vector<ModelData> prepareModels(std::vector<M2PEntity::Entity>& entities, const M2PWad3::Wad3Handler& wadHandler);
 	int processModels(std::vector<ModelData>& models, bool missingTextures);
-	void writeEntitiesToMap(const std::vector<M2PEntity::Entity>& entities);
+	void rewriteMap(std::vector<M2PEntity::Entity>& entities);
 }
