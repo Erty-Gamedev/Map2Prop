@@ -16,7 +16,6 @@ namespace M2PMap
 	public:
 		MapReader(const std::filesystem::path &filepath, const std::filesystem::path &outputDir);
 		~MapReader();
-		bool hasMissingTextures() const override;
 	private:
 		std::filesystem::path m_filepath;
 		std::filesystem::path m_outputDir;

@@ -229,14 +229,14 @@ bool Qc::writeQc(const ModelData& model)
 }
 
 
-std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& entities, const M2PWad3::Wad3Handler& wadHandler)
+std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 {
 	int n = 0;
 	std::unordered_map<std::string, ModelData> modelsMap;
 	std::string keyvalue;
 	keyvalue.reserve(256);
 
-	for (M2PEntity::Entity& entity : entities)
+	for (M2PEntity::Entity& entity : reader.entities)
 	{
 		bool isWorldspawn = entity.classname == "worldspawn";
 		bool isFuncM2P = entity.classname == "func_map2prop";
@@ -247,12 +247,12 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 			{
 				std::string wads;
 				wads.reserve(1024);
-				for (int i = 0; i < wadHandler.usedWads.size(); ++i) {
-					const fs::path& wadPath = wadHandler.usedWads[i];
+				for (int i = 0; i < reader.wadHandler.usedWads.size(); ++i) {
+					const fs::path& wadPath = reader.wadHandler.usedWads[i];
 					std::string wadStr = "/" + fs::relative(wadPath, wadPath.root_path()).string();
 					std::replace(wadStr.begin(), wadStr.end(), '\\', '/');
 					wads.append(wadStr);
-					if (i < wadHandler.usedWads.size() - 1)
+					if (i < reader.wadHandler.usedWads.size() - 1)
 						wads.append(";");
 				}
 				entity.keyvalues.emplace_back("wad", wads);
@@ -503,7 +503,6 @@ std::vector<ModelData> M2PExport::prepareModels(std::vector<M2PEntity::Entity>& 
 
 	return models;
 }
-
 
 int M2PExport::processModels(std::vector<ModelData>& models, bool missingTextures)
 {

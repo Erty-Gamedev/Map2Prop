@@ -55,7 +55,7 @@ namespace M2PExport
 	};
 
 
-	std::vector<ModelData> prepareModels(std::vector<M2PEntity::Entity>& entities, const M2PWad3::Wad3Handler& wadHandler);
+	std::vector<ModelData> prepareModels(M2PEntity::BaseReader& reader);
 	int processModels(std::vector<ModelData>& models, bool missingTextures);
 	void rewriteMap(std::vector<M2PEntity::Entity>& entities);
 }

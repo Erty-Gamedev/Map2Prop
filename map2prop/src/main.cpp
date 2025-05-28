@@ -22,13 +22,13 @@ int main(int argc, char** argv)
 
     try
     {
-        M2PMap::MapReader mapReader = M2PMap::MapReader(g_config.inputFilepath, g_config.outputDir);
+        M2PEntity::BaseReader reader = M2PMap::MapReader(g_config.inputFilepath, g_config.outputDir);
 
-        auto models = M2PExport::prepareModels(mapReader.entities, mapReader.wadHandler);
-        int res = M2PExport::processModels(models, mapReader.hasMissingTextures());
+        auto models = M2PExport::prepareModels(reader);
+        int res = M2PExport::processModels(models, reader.hasMissingTextures());
 
         if (g_config.mapcompile && !res)
-            M2PExport::rewriteMap(mapReader.entities);
+            M2PExport::rewriteMap(reader.entities);
     }
     catch (const std::exception& e)
     {

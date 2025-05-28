@@ -270,6 +270,3 @@ void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &
 		}
 	}
 }
-
-
-bool MapReader::hasMissingTextures() const { return wadHandler.hasMissingTextures(); }

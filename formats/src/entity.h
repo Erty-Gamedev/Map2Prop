@@ -58,6 +58,6 @@ namespace M2PEntity
         std::vector<Entity> entities;
         M2PWad3::Wad3Handler wadHandler;
 
-        virtual bool hasMissingTextures() const = 0;
+        bool hasMissingTextures() const { return wadHandler.hasMissingTextures(); };
     };
 }
