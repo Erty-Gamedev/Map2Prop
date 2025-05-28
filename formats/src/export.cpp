@@ -109,7 +109,7 @@ static inline void applySmooth(ModelData& model)
 static inline int compileModel(const ModelData& model)
 {
 	fs::path currentDir = fs::absolute(fs::current_path());
-	fs::current_path(fs::current_path() / M2PConfig::extractDir());
+	fs::current_path(fs::current_path() / g_config.extractDir());
 	int returnCode = std::system((g_config.studiomdl.string() + " " + model.outname + ".qc").c_str());
 	fs::current_path(currentDir);
 	return returnCode;
@@ -118,7 +118,7 @@ static inline int compileModel(const ModelData& model)
 
 bool Smd::writeSmd(const ModelData& model)
 {
-	fs::path filepath = M2PConfig::extractDir() / (model.outname + ".smd");
+	fs::path filepath = g_config.extractDir() / (model.outname + ".smd");
 	m_file.open(filepath);
 	if (!m_file.is_open() || !m_file.good())
 	{
@@ -162,7 +162,7 @@ bool Smd::writeSmd(const ModelData& model)
 
 bool Qc::writeQc(const ModelData& model)
 {
-	fs::path filepath = M2PConfig::extractDir() / (model.outname + ".qc");
+	fs::path filepath = g_config.extractDir() / (model.outname + ".qc");
 	m_file.open(filepath);
 	if (!m_file.is_open() || !m_file.good())
 	{
@@ -315,7 +315,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 			if (!keyvalue.empty())
 				subdir = keyvalue;
 
-			fs::path parentFolder = M2PConfig::extractDir() / subdir;
+			fs::path parentFolder = g_config.extractDir() / subdir;
 
 			if (!fs::is_directory(parentFolder))
 				fs::create_directories(parentFolder);

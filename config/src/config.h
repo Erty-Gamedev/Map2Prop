@@ -47,14 +47,11 @@ namespace M2PConfig
         bool isJmf() const { return extension == ".jmf"; }
         bool isOl()  const { return extension == ".ol"; }
 
+        std::filesystem::path gameDir() const;
+        std::filesystem::path modDir() const;
+        std::filesystem::path extractDir() const;
     };
     extern Config g_config;
 
     void handleArgs(int, char**);
-
-    std::filesystem::path gameDir();
-    std::filesystem::path modDir();
-    std::filesystem::path extractDir();
-    bool isMap();
-    bool isObj();
 }

@@ -149,17 +149,17 @@ static inline void populateWadList(M2PConfig::ConfigFile& configFile)
 
     // Find WADs in mod directory
     std::filesystem::path modDir;
-    std::filesystem::path gameDir = M2PConfig::gameDir();
+    std::filesystem::path gameDir = g_config.gameDir();
     std::string mod = unSteamPipe(g_config.mod);
 
-    modDir = { M2PConfig::gameDir() / mod };
+    modDir = { g_config.gameDir() / mod };
     if (std::filesystem::is_directory(modDir))
         findWadsInDir(modDir);
 
     // Check steampipes
     for (const std::string& pipe : M2PUtils::c_STEAMPIPES)
     {
-        modDir = { M2PConfig::gameDir() / (mod + pipe) };
+        modDir = { g_config.gameDir() / (mod + pipe) };
         if (std::filesystem::is_directory(modDir))
             findWadsInDir(modDir);
     }
@@ -354,21 +354,21 @@ void M2PConfig::handleArgs(int argc, char** argv)
         logger.info("Using --mapcompile");
 }
 
-std::filesystem::path M2PConfig::gameDir()
+std::filesystem::path M2PConfig::Config::gameDir() const
 {
-    if (g_config.steamDir.empty() || g_config.game.empty())
+    if (steamDir.empty() || game.empty())
         return "";
-    return g_config.steamDir / "steamapps" / "common" / g_config.game;
+    return steamDir / "steamapps" / "common" / game;
 }
-std::filesystem::path M2PConfig::modDir()
+std::filesystem::path M2PConfig::Config::modDir() const
 {
-    if (gameDir().empty() || g_config.mod.empty())
+    if (gameDir().empty() || mod.empty())
         return "";
-    return gameDir() / g_config.mod;
+    return gameDir() / mod;
 }
-std::filesystem::path M2PConfig::extractDir()
+std::filesystem::path M2PConfig::Config::extractDir() const
 {
-    if (g_config.mapcompile && !(M2PConfig::modDir().empty()))
-        return M2PConfig::modDir() / "models" / g_config.outputDir;
-    return g_config.outputDir;
+    if (mapcompile && !(modDir().empty()))
+        return modDir() / "models" / outputDir;
+    return outputDir;
 }

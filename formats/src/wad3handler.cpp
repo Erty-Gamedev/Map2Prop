@@ -19,10 +19,10 @@ ImageInfo::ImageInfo(const std::pair<int, int>& size)
 }
 ImageInfo::ImageInfo(const std::string& textureName)
 {
-	if (!std::filesystem::exists(M2PConfig::extractDir()))
-		std::filesystem::create_directories(M2PConfig::extractDir());
+	if (!std::filesystem::exists(g_config.extractDir()))
+		std::filesystem::create_directories(g_config.extractDir());
 
-	std::filesystem::path textureFile = M2PConfig::extractDir() / (textureName + ".bmp");
+	std::filesystem::path textureFile = g_config.extractDir() / (textureName + ".bmp");
 	m_file.open(textureFile, std::ios::binary);
 	if (!m_file.is_open() || !m_file.good())
 	{
@@ -117,15 +117,15 @@ ImageSize Wad3Handler::checkTexture(const std::string& textureName)
 
 	Wad3Reader* reader = checkWads(textureName);
 
-	if (!std::filesystem::exists(M2PConfig::extractDir()))
-		std::filesystem::create_directories(M2PConfig::extractDir());
+	if (!std::filesystem::exists(g_config.extractDir()))
+		std::filesystem::create_directories(g_config.extractDir());
 
-	if (std::filesystem::exists(M2PConfig::extractDir() / textureFile))
+	if (std::filesystem::exists(g_config.extractDir() / textureFile))
 		return s_getImageInfo(textureName);
 
 	if (std::filesystem::exists(g_config.inputDir / textureFile))
 	{
-		std::filesystem::copy_file(g_config.inputDir / textureFile, M2PConfig::extractDir() / textureFile);
+		std::filesystem::copy_file(g_config.inputDir / textureFile, g_config.extractDir() / textureFile);
 		return s_getImageInfo(textureName);
 	}
 
@@ -140,7 +140,7 @@ ImageSize Wad3Handler::checkTexture(const std::string& textureName)
 
 	logger.info("Extracting " + textureName + " from " + reader->getFilename());
 
-	Wad3MipTex miptex = reader->extract(textureName, M2PConfig::extractDir());
+	Wad3MipTex miptex = reader->extract(textureName, g_config.extractDir());
 
 	s_images.insert(std::pair{
 		textureName,
