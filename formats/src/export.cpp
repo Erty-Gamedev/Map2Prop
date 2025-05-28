@@ -138,7 +138,7 @@ bool Smd::writeSmd(const ModelData& model)
 		{
 			m_file << "0\t";
 			const M2PGeo::Vector3& normal = vertex.normal;
-			if (M2PConfig::isObj())
+			if (g_config.isObj())
 			{
 				m_file << std::format("{:.6f} {:.6f} {:.6f}\t", vertex.x, -vertex.z, vertex.y);
 				m_file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, -normal.z, normal.y);
@@ -243,7 +243,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 
 		if (isWorldspawn)
 		{
-			if (!M2PConfig::isMap())
+			if (!g_config.isMap())
 			{
 				std::string wads;
 				wads.reserve(1024);
@@ -559,7 +559,7 @@ void M2PExport::rewriteMap(std::vector<M2PEntity::Entity>& entities)
 	std::string stem = g_config.inputFilepath.stem().string();
 
 	fs::path filepath;
-	if (M2PConfig::isMap())
+	if (g_config.isMap())
 	{
 		// TODO: Only make a M2P copy if we're working on an unmodified MAP
 		fs::path copyPath = g_config.inputDir / (stem + ".m2p");

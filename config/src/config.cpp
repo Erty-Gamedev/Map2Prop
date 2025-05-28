@@ -9,10 +9,10 @@
 const char* NAME = { "Map2Prop++ v0.1.0" };
 
 const char* USAGE = R"USAGE(Usage: Map2Prop input [options]
-Converts a .map/.rmf/.jmf or J.A.C.K .obj into GoldSrc .smd files for model creation.
+Converts a .map/.rmf/.jmf/.ol or J.A.C.K .obj into GoldSrc .smd files for model creation.
 
 Arguments:
-  input                 .map/.rmf/.jmf/.obj file to convert
+  input                 .map/.rmf/.jmf/.obj/.ol file to convert
   -v | --version        print current version
   -h | --help           show this help message and exit
 
@@ -305,7 +305,7 @@ void M2PConfig::handleArgs(int argc, char** argv)
 
     if (g_config.input.empty())
     {
-        logger.log("Missing positional argument: input (.map/.rmf/.jmf/.obj file to convert)");
+        logger.log("Missing positional argument: input (.map/.rmf/.jmf/.obj/.ol file to convert)");
         logger.log(USAGE);
         exit(EXIT_FAILURE);
     }
@@ -320,6 +320,14 @@ void M2PConfig::handleArgs(int argc, char** argv)
     if (!std::filesystem::exists(g_config.inputFilepath))
     {
         logger.error("Could not open file \"" + g_config.input + "\"");
+        exit(EXIT_FAILURE);
+    }
+
+    g_config.extension = M2PUtils::toLowerCase(g_config.inputFilepath.extension().string());
+
+    if (!M2PUtils::contains(c_SUPPORTED_FORMATS, g_config.extension))
+    {
+        logger.error("Unsupported format extension: \"" + g_config.extension + "\"");
         exit(EXIT_FAILURE);
     }
 
@@ -363,13 +371,4 @@ std::filesystem::path M2PConfig::extractDir()
     if (g_config.mapcompile && !(M2PConfig::modDir().empty()))
         return M2PConfig::modDir() / "models" / g_config.outputDir;
     return g_config.outputDir;
-}
-
-bool M2PConfig::isMap()
-{
-    return M2PUtils::toLowerCase(g_config.inputFilepath.extension().string()) == ".map";
-}
-bool M2PConfig::isObj()
-{
-    return M2PUtils::toLowerCase(g_config.inputFilepath.extension().string()) == ".obj";
 }
