@@ -22,7 +22,25 @@ int main(int argc, char** argv)
 
     try
     {
-        M2PEntity::BaseReader reader = M2PMap::MapReader(g_config.inputFilepath, g_config.outputDir);
+        M2PEntity::BaseReader reader;
+        switch (g_config.extension)
+        {
+        case M2PConfig::Extension::MAP:
+            reader = M2PMap::MapReader(g_config.inputFilepath, g_config.outputDir);
+            break;
+        case M2PConfig::Extension::RMF:
+            logger.error("RMF not implemented");
+            break;
+        case M2PConfig::Extension::JMF:
+            logger.error("JMF not implemented");
+            break;
+        case M2PConfig::Extension::OBJ:
+            logger.error("OBJ not implemented");
+            break;
+        case M2PConfig::Extension::OL:
+            logger.error("OL not implemented");
+            break;
+        }
 
         std::vector<M2PExport::ModelData> models = M2PExport::prepareModels(reader);
 

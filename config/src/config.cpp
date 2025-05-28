@@ -323,11 +323,20 @@ void M2PConfig::handleArgs(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
-    g_config.extension = M2PUtils::toLowerCase(g_config.inputFilepath.extension().string());
-
-    if (!M2PUtils::contains(c_SUPPORTED_FORMATS, g_config.extension))
+    std::string extension = M2PUtils::toLowerCase(g_config.inputFilepath.extension().string());
+    if (extension == ".map")
+        g_config.extension = M2PConfig::Extension::MAP;
+    else if (extension == ".rmf")
+        g_config.extension = M2PConfig::Extension::RMF;
+    else if (extension == ".jmf")
+        g_config.extension = M2PConfig::Extension::JMF;
+    else if (extension == ".obj")
+        g_config.extension = M2PConfig::Extension::OBJ;
+    else if (extension == ".ol")
+        g_config.extension = M2PConfig::Extension::OL;
+    else
     {
-        logger.error("Unsupported format extension: \"" + g_config.extension + "\"");
+        logger.error("Unsupported format extension: \"" + extension + "\"");
         exit(EXIT_FAILURE);
     }
 
