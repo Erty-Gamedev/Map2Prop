@@ -248,7 +248,8 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 				std::string wads;
 				wads.reserve(1024);
 				for (int i = 0; i < reader.wadHandler.usedWads.size(); ++i) {
-					const fs::path& wadPath = reader.wadHandler.usedWads[i];
+					fs::path wadPath = reader.wadHandler.usedWads[i];
+					wadPath = fs::absolute(wadPath);
 					std::string wadStr = "/" + fs::relative(wadPath, wadPath.root_path()).string();
 					std::replace(wadStr.begin(), wadStr.end(), '\\', '/');
 					wads.append(wadStr);
