@@ -90,10 +90,10 @@ std::string Entity::toString() const
 
 	if (!brushes.empty())
 	{
-		for (Brush const& brush : brushes)
+		for (auto &brush : brushes)
 		{
 			str += "{\n";
-			str += brush.raw;
+			str += brush->getRaw();
 			str += "}\n";
 		}
 	}

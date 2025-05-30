@@ -4,13 +4,11 @@
 #include <filesystem>
 #include <vector>
 #include "geometry.h"
-#include "wad3handler.h"
 #include "entity.h"
 
 
-namespace M2PMap
+namespace M2PFormat
 {
-
 	class MapReader : public M2PEntity::BaseReader
 	{
 	public:
@@ -22,8 +20,8 @@ namespace M2PMap
 		std::ifstream m_file;
 
 		void parse();
-		M2PEntity::Entity readEntity();
-		M2PEntity::Brush readBrush(std::string& line, bool &outValid);
+		void readEntity(M2PEntity::Entity &entity);
+		void readBrush(M2PEntity::Brush &brush, std::string& line, bool &outValid);
 	};
 
 

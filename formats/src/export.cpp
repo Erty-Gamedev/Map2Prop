@@ -236,10 +236,10 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 	std::string keyvalue;
 	keyvalue.reserve(256);
 
-	for (M2PEntity::Entity& entity : reader.entities)
+	for (std::unique_ptr<M2PEntity::Entity>& entity : reader.entities)
 	{
-		bool isWorldspawn = entity.classname == "worldspawn";
-		bool isFuncM2P = entity.classname == "func_map2prop";
+		bool isWorldspawn = entity->classname == "worldspawn";
+		bool isFuncM2P = entity->classname == "func_map2prop";
 
 		if (isWorldspawn)
 		{
@@ -255,12 +255,12 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 					if (i < reader.wadHandler.usedWads.size() - 1)
 						wads.append(";");
 				}
-				entity.keyvalues.emplace_back("wad", wads);
+				entity->keyvalues.emplace_back("wad", wads);
 			}
-			entity.setKey(c_NOTE_KEY, c_NOTE_VALUE);
+			entity->setKey(c_NOTE_KEY, c_NOTE_VALUE);
 		}
 
-		if (entity.brushes.empty())
+		if (entity->brushes.empty())
 			continue;
 
 		if (g_config.mapcompile && !isFuncM2P)
@@ -273,32 +273,32 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 
 		if (isFuncM2P)
 		{
-			if (entity.getKeyInt("spawnflags") & Spawnflags::DISABLE)
+			if (entity->getKeyInt("spawnflags") & Spawnflags::DISABLE)
 				continue;
 
-			keyvalue = entity.getKey("parent_model");
+			keyvalue = entity->getKey("parent_model");
 			if (keyvalue != "")
 			{
-				for (const auto& brush : entity.brushes)
+				for (const auto& brush : entity->brushes)
 				{
-					if (brush.faces.empty())
+					if (brush->faces.empty())
 						continue;
 
-					if (brush.isToolBrush(M2PEntity::ToolTexture::ORIGIN))
+					if (brush->isToolBrush(M2PEntity::ToolTexture::ORIGIN))
 					{
-						Vector3 ori = brush.getCenter();
-						entity.setKey("origin", std::format("{:.1f} {:.1f} {:.1f}", ori.x, ori.y, ori.z));
+						Vector3 ori = brush->getCenter();
+						entity->setKey("origin", std::format("{:.1f} {:.1f} {:.1f}", ori.x, ori.y, ori.z));
 						break;
 					}
 				}
 				continue;
 			}
 
-			if (g_config.mapcompile || entity.getKeyInt("own_model") > 0)
+			if (g_config.mapcompile || entity->getKeyInt("own_model") > 0)
 			{
 				ownModel = true;
 				outname = std::format("{}_{}", filename, n);
-				keyvalue = entity.getKey("outname");
+				keyvalue = entity->getKey("outname");
 				if (!keyvalue.empty())
 				{
 					outname = keyvalue;
@@ -311,7 +311,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 				}
 			}
 
-			keyvalue = entity.getKey("subdir");
+			keyvalue = entity->getKey("subdir");
 			if (!keyvalue.empty())
 				subdir = keyvalue;
 
@@ -322,7 +322,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 
 			std::string modelPath = ("models" / g_config.outputDir / subdir / (outname + ".mdl")).string();
 			std::replace(modelPath.begin(), modelPath.end(), '\\', '/');
-			entity.setKey("model", modelPath);
+			entity->setKey("model", modelPath);
 		}
 
 
@@ -334,14 +334,14 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 
 		if (isWorldspawn || ownModel)
 		{
-			if (!(keyvalue = entity.getKey("scale")).empty())
+			if (!(keyvalue = entity->getKey("scale")).empty())
 			{
 				scale = std::stof(keyvalue);
 				if (scale == 0)
 					scale = 1.0;
 			}
 
-			if (!(keyvalue = entity.getKey("angles")).empty())
+			if (!(keyvalue = entity->getKey("angles")).empty())
 			{
 				std::vector<std::string> angles = M2PUtils::split(keyvalue, ' ');
 				if (angles.size() == 1)
@@ -350,13 +350,13 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 					rotation = fmod(rotation + std::stof(angles[1]), 360.0f);
 			}
 
-			if (!(keyvalue = entity.getKey("smoothing")).empty())
+			if (!(keyvalue = entity->getKey("smoothing")).empty())
 				smoothing = std::stof(keyvalue);
 
-			if (!(keyvalue = entity.getKey("qc_flags")).empty())
+			if (!(keyvalue = entity->getKey("qc_flags")).empty())
 				qcFlags = keyvalue;
 
-			chrome = entity.getKeyInt("chrome") == 1;
+			chrome = entity->getKeyInt("chrome") == 1;
 		}
 
 		
@@ -373,22 +373,22 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 		}
 
 		bool originFound = false, boundsFound = false, clipFound = false;
-		for (const M2PEntity::Brush& brush : entity.brushes)
+		for (const auto& brush : entity->brushes)
 		{
 
 			// Look for ORIGIN brushes, use first found
-			if (modelsMap[outname].offset == Vector3::zero() && brush.isToolBrush(M2PEntity::ToolTexture::ORIGIN))
+			if (modelsMap[outname].offset == Vector3::zero() && brush->isToolBrush(M2PEntity::ToolTexture::ORIGIN))
 			{
 				if (originFound)
 				{
-					logger.info(std::format("Multiple ORIGIN brushes found in {} near ({})", entity.classname, brush.getCenter()));
+					logger.info(std::format("Multiple ORIGIN brushes found in {} near ({})", entity->classname, brush->getCenter()));
 					continue;
 				}
 				if (isWorldspawn || ownModel)
 				{
-					Vector3 origin = geometricCenter(brush.getBounds());
+					Vector3 origin = geometricCenter(brush->getBounds());
 					modelsMap[outname].offset = origin;
-					entity.setKey("origin", std::format("{}", origin));
+					entity->setKey("origin", std::format("{}", origin));
 				}
 				originFound = true;
 				continue;
@@ -396,16 +396,16 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 
 			// Look for BOUNDINGBOX brushes, use first found
 			if (modelsMap[outname].bounds == Bounds::zero()
-				&& brush.isToolBrush(M2PEntity::ToolTexture::BOUNDINGBOX))
+				&& brush->isToolBrush(M2PEntity::ToolTexture::BOUNDINGBOX))
 			{
 				if (boundsFound)
 				{
-					logger.info(std::format("Multiple BOUNDINGBOX brushes found in {} near ({})", entity.classname, brush.getCenter()));
+					logger.info(std::format("Multiple BOUNDINGBOX brushes found in {} near ({})", entity->classname, brush->getCenter()));
 					continue;
 				}
 				if (isWorldspawn || ownModel)
 				{
-					modelsMap[outname].bounds = brush.getBounds();
+					modelsMap[outname].bounds = brush->getBounds();
 				}
 				boundsFound = true;
 				continue;
@@ -413,42 +413,42 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 			
 			// Look for CLIP brushes, use first found
 			if (modelsMap[outname].clip == Bounds::zero()
-				&& brush.isToolBrush(M2PEntity::ToolTexture::CLIP))
+				&& brush->isToolBrush(M2PEntity::ToolTexture::CLIP))
 			{
 				if (clipFound)
 				{
-					logger.info(std::format("Multiple CLIP brushes found in {} near ({})", entity.classname, brush.getCenter()));
+					logger.info(std::format("Multiple CLIP brushes found in {} near ({})", entity->classname, brush->getCenter()));
 					continue;
 				}
 				if (isWorldspawn || ownModel)
 				{
-					modelsMap[outname].clip = brush.getBounds();
+					modelsMap[outname].clip = brush->getBounds();
 				}
 				clipFound = true;
 				continue;
 			}
 			
 			// Look for CLIPBEVEL brushes
-			if (brush.isToolBrush(M2PEntity::ToolTexture::CLIPBEVEL))
+			if (brush->isToolBrush(M2PEntity::ToolTexture::CLIPBEVEL))
 			{
 				if (isWorldspawn || ownModel)
 				{
-					modelsMap[outname].neverSmooth.push_back(brush.getBounds());
+					modelsMap[outname].neverSmooth.push_back(brush->getBounds());
 				}
 				continue;
 			}
 			
 			// Look for BEVEL brushes
-			if (brush.isToolBrush(M2PEntity::ToolTexture::BEVEL))
+			if (brush->isToolBrush(M2PEntity::ToolTexture::BEVEL))
 			{
 				if (isWorldspawn || ownModel)
 				{
-					modelsMap[outname].alwaysSmooth.push_back(brush.getBounds());
+					modelsMap[outname].alwaysSmooth.push_back(brush->getBounds());
 				}
 				continue;
 			}
 
-			for (const M2PEntity::Face& face : brush.faces)
+			for (const M2PEntity::Face& face : brush->faces)
 			{
 				if (M2PWad3::Wad3Handler::isSkipTexture(face.texture.name) || M2PWad3::Wad3Handler::isToolTexture(face.texture.name))
 					continue;
@@ -459,7 +459,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 				M2PUtils::extendVector(modelsMap[outname].triangles, earClip(face.vertices, face.normal, face.texture.name));
 			}
 
-			if (brush.hasContentWater())
+			if (brush->hasContentWater())
 			{
 				std::vector<Triangle> flipped{ modelsMap[outname].triangles };
 				for (Triangle& triangle : flipped)
@@ -474,7 +474,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 		}
 
 		if (modelsMap[outname].offset == Vector3::zero()
-			&& (!entity.hasKey("use_world_origin") || entity.getKeyInt("use_world_origin")))
+			&& (!entity->hasKey("use_world_origin") || entity->getKeyInt("use_world_origin")))
 		{
 			Vector3 aabbMin = modelsMap[outname].triangles[0].vertices[0].coord();
 			Vector3 aabbMax = modelsMap[outname].triangles[0].vertices[0].coord();
@@ -554,7 +554,7 @@ int M2PExport::processModels(std::vector<ModelData>& models, bool missingTexture
 	return returnCodes;
 }
 
-void M2PExport::rewriteMap(std::vector<M2PEntity::Entity>& entities)
+void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &entities)
 {
 	std::string stem = g_config.inputFilepath.stem().string();
 
@@ -574,28 +574,28 @@ void M2PExport::rewriteMap(std::vector<M2PEntity::Entity>& entities)
 	logger.info("Converting func_map2prop entities");
 
 	std::unordered_map<std::string, std::string> parentModels;
-	for (M2PEntity::Entity& entity : entities)
+	for (std::unique_ptr<M2PEntity::Entity> &entity : entities)
 	{
-		if (entity.classname != "func_map2prop")
+		if (entity->classname != "func_map2prop")
 			continue;
 
-		if (!entity.hasKey("targetname"))
+		if (!entity->hasKey("targetname"))
 			continue;
 
-		if (parentModels.contains(entity.getKey("targetname")))
+		if (parentModels.contains(entity->getKey("targetname")))
 		{
 			logger.info(std::format(
 				"Naming conflict: Multiple func_map2prop entities with name \"{}\". "
 				"Only the first one will be used as template parent",
-				entity.getKey("targetname")
+				entity->getKey("targetname")
 			));
 			continue;
 		}
 
 		// Reset entity angles, as they're baked into the model now
-		entity.setKey("angles", "0 0 0");
+		entity->setKey("angles", "0 0 0");
 
-		parentModels[entity.getKey("targetname")] = entity.getKey("model");
+		parentModels[entity->getKey("targetname")] = entity->getKey("model");
 	}
 
 	logger.info("Writing modified MAP as " + filepath.string());
@@ -608,30 +608,30 @@ void M2PExport::rewriteMap(std::vector<M2PEntity::Entity>& entities)
 	}
 
 	// Convert func_map2prop entites
-	for (M2PEntity::Entity& entity : entities)
+	for (std::unique_ptr<M2PEntity::Entity> &entity : entities)
 	{
-		if (entity.classname != "func_map2prop")
+		if (entity->classname != "func_map2prop")
 		{
-			file << entity.toString();
+			file << entity->toString();
 			continue;
 		}
 
 		// Entity is disabled, skip
-		if (entity.getKeyInt("spawnflags") & 1)
+		if (entity->getKeyInt("spawnflags") & 1)
 			continue;
 
-		if (entity.hasKey("parent_model"))
+		if (entity->hasKey("parent_model"))
 		{
-			if (!parentModels.contains(entity.getKey("parent_model")))
+			if (!parentModels.contains(entity->getKey("parent_model")))
 			{
 				logger.warning("");
 				continue;
 			}
 
-			entity.setKey("model", parentModels.at(entity.getKey("parent_model")));
+			entity->setKey("model", parentModels.at(entity->getKey("parent_model")));
 		}
 
-		std::string newClass = entity.hasKey("convert_to") ? entity.getKey("convert_to") : "env_sprite";
+		std::string newClass = entity->hasKey("convert_to") ? entity->getKey("convert_to") : "env_sprite";
 
 		int spawnflags = 0;
 		if (newClass.starts_with("monster_"))
@@ -640,20 +640,20 @@ void M2PExport::rewriteMap(std::vector<M2PEntity::Entity>& entities)
 			spawnflags |= 4;  // Not solid
 
 		file << "{\n\"classname\" \"" << newClass << "\"\n";
-		file << "\"model\" \"" << entity.getKey("model") << "\"\n";
+		file << "\"model\" \"" << entity->getKey("model") << "\"\n";
 		file << "\"spawnflags\" \"" << spawnflags << "\"\n";
 
-		if (entity.hasKey("targetname"))
-			file << "\"targetname\" \"" << entity.getKey("targetname") << "\"\n";
+		if (entity->hasKey("targetname"))
+			file << "\"targetname\" \"" << entity->getKey("targetname") << "\"\n";
 
-		if (entity.hasKey("angles"))
+		if (entity->hasKey("angles"))
 		{
-			std::vector<std::string> parts = M2PUtils::split(entity.getKey("angles"));
+			std::vector<std::string> parts = M2PUtils::split(entity->getKey("angles"));
 			file << "\"angles\" \"360 " << parts.at(1) << " 360\"\n";
 		}
 
-		if (entity.hasKey("origin"))
-			file << "\"origin\" \"" << entity.getKey("origin") << "\"\n";
+		if (entity->hasKey("origin"))
+			file << "\"origin\" \"" << entity->getKey("origin") << "\"\n";
 
 		file << "}\n";
 	}

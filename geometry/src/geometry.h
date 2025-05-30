@@ -50,6 +50,7 @@ namespace M2PGeo {
         Vector3 normalised() const;
         Vector3() : x(0), y(0), z(0) {}
         Vector3(FP _x, FP _y, FP _z) : x(_x), y(_y), z(_z) {}
+        Vector3(const FP xyz[3]) : x(xyz[0]), y(xyz[1]), z(xyz[2]) {}
         Vector3 operator+() const;
         Vector3 operator+(const Vector3& other) const;
         Vector3& operator+=(const Vector3& other);
@@ -87,6 +88,7 @@ namespace M2PGeo {
         Vector3 normal = Vector3::zero();
         Vertex() : Vector3() {};
         Vertex(FP _x, FP _y, FP _z) : Vector3(_x, _y, _z) {}
+        Vertex(const FP xyz[3]) : Vector3(xyz) {}
         Vertex(const Vector3& point) { x = point.x; y = point.y; z = point.z; }
         bool operator==(const Vertex &other) const;
         bool operator!=(const Vertex &other) const;

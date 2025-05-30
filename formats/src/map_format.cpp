@@ -7,7 +7,7 @@
 
 static inline Logging::Logger& logger = Logging::Logger::getLogger("mapreader");
 
-using namespace M2PMap;
+using namespace M2PFormat;
 using namespace M2PGeo;
 using namespace M2PEntity;
 
@@ -40,17 +40,15 @@ void MapReader::parse()
 	{
 		if (line.starts_with('{'))
 		{
-			Entity entity = readEntity();
-			entities.push_back(entity);
+			entities.push_back(std::unique_ptr<Entity>(new Entity));
+			readEntity(*entities.back());
 		}
 	}
 }
 
 
-Entity MapReader::readEntity()
+void MapReader::readEntity(Entity &entity)
 {
-	Entity entity;
-
 	// Reseve .5M for worldspawn, 2048 otherwise
 	entity.raw.reserve((entities.size() == 0) ? static_cast<size_t>(5e5) : 2048);
 	entity.raw += "{\n";
@@ -82,13 +80,15 @@ Entity MapReader::readEntity()
 		else if (line.starts_with('{'))
 		{
 			bool valid = true;
-			Brush brush = readBrush(line, valid);
+
+			entity.brushes.push_back(std::unique_ptr<Brush>(new Brush));
+			Brush& brush = *entity.brushes.back();
+			readBrush(brush, line, valid);
 
 			if (valid)
-			{
-				entity.brushes.push_back(brush);
 				entity.raw += brush.raw;
-			}
+			else
+				entity.brushes.pop_back();
 		}
 		else if (line.starts_with('}'))
 		{
@@ -100,14 +100,11 @@ Entity MapReader::readEntity()
 			exit(EXIT_FAILURE);
 		}
 	}
-
-	return entity;
 }
 
 
-Brush MapReader::readBrush(std::string& line, bool &outValid)
+void MapReader::readBrush(Brush& brush, std::string& line, bool &outValid)
 {
-	Brush brush;
 	brush.raw.reserve(512);
 	brush.raw = "";
 	std::vector<Plane> planes;
@@ -177,12 +174,10 @@ Brush MapReader::readBrush(std::string& line, bool &outValid)
 
 	if (outValid && !planes.empty())
 		planesToFaces(planes, brush.faces);
-
-	return brush;
 }
 
 
-bool M2PMap::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersectionOut)
+bool M2PFormat::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersectionOut)
 {
 	Vector3 n1 = p1.normal(); Vector3 n2 = p2.normal(); Vector3 n3 = p3.normal();
 	FP d1 = p1.distance(); FP d2 = p2.distance(); FP d3 = p3.distance();
@@ -220,7 +215,7 @@ static inline void addPointUnique(std::vector<Vertex>& vertices, const Vector3 &
 	vertices.emplace_back(point);
 }
 
-void M2PMap::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &facesOut)
+void M2PFormat::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &facesOut)
 {
 	size_t numPlanes = planes.size();
 	facesOut.assign(numPlanes, {});

@@ -23,30 +23,30 @@ int main(int argc, char** argv)
     try
     {
         M2PEntity::BaseReader reader;
+
         switch (g_config.extension)
         {
         case M2PConfig::Extension::MAP:
-            reader = M2PMap::MapReader(g_config.inputFilepath, g_config.outputDir);
+            reader = M2PFormat::MapReader(g_config.inputFilepath, g_config.outputDir);
             break;
         case M2PConfig::Extension::RMF:
-            logger.error("RMF not implemented");
+            reader = M2PFormat::RmfReader(g_config.inputFilepath, g_config.outputDir);
             break;
         case M2PConfig::Extension::JMF:
             logger.error("JMF not implemented");
-            break;
         case M2PConfig::Extension::OBJ:
             logger.error("OBJ not implemented");
-            break;
         case M2PConfig::Extension::OL:
             logger.error("OL not implemented");
-            break;
+        default:
+            return EXIT_FAILURE;
         }
 
         std::vector<M2PExport::ModelData> models = M2PExport::prepareModels(reader);
 
         if (models.empty())
         {
-            if (reader.entities[0].getKey(M2PExport::c_NOTE_KEY) == M2PExport::c_NOTE_VALUE)
+            if (reader.entities[0]->getKey(M2PExport::c_NOTE_KEY) == M2PExport::c_NOTE_VALUE)
                 logger.info(g_config.input + " was already converted and had no new models to convert");
             else
                 logger.info(g_config.input + " had no models to convert");
