@@ -6,7 +6,7 @@
 #include "utils.h"
 
 
-const char* NAME = { "Map2Prop++ v0.1.0" };
+const char* NAME = { "Map2Prop v2.0.0-alpha.1" };
 
 const char* USAGE = R"USAGE(Usage: Map2Prop input [options]
 Converts a .map/.rmf/.jmf/.ol or J.A.C.K .obj into GoldSrc .smd files for model creation.
