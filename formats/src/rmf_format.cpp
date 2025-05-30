@@ -90,7 +90,7 @@ RmfReader::~RmfReader()
 		m_file.close();
 }
 
-void M2PFormat::RmfReader::parse()
+void RmfReader::parse()
 {
 	RmfHeader header{};
 	m_file.read(reinterpret_cast<char*>(&header), sizeof(RmfHeader));
@@ -180,14 +180,14 @@ void RmfReader::readChildren(int count, Entity &parent)
 	}
 }
 
-void M2PFormat::RmfReader::readVisgroup()
+void RmfReader::readVisgroup()
 {
 	Visgroup visgroup{};
 	m_file.read(reinterpret_cast<char*>(&visgroup), sizeof(Visgroup));
 }
 
 
-void M2PFormat::RmfReader::readEntity(Entity& entity)
+void RmfReader::readEntity(Entity& entity)
 {
 	MapObjectData objectData{};
 	m_file.read(reinterpret_cast<char*>(&objectData), sizeof(MapObjectData));
@@ -222,7 +222,7 @@ void M2PFormat::RmfReader::readEntity(Entity& entity)
 	m_file.seekg(4, std::ios::cur); // Padding?
 }
 
-void M2PFormat::RmfReader::readBrush(Brush& brush)
+void RmfReader::readBrush(Brush& brush)
 {
 	MapObjectData objectData{};
 	m_file.read(reinterpret_cast<char*>(&objectData), sizeof(MapObjectData));
@@ -236,7 +236,7 @@ void M2PFormat::RmfReader::readBrush(Brush& brush)
 	}
 }
 
-M2PEntity::Face M2PFormat::RmfReader::readFace()
+M2PEntity::Face RmfReader::readFace()
 {
 	Face face;
 
@@ -345,7 +345,7 @@ void RmfReader::readPath()
 		readPathNode();
 }
 
-void M2PFormat::RmfReader::readPathNode()
+void RmfReader::readPathNode()
 {
 	float position[3]{};
 	m_file.read(reinterpret_cast<char*>(&position), sizeof(position));
