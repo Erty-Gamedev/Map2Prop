@@ -145,7 +145,7 @@ Vector3 M2PGeo::operator*(const FP& lhs, const Vector3& rhs)
 }
 std::ostream& M2PGeo::operator<<(std::ostream& os, const Vector3& v)
 {
-	os << std::format("Vector3D({:.3f}, {:.3f}, {:.3f})", v.x, v.y, v.z);
+	os << std::format("Vector3D({:.3g}, {:.3g}, {:.3g})", v.x, v.y, v.z);
 	return os;
 }
 bool M2PGeo::operator==(const Vector3& lhs, const Vertex& rhs)

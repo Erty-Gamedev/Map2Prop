@@ -188,11 +188,11 @@ bool Qc::writeQc(const ModelData& model)
 	Vector3 qcOffset{ g_config.qcOffset[0], g_config.qcOffset[1], g_config.qcOffset[2] };
 	if (model.offset != Vector3::zero())
 	{
-		offset = std::format("{:.1f} {:.1f} {:.1f}", model.offset.x, model.offset.y, model.offset.z);
+		offset = std::format("{:.6g} {:.6g} {:.6g}", model.offset.x, model.offset.y, model.offset.z);
 	}
 	else if (qcOffset != Vector3::zero())
 	{
-		offset = std::format("{:.1f} {:.1f} {:.1f}", qcOffset.x, qcOffset.y, qcOffset.z);
+		offset = std::format("{:.6g} {:.6g} {:.6g}", qcOffset.x, qcOffset.y, qcOffset.z);
 	}
 
 	if (model.bounds != Bounds::zero())
@@ -287,7 +287,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 					if (brush->isToolBrush(M2PEntity::ToolTexture::ORIGIN))
 					{
 						Vector3 ori = brush->getCenter();
-						entity->setKey("origin", std::format("{:.1f} {:.1f} {:.1f}", ori.x, ori.y, ori.z));
+						entity->setKey("origin", std::format("{:.6g} {:.6g} {:.6g}", ori.x, ori.y, ori.z));
 						break;
 					}
 				}
@@ -473,8 +473,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 
 		}
 
-		if (modelsMap[outname].offset == Vector3::zero()
-			&& (!entity->hasKey("use_world_origin") || entity->getKeyInt("use_world_origin")))
+		if (modelsMap[outname].offset == Vector3::zero() && !entity->getKeyInt("use_world_origin"))
 		{
 			Vector3 aabbMin = modelsMap[outname].triangles[0].vertices[0].coord();
 			Vector3 aabbMax = modelsMap[outname].triangles[0].vertices[0].coord();
@@ -494,6 +493,9 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 			}
 			modelsMap[outname].offset = geometricCenter(std::vector{ aabbMin, aabbMax });
 			modelsMap[outname].offset.z -= (aabbMax.z - aabbMin.z) / 2;
+
+			Vector3& ori = modelsMap[outname].offset;
+			entity->setKey("origin", std::format("{:.6g} {:.6g} {:.6g}", ori.x, ori.y, ori.z));
 		}
 	}
 

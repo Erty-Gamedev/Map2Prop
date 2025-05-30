@@ -179,6 +179,6 @@ struct std::formatter<M2PGeo::Vector3> : std::formatter<std::string>
 {
     auto format(M2PGeo::Vector3 v, format_context& ctx) const
     {
-        return formatter<string>::format(std::format("{:.1f} {:.1f} {:.1f}", v.x, v.y, v.z), ctx);
+        return formatter<string>::format(std::format("{:.6g} {:.6g} {:.6g}", v.x, v.y, v.z), ctx);
     }
 };
