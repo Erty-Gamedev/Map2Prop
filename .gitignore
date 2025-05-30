@@ -404,6 +404,8 @@ FodyWeavers.xsd
 *.sln
 *.vcxproj
 *.vcxproj.filters
+resource.h
+map2prop.rc
 
 # Test files
 test/
