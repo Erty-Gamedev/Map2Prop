@@ -66,7 +66,7 @@ void MapReader::readEntity(Entity &entity)
 		else if (line.starts_with('"'))
 		{
 			const std::vector<std::string>& parts = M2PUtils::split(line, '"');
-			if (parts.size() > 5)
+			if (parts.size() != 4)
 			{
 				logger.error("Invalid entity property: \"" + line + "\"");
 				exit(EXIT_FAILURE);

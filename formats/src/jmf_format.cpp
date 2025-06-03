@@ -82,9 +82,7 @@ void JmfReader::parse()
 		readPath();
 
 	while (m_file.peek(), !m_file.eof())
-	{
 		readEntity();
-	}
 }
 
 void JmfReader::readBgImage()
