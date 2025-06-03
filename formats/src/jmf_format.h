@@ -124,6 +124,19 @@ namespace M2PJMF
 		std::int32_t selected;
 	};
 #pragma pack(pop)
+
+	class JmfBrush : public M2PEntity::Brush
+	{
+	public:
+		std::string getRaw() const override;
+	};
+
+	class JmfEntity : public M2PEntity::Entity
+	{
+	public:
+		std::string toString() const override;
+	};
+
 }
 
 namespace M2PFormat

@@ -14,6 +14,60 @@ using namespace M2PEntity;
 using namespace M2PBinUtils;
 
 
+std::string JmfBrush::getRaw() const
+{
+	std::string raw = "{\n";
+	raw.reserve(1024);
+
+	const char* p = ".6g";
+	size_t countFaces = faces.size();
+	for (const auto& face : faces)
+	{
+		Vertex x = M2PUtils::getCircular(face.vertices, -1);
+		Vertex y = M2PUtils::getCircular(face.vertices, -2);
+		Vertex z = M2PUtils::getCircular(face.vertices, -3);
+		FP ux = face.texture.rightaxis.x, uy = face.texture.rightaxis.y, uz = face.texture.rightaxis.z;
+		FP vx = face.texture.downaxis.x, vy = face.texture.downaxis.y, vz = face.texture.downaxis.z;
+		FP shiftx = face.texture.shiftx, shifty = face.texture.shifty;
+		FP r = face.texture.angle, scalex = face.texture.scalex, scaley = face.texture.scaley;
+
+		raw += std::format("( {:.6g} {:.6g} {:.6g} ) ", x.x, x.y, x.z);
+		raw += std::format("( {:.6g} {:.6g} {:.6g} ) ", y.x, y.y, y.z);
+		raw += std::format("( {:.6g} {:.6g} {:.6g} ) {} ", z.x, z.y, z.z, face.texture.name);
+
+		raw += std::format("[ {:.6g} {:.6g} {:.6g} {:.6g} ] ", ux, uy, uz, shiftx);
+		raw += std::format("[ {:.6g} {:.6g} {:.6g} {:.6g} ] ", vx, vy, vz, shifty);
+		raw += std::format("{:.6g} {:.6g} {:.6g}\n", r, scalex, scaley);
+	}
+
+	raw += "}\n";
+	return raw;
+}
+
+std::string JmfEntity::toString() const
+{
+	std::string str;
+	str.reserve(1024);
+	str = "{\n";
+
+	for (std::pair<std::string, std::string> const& pair : keyvalues)
+	{
+		str += std::format("\"{}\" \"{}\"\n", pair.first, pair.second);
+	}
+
+	if (!brushes.empty())
+	{
+		for (const std::unique_ptr<Brush>& brush : brushes)
+		{
+			str += brush->getRaw();
+		}
+	}
+
+	str += "}\n";
+
+	return str;
+}
+
 JmfReader::JmfReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir)
 {
 	m_filepath = filepath;
@@ -140,10 +194,14 @@ void JmfReader::readPathNode()
 
 void JmfReader::readEntity()
 {
-	entities.push_back(std::unique_ptr<Entity>(new Entity));
+	entities.push_back(std::unique_ptr<JmfEntity>(new JmfEntity));
 	Entity& entity = *entities.back();
 
 	entity.classname = readIntLPString(m_file);
+	entity.keyvalues.emplace_back("classname", entity.classname);
+
+	if (entity.classname == "worldspawn")
+		entity.keyvalues.emplace_back("mapversion", "220");
 
 	JmfEntityHeader header{};
 	m_file.read(reinterpret_cast<char*>(&header), sizeof(JmfEntityHeader));
@@ -170,11 +228,17 @@ void JmfReader::readEntity()
 	std::int32_t brushCount = readInt(m_file);
 	for (int i = 0; i < brushCount; ++i)
 		readBrush(entity);
+
+	if (!brushCount && !entity.hasKey("origin"))
+		entity.keyvalues.emplace_back("origin",
+			std::format("{:.6g} {:.6g} {:.6g}",
+			header.origin[0], header.origin[1], header.origin[2])
+		);
 }
 
 void JmfReader::readBrush(Entity& parent)
 {
-	parent.brushes.push_back(std::unique_ptr<Brush>(new Brush));
+	parent.brushes.push_back(std::unique_ptr<JmfBrush>(new JmfBrush));
 	Brush& brush = *parent.brushes.back();
 
 	JmfBrushHeader header{};
