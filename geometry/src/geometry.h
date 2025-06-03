@@ -88,8 +88,14 @@ namespace M2PGeo {
         Vector3 normal = Vector3::zero();
         Vertex() : Vector3() {};
         Vertex(FP _x, FP _y, FP _z) : Vector3(_x, _y, _z) {}
-        Vertex(const FP xyz[3]) : Vector3(xyz) {}
+        Vertex(const float xyz[3]) : Vector3(xyz) {}
         Vertex(const Vector3& point) { x = point.x; y = point.y; z = point.z; }
+        Vertex(const float xyz[3], const float _uv[2], const Vector3 _normal)
+        {
+            x = xyz[0]; y = xyz[1]; z = xyz[2];
+            uv.x = _uv[0]; uv.y = _uv[1];
+            normal = _normal;
+        }
         bool operator==(const Vertex &other) const;
         bool operator!=(const Vertex &other) const;
 
