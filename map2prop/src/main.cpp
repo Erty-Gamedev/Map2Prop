@@ -2,6 +2,8 @@
 #include "config.h"
 #include "geometry.h"
 #include "map_format.h"
+#include "rmf_format.h"
+#include "jmf_format.h"
 #include "export.h"
 
 
@@ -33,7 +35,8 @@ int main(int argc, char** argv)
             reader = M2PFormat::RmfReader(g_config.inputFilepath, g_config.outputDir);
             break;
         case M2PConfig::Extension::JMF:
-            logger.error("JMF not implemented");
+            reader = M2PFormat::JmfReader(g_config.inputFilepath, g_config.outputDir);
+            break;
         case M2PConfig::Extension::OBJ:
             logger.error("OBJ not implemented");
         case M2PConfig::Extension::OL:
