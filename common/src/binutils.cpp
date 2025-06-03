@@ -44,6 +44,8 @@ std::string M2PBinUtils::readNTString(std::ifstream& file, size_t length)
 	std::vector<char> bytes;
 	bytes.assign(length, '\0');
 	file.read(reinterpret_cast<char*>(bytes.data()), length);
+	if (bytes.back() != '\0')
+		bytes.emplace_back('\0');
 	return std::string{ bytes.data() };
 }
 
