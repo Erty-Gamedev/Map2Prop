@@ -52,3 +52,9 @@ std::string M2PBinUtils::readLPString(std::ifstream& file)
 	unsigned char length = readByte(file);
 	return readNTString(file, length);
 }
+
+std::string M2PBinUtils::readIntLPString(std::ifstream& file)
+{
+	std::int32_t length = readInt(file);
+	return readNTString(file, length);
+}

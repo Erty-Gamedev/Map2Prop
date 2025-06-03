@@ -12,4 +12,5 @@ namespace M2PBinUtils
 	float readFloat(std::ifstream& file);
 	std::string readNTString(std::ifstream& file, size_t length);
 	std::string readLPString(std::ifstream& file);
+	std::string readIntLPString(std::ifstream& file);
 }
