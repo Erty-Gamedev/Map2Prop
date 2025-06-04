@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <array>
 #include <format>
 #include <map>
 #include <unordered_map>
@@ -10,11 +11,11 @@
 
 namespace M2PWad3
 {
-    const std::vector<std::string> c_TOOLTEXTURES{
+    static inline const std::array<std::string, 6> c_TOOLTEXTURES{
         "bevel", "boundingbox", "clipbevel",
         "clip", "contentwater", "origin"
     };
-    const std::vector<std::string> c_SKIPTEXTURES{
+    static inline const std::array<std::string, 12> c_SKIPTEXTURES{
         "aaatrigger", "black_hidden", "clipbevelbrush",
         "cliphull1", "cliphull2", "cliphull3",
         "contentempty", "hint", "noclip", "null",
