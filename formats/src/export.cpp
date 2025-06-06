@@ -110,7 +110,7 @@ static inline int compileModel(const ModelData& model)
 {
 	fs::path currentDir = fs::absolute(fs::current_path());
 	fs::current_path(fs::current_path() / g_config.extractDir());
-	int returnCode = std::system((g_config.studiomdl.string() + " " + model.outname + ".qc").c_str());
+	int returnCode = std::system((g_config.studiomdl.string() + " \"" + model.outname + ".qc\"").c_str());
 	fs::current_path(currentDir);
 	return returnCode;
 }
