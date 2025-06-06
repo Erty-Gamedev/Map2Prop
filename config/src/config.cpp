@@ -340,6 +340,12 @@ void M2PConfig::handleArgs(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
 
+    if (g_config.mapcompile && (g_config.isObj() || g_config.isOl()))
+    {
+        logger.error("Cannot use --mapcompile with \"" + extension + "\" files");
+        exit(EXIT_FAILURE);
+    }
+
     g_config.inputDir = g_config.inputFilepath.parent_path();
 
     logger.info(g_config.input);
