@@ -5,6 +5,7 @@
 #include "rmf_format.h"
 #include "jmf_format.h"
 #include "obj_format.h"
+#include "ol_format.h"
 #include "export.h"
 
 
@@ -42,9 +43,8 @@ int main(int argc, char** argv)
             reader = M2PFormat::ObjReader(g_config.inputFilepath, g_config.outputDir);
             break;
         case M2PConfig::Extension::OL:
-            logger.error("OL not implemented");
-        default:
-            return EXIT_FAILURE;
+            M2PFormat::OlReader olReader = M2PFormat::OlReader(g_config.inputFilepath, g_config.outputDir);
+            return olReader.process();
         }
 
         std::vector<M2PExport::ModelData> models = M2PExport::prepareModels(reader);
@@ -63,6 +63,8 @@ int main(int argc, char** argv)
 
         if (g_config.mapcompile && !res)
             M2PExport::rewriteMap(reader.entities);
+
+        return res;
     }
     catch (const std::exception& e)
     {
