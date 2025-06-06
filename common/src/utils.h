@@ -23,6 +23,7 @@ namespace M2PUtils
 	void trim(std::string& str, const char* trim = c_DEFAULT_TRIM);
 	bool strToBool(std::string str);
 	void replaceToken(std::string& str, const std::string& token, const std::string& value);
+	std::string slugify(std::string str);
 
 	template<typename T>
 	bool contains(const std::vector<T>& vect, const T& needle)

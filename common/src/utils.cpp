@@ -47,3 +47,10 @@ void M2PUtils::replaceToken(std::string& str, const std::string& token, const st
 	while (str.find(token) != std::string::npos)
 		str.replace(str.find(token), token.length(), value);
 }
+
+std::string M2PUtils::slugify(std::string str)
+{
+	str = toLowerCase(str);
+	std::replace(str.begin(), str.end(), ' ', '_');
+	return str;
+}
