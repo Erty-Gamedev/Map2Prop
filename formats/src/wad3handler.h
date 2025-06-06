@@ -58,12 +58,11 @@ namespace M2PWad3
         static bool isToolTexture(const std::string& textureName);
     private:
         bool m_missingTextures = false;
-        std::vector<std::string> m_checked;
-        std::map<std::filesystem::path, Wad3Reader> m_wadCache;
 
         Wad3Reader& getWad3Reader(const std::filesystem::path& wad);
         Wad3Reader* checkWads(const std::string&);
 
+        static inline std::map<std::filesystem::path, Wad3Reader> s_wadCache;
         static inline std::unordered_map<std::string, ImageSize> s_images;
     };
 }

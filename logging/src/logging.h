@@ -65,7 +65,7 @@ namespace Logging
 		LOG_ERROR,
 	};
 
-	extern inline const std::unordered_map<LogLevel, const char*> c_LOGLEVELNAME{
+	inline const std::unordered_map<LogLevel, const char*> c_LOGLEVELNAME{
 		{LogLevel::LOG_DEBUG,   "DEBUG:   "},
 		{LogLevel::LOG_LOG,     ""         },
 		{LogLevel::LOG_INFO,    "INFO:    "},
@@ -73,7 +73,7 @@ namespace Logging
 		{LogLevel::LOG_ERROR,   "ERROR:   "},
 	};
 	
-	extern inline const std::unordered_map<LogLevel, const char*> c_LOGLEVELTITLE{
+	inline const std::unordered_map<LogLevel, const char*> c_LOGLEVELTITLE{
 		{LogLevel::LOG_DEBUG,   "DEBUG"   },
 		{LogLevel::LOG_LOG,     ""        },
 		{LogLevel::LOG_INFO,    "INFO"    },
@@ -82,9 +82,9 @@ namespace Logging
 	};
 
 #ifdef _DEBUG
-	static inline const LogLevel DEFAULT_LOG_LEVEL = LogLevel::LOG_DEBUG;
+	static inline constexpr LogLevel DEFAULT_LOG_LEVEL = LogLevel::LOG_DEBUG;
 #else
-	static inline const LogLevel DEFAULT_LOG_LEVEL = LogLevel::LOG_INFO;
+	static inline constexpr LogLevel DEFAULT_LOG_LEVEL = LogLevel::LOG_INFO;
 #endif
 
 	extern bool g_isVirtual;

@@ -7,7 +7,7 @@
 
 namespace M2PJMF
 {
-	static inline const std::array<int, 2> c_SUPPORTED_VERSIONS{ 121, 122 };
+	static inline constexpr std::array<int, 2> c_SUPPORTED_VERSIONS{ 121, 122 };
 
 #pragma pack(push, 1)
 	struct JmfBgImage

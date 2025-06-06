@@ -9,7 +9,7 @@
 
 namespace M2PRMF
 {
-	static inline const std::array<int, 3> c_SUPPORTED_VERSIONS{ 16, 18, 22 };
+	static inline constexpr std::array<int, 3> c_SUPPORTED_VERSIONS{ 16, 18, 22 };
 
 #pragma pack(push, 1)
 	struct RmfHeader
@@ -77,6 +77,7 @@ namespace M2PFormat
 	{
 	public:
 		RmfReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir);
+		RmfReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir, int seekTo);
 		~RmfReader();
 	private:
 		int m_version;

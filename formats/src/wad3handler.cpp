@@ -69,15 +69,15 @@ std::ostream& M2PWad3::operator<<(std::ostream& os, const ImageSize& size)
 
 Wad3Reader& Wad3Handler::getWad3Reader(const std::filesystem::path& wad)
 {
-	if (!m_wadCache.contains(wad))
+	if (!s_wadCache.contains(wad))
 	{
 		// Remove the first element before inserting a new element if cache is full
-		if (g_config.wadCache > 0 && m_wadCache.size() >= g_config.wadCache)
-			m_wadCache.erase(m_wadCache.begin());
+		if (g_config.wadCache > 0 && s_wadCache.size() >= g_config.wadCache)
+			s_wadCache.erase(s_wadCache.begin());
 
-		m_wadCache.insert(std::pair(wad, wad));
+		s_wadCache.insert(std::pair(wad, wad));
 	}
-	return m_wadCache[wad];
+	return s_wadCache[wad];
 }
 
 Wad3Reader* Wad3Handler::checkWads(const std::string& textureName)
