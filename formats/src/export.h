@@ -55,7 +55,7 @@ namespace M2PExport
 	};
 
 
-	std::vector<ModelData> prepareModels(M2PEntity::BaseReader& reader);
+	std::vector<ModelData> prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename = "");
 	int processModels(std::vector<ModelData>& models, bool missingTextures);
 	void rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>>& entities);
 }

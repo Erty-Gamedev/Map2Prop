@@ -229,7 +229,7 @@ bool Qc::writeQc(const ModelData& model)
 }
 
 
-std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
+std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename)
 {
 	int n = 0;
 	std::unordered_map<std::string, ModelData> modelsMap;
@@ -267,7 +267,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader)
 		if (g_config.mapcompile && !isFuncM2P)
 			continue;
 
-		std::string filename = g_config.inputFilepath.stem().string();
+		std::string filename = _filename.empty() ? g_config.inputFilepath.stem().string() : _filename;
 		std::string outname = !g_config.outputName.empty() ? g_config.outputName : filename;
 		bool ownModel = false;
 		std::string subdir = "";
