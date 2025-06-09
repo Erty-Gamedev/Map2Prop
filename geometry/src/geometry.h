@@ -48,6 +48,7 @@ namespace M2PGeo {
         FP dot(const Vector3& other) const;
         Vector3 cross(const Vector3& other) const;
         Vector3 normalised() const;
+        FP distance(const Vector3& other) const;
         Vector3() : x(0), y(0), z(0) {}
         Vector3(FP _x, FP _y, FP _z) : x(_x), y(_y), z(_z) {}
         Vector3(const FP xyz[3]) : x(xyz[0]), y(xyz[1]), z(xyz[2]) {}

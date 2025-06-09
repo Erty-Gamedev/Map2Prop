@@ -81,6 +81,11 @@ Vector3 Vector3::normalised() const
 	FP mag = magnitude();
 	return Vector3(x / mag, y / mag, z / mag);
 }
+FP Vector3::distance(const Vector3& other) const
+{
+	Vector3 delta = other - *this;
+	return sqrt((delta.x * delta.x) + (delta.y * delta.y) + (delta.z * delta.z));
+}
 Vector3 Vector3::operator+() const
 {
 	return Vector3(x, y, z);
