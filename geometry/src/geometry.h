@@ -176,7 +176,7 @@ namespace M2PGeo {
     void sortVectors(std::vector<Vector3> &vectors, const Vector3 &normal);
     void sortVertices(std::vector<Vertex> &vertices, const Vector3 &normal);
 
-    using GroupedVertices = std::unordered_map<std::string, std::vector<std::reference_wrapper<Vertex>>>;
+    using GroupedVertices = std::unordered_map<Vector3, std::vector<std::reference_wrapper<Vertex>>>;
     void averageNormals(GroupedVertices& groupedVertices);
     void averageNearNormals(GroupedVertices& groupedVertices, FP thresholdDegrees);
 }
@@ -189,3 +189,14 @@ struct std::formatter<M2PGeo::Vector3> : std::formatter<std::string>
         return formatter<string>::format(std::format("{:.6g} {:.6g} {:.6g}", v.x, v.y, v.z), ctx);
     }
 };
+
+namespace std
+{
+    template<> struct hash<M2PGeo::Vector3>
+    {
+        std::size_t operator()(M2PGeo::Vector3 const& v) const noexcept
+        {
+            return std::hash<std::string>{}(std::format("{:.2g} {:.2g} {:.2g}", v.x, v.y, v.z));
+        }
+    };
+}

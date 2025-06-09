@@ -27,26 +27,26 @@ static inline std::string formatGroupedVector(const Vector3& vector)
 	);
 }
 
-static inline void mergeNearby(ModelData& model)
+static inline void mergeNearby(ModelData& model, FP threshold = 0.01)
 {
-	std::unordered_map<std::string, Vertex> vertices;
-	vertices.reserve(model.triangles.size() * 3);
-
 	for (Triangle& triangle : model.triangles)
 	{
-		for (Vertex& vertex : triangle.vertices)
+		for (const Vertex& a : triangle.vertices)
 		{
-			std::string grouped = formatGroupedVector(vertex.coord());
+			for (Triangle& triangleOther : model.triangles)
+			{
+				for (Vertex& b : triangleOther.vertices)
+				{
+					if (&a == &b)
+						continue;
 
-			if (vertices.contains(grouped))
-			{
-				vertex.x = vertices[grouped].x;
-				vertex.y = vertices[grouped].y;
-				vertex.z = vertices[grouped].z;
-			}
-			else
-			{
-				vertices[grouped] = vertex;
+					if (a.distance(b) < threshold)
+					{
+						b.x = a.x;
+						b.y = a.y;
+						b.z = a.z;
+					}
+				}
 			}
 		}
 	}
@@ -95,8 +95,7 @@ static inline void applySmooth(ModelData& model)
 			else
 				vList = shouldAlwaysSmooth ? alwaysSmooth : vertices;
 
-			std::string grouped = formatGroupedVector(vertex.coord());
-			vList[grouped].push_back(vertex);
+			vList[vertex.coord()].push_back(vertex);
 		}
 	}
 

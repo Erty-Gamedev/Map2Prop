@@ -377,17 +377,17 @@ void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
 
 void M2PGeo::averageNormals(GroupedVertices& groupedVertices)
 {
-	for (std::pair<std::string, std::vector<std::reference_wrapper<Vertex>>> kv : groupedVertices)
+	for (std::pair<Vertex, std::vector<std::reference_wrapper<Vertex>>> group : groupedVertices)
 	{
 		std::vector<Vector3> normals;
-		for (const Vertex& vertex : kv.second)
+		for (const auto& vertex : group.second)
 		{
-			normals.push_back(vertex.normal);
+			normals.push_back(vertex.get().normal);
 		}
 		Vector3 averaged = sumVectors(normals) / normals.size();
-		for (Vertex& vertex : kv.second)
+		for (auto& vertex : group.second)
 		{
-			vertex.normal = averaged;
+			vertex.get().normal = averaged;
 		}
 	}
 }
@@ -396,46 +396,32 @@ void M2PGeo::averageNearNormals(GroupedVertices& groupedVertices, FP thresholdDe
 {
 	FP threshold = deg2rad(thresholdDegrees);
 
-	for (std::pair<std::string, std::vector<std::reference_wrapper<Vertex>>> kv : groupedVertices)
+	for (std::pair<Vertex, std::vector<std::reference_wrapper<Vertex>>> group : groupedVertices)
 	{
-		std::vector<std::reference_wrapper<Vertex>> remaining{ kv.second };
+		if (group.second.size() < 2)
+			continue;
 
-		while (!remaining.empty())
+		for (auto& a : group.second)
 		{
 			std::vector<std::reference_wrapper<Vertex>> near;
-			near.reserve(remaining.size());
-
-			Vertex& a = remaining.back();
-			remaining.pop_back();
-
 			near.push_back(a);
 
-			Vector3 averaged = Vector3::zero() + a.normal;
-			for (Vertex& b : remaining)
+			Vector3 averaged = Vector3::zero() + a.get().normal;
+			for (auto& b : group.second)
 			{
-				if (vectorsAngle(a.normal, b.normal) <= threshold)
-				{
-					near.push_back(b);
-					averaged += b.normal;
-				}
-			}
+				if (&a.get() == &b.get())
+					continue;
 
-			for (int i = 0; i < remaining.size(); ++i)
-			{
-				Vertex& b = remaining[i];
-				if (vectorsAngle(a.normal, b.normal) <= threshold)
+				if (vectorsAngle(a.get().normal, b.get().normal) <= threshold)
 				{
 					near.push_back(b);
-					averaged += b.normal;
-					remaining.erase(remaining.begin() + i);
+					averaged += b.get().normal;
 				}
 			}
 
 			averaged = averaged / near.size();
-			for (Vertex& vertex : near)
-			{
-				vertex.normal = averaged;
-			}
+			for (auto& vertex : near)
+				vertex.get().normal = averaged;
 		}
 	}
 }
