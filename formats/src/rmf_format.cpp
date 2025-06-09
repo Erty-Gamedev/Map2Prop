@@ -127,7 +127,7 @@ void RmfReader::parse()
 	for (int i = 0; i < visgroupCount; ++i)
 		readVisgroup();
 
-	entities.push_back(std::unique_ptr<RmfEntity>(new RmfEntity));
+	entities.push_back(std::make_unique<RmfEntity>());
 	auto& worldspawn = *entities[0];
 	worldspawn.classname = "worldspawn";
 	worldspawn.keyvalues.emplace_back("classname", worldspawn.classname);
@@ -174,14 +174,14 @@ void RmfReader::readChildren(int count, Entity &parent)
 
 		if (objectType == "CMapSolid")
 		{
-			parent.brushes.push_back(std::unique_ptr<RmfBrush>(new RmfBrush));
+			parent.brushes.push_back(std::make_unique<RmfBrush>());
 			Brush& brush = *parent.brushes.back();
 			readBrush(brush);
 			continue;
 		}
 		if (objectType == "CMapEntity")
 		{
-			entities.push_back(std::unique_ptr<RmfEntity>(new RmfEntity));
+			entities.push_back(std::make_unique<RmfEntity>());
 			readEntity(*entities.back());
 			continue;
 		}

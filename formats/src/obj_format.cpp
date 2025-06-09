@@ -96,7 +96,7 @@ Vector3 ObjReader::readCoordinate(const std::string& line)
 
 void ObjReader::readEntity(std::string& line)
 {
-	entities.push_back(std::unique_ptr<Entity>(new Entity));
+	entities.push_back(std::make_unique<Entity>());
 	Entity& entity = *entities.back();
 
 	size_t start = line.find('(') + 1;
@@ -131,7 +131,7 @@ void ObjReader::readEntity(std::string& line)
 
 void ObjReader::readBrush(M2PEntity::Entity& entity, std::string& line)
 {
-	entity.brushes.push_back(std::unique_ptr<Brush>(new Brush));
+	entity.brushes.push_back(std::make_unique<Brush>());
 	Brush& brush = *entity.brushes.back();
 	std::getline(m_file, line);
 

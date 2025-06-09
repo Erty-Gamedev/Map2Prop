@@ -194,7 +194,7 @@ void JmfReader::readPathNode()
 
 void JmfReader::readEntity()
 {
-	entities.push_back(std::unique_ptr<JmfEntity>(new JmfEntity));
+	entities.push_back(std::make_unique<JmfEntity>());
 	Entity& entity = *entities.back();
 
 	entity.classname = readIntLPString(m_file);
@@ -238,7 +238,7 @@ void JmfReader::readEntity()
 
 void JmfReader::readBrush(Entity& parent)
 {
-	parent.brushes.push_back(std::unique_ptr<JmfBrush>(new JmfBrush));
+	parent.brushes.push_back(std::make_unique<JmfBrush>());
 	Brush& brush = *parent.brushes.back();
 
 	JmfBrushHeader header{};
