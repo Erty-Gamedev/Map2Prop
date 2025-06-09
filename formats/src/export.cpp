@@ -467,11 +467,12 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 				{
 					triangle.normal = -triangle.normal;
 					std::swap(triangle.vertices[0], triangle.vertices[2]);
+					for (auto& vertex : triangle.vertices)
+						vertex.normal = -vertex.normal;
 					triangle.flipped = true;
 				}
 				M2PUtils::extendVector(modelsMap[outname].triangles, flipped);
 			}
-
 		}
 
 		if (modelsMap[outname].offset == Vector3::zero() && !entity->getKeyInt("use_world_origin"))
