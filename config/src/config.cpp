@@ -5,39 +5,6 @@
 #include "logging.h"
 #include "utils.h"
 
-
-const char* NAME = { "Map2Prop v2.0.0-alpha.2" };
-
-const char* USAGE = R"USAGE(Usage: Map2Prop input [options]
-Converts a .map/.rmf/.jmf/.ol or J.A.C.K .obj into GoldSrc .smd files for model creation.
-
-Arguments:
-  input                 .map/.rmf/.jmf/.obj/.ol file to convert
-  -v | --version        print current version
-  -h | --help           show this help message and exit
-
-Options:
-  -c | --mapcompile     modify .map input to replace func_map2prop with model entities after compile
-  -a | --noautocompile  do not automatically compile the model after conversion
-  -o | --output         specify an output directory
-  -g | --gameconfig     game config to use from config.ini
-  -m | --studiomdl      path to SC studiomdl.exe
-  -w | --wadlist        path to text file listing .wad files
-  -n | --wadcache       max number of .wad files to keep in memory
-  -s | --smoothing      angle threshold for applying smoothing (use 0 to smooth all edges)
-  -t | --time           timeout for running studiomdl.exe (default 60.0 seconds)
-  --renamechrome        rename chrome textures (disables chrome)
-  --eager               use eager triangulation algorithm (faster)
-
-QC options:
-  --outputname          filename for the finished model
-  --scale               scale the model by this amount (default 1.0)
-  --gamma               darken/brighten textures (default 1.8)
-  --offset x y z        X Y Z offset to apply to the model (default 0 0 0)
-  --rotate              rotate the model by this many degrees
-)USAGE";
-
-
 using M2PConfig::g_config;
 M2PConfig::Config g_config{};
 
