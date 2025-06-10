@@ -7,6 +7,7 @@
 
 static inline Logging::Logger& logger = Logging::Logger::getLogger("mapreader");
 
+using namespace M2PMAP;
 using namespace M2PFormat;
 using namespace M2PGeo;
 using namespace M2PEntity;
@@ -177,7 +178,7 @@ void MapReader::readBrush(Brush& brush, std::string& line, bool &outValid)
 }
 
 
-bool M2PFormat::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersectionOut)
+bool M2PMAP::intersection3Planes(const HessianPlane& p1, const HessianPlane& p2, const HessianPlane& p3, Vector3& intersectionOut)
 {
 	Vector3 n1 = p1.normal(); Vector3 n2 = p2.normal(); Vector3 n3 = p3.normal();
 	FP d1 = p1.distance(); FP d2 = p2.distance(); FP d3 = p3.distance();
@@ -215,7 +216,7 @@ static inline void addPointUnique(std::vector<Vertex>& vertices, const Vector3 &
 	vertices.emplace_back(point);
 }
 
-void M2PFormat::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &facesOut)
+void M2PMAP::planesToFaces(const std::vector<Plane>& planes, std::vector<Face> &facesOut)
 {
 	size_t numPlanes = planes.size();
 	facesOut.assign(numPlanes, {});
