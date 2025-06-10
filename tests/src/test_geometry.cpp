@@ -12,7 +12,18 @@ TEST_CASE("test angle between vectors")
     FP result = a.angle(b);
     FP expected = 1.0343f;
 
-    CHECK(abs(result - expected) < 0.001);
+    CHECK(abs(result - expected) < 0.0001);
+}
+
+TEST_CASE("test hessian plane")
+{
+    Vector3 points[3]{ Vector3(4.2f, -5.13f, 6.71f), Vector3(3.19f, 0.07f, 0.56f), Vector3(0.99f, 4.14f, 4.67f) };
+    HessianPlane plane{ points };
+    Vector3 point{ -1.78f, 0.04f, -0.39f };
+
+    CHECK(abs(plane.distance() - 3.05541) < 0.0001);
+    CHECK(abs(plane.distanceToPoint(point) - (-4.74378)) < 0.0001);
+    CHECK(plane.pointRelation(point) == PointRelation::BEHIND);
 }
 
 TEST_CASE("test sort vertices")
