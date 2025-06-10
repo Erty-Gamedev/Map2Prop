@@ -385,7 +385,7 @@ void M2PGeo::averageNormals(GroupedVertices& groupedVertices)
 		Vector3 averaged = sumVectors(normals) / normals.size();
 		for (auto& vertex : group.second)
 		{
-			vertex.get().normal = averaged;
+			vertex.get().normal = averaged.normalised();
 		}
 	}
 }
@@ -402,9 +402,10 @@ void M2PGeo::averageNearNormals(GroupedVertices& groupedVertices, FP thresholdDe
 		for (auto& a : group.second)
 		{
 			std::vector<std::reference_wrapper<Vertex>> near;
-			near.push_back(a);
 
+			near.push_back(a);
 			Vector3 averaged = Vector3::zero() + a.get().normal;
+
 			for (auto& b : group.second)
 			{
 				if (&a.get() == &b.get())
@@ -419,7 +420,7 @@ void M2PGeo::averageNearNormals(GroupedVertices& groupedVertices, FP thresholdDe
 
 			averaged = averaged / near.size();
 			for (auto& vertex : near)
-				vertex.get().normal = averaged;
+				vertex.get().normal = averaged.normalised();;
 		}
 	}
 }
