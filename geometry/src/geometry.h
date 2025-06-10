@@ -49,6 +49,7 @@ namespace M2PGeo {
         Vector3 cross(const Vector3& other) const;
         Vector3 normalised() const;
         FP distance(const Vector3& other) const;
+        FP angle(const Vector3& other) const;
         Vector3() : x(0), y(0), z(0) {}
         Vector3(FP _x, FP _y, FP _z) : x(_x), y(_y), z(_z) {}
         Vector3(const FP xyz[3]) : x(xyz[0]), y(xyz[1]), z(xyz[2]) {}
@@ -91,6 +92,11 @@ namespace M2PGeo {
         Vertex(FP _x, FP _y, FP _z) : Vector3(_x, _y, _z) {}
         Vertex(const float xyz[3]) : Vector3(xyz) {}
         Vertex(const Vector3& point) { x = point.x; y = point.y; z = point.z; }
+        Vertex(const Vector3& point, const Vector3& _normal)
+        {
+            x = point.x; y = point.y; z = point.z;
+            normal = _normal;
+        }
         Vertex(const float xyz[3], const float _uv[2], const Vector3 _normal)
         {
             x = xyz[0]; y = xyz[1]; z = xyz[2];
@@ -159,7 +165,6 @@ namespace M2PGeo {
     FP rad2deg(FP rad);
 
     FP clip(FP value, FP minimum, FP maximum);
-    FP vectorsAngle(const Vector3& a, const Vector3& b);
 
     Vector3 segmentsCross(const Vector3& a, const Vector3& b, const Vector3& c);
     Vector3 segmentsCross(const Vector3 planePoints[3]);

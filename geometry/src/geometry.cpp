@@ -21,13 +21,6 @@ FP M2PGeo::clip(FP value, FP minimum, FP maximum)
 }
 
 
-FP M2PGeo::vectorsAngle(const Vector3& a, const Vector3& b)
-{
-	Vector3 aNorm = a.normalised(), bNorm = b.normalised();
-	return acos(clip(aNorm.dot(bNorm) / aNorm.magnitude() * bNorm.magnitude(), -1., 1.));
-}
-
-
 Vector2 Vector2::zero()
 {
 	return Vector2(0.0f, 0.0f);
@@ -85,6 +78,11 @@ FP Vector3::distance(const Vector3& other) const
 {
 	Vector3 delta = other - *this;
 	return sqrt((delta.x * delta.x) + (delta.y * delta.y) + (delta.z * delta.z));
+}
+FP Vector3::angle(const Vector3& other) const
+{
+	Vector3 aNorm = normalised(), bNorm = other.normalised();
+	return acos(clip(aNorm.dot(bNorm) / aNorm.magnitude() * bNorm.magnitude(), -1., 1.));
 }
 Vector3 Vector3::operator+() const
 {
@@ -412,7 +410,7 @@ void M2PGeo::averageNearNormals(GroupedVertices& groupedVertices, FP thresholdDe
 				if (&a.get() == &b.get())
 					continue;
 
-				if (vectorsAngle(a.get().normal, b.get().normal) <= threshold)
+				if (a.get().normal.angle(b.get().normal) <= threshold)
 				{
 					near.push_back(b);
 					averaged += b.get().normal;
