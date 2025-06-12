@@ -186,6 +186,9 @@ static inline bool writeSmd(const ModelData& model)
 
 static inline bool writeQc(const ModelData& model)
 {
+	if (!model.parent.empty())
+		return true;
+
 	fs::path filepath = g_config.extractDir() / (model.outname + ".qc");
 	std::ofstream file{ filepath };
 	if (!file.is_open() || !file.good())
@@ -243,7 +246,20 @@ static inline bool writeQc(const ModelData& model)
 	file << "$scale " << model.scale << "\n";
 	file << "$origin " << offset << " " << model.rotation << "\n";
 	file << qcFlags << rendermodes << bbox << cbox << "$gamma " << g_config.qcGamma << "\n";
-	file << "$body studio \"" << model.outname << "\"\n";
+
+	if (model.submodels.empty())
+		file << "$body studio \"" << model.outname << "\"\n";
+	else
+	{
+		file << "$bodygroup \"body\"\n{\n";
+		file << "\tstudio \"" + model.outname + "\"\n";
+		for (const auto& submodel : model.submodels)
+		{
+			file << "\tstudio \"" + submodel + "\"\n";
+		}
+		file << "}\n";
+	}
+
 	file << "$sequence \"Generated_with_Erty's_Map2Prop\" \"" << model.outname << "\"\n";
 
 	bool res = file.good();
@@ -301,6 +317,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 		std::string filename = _filename.empty() ? g_config.inputFilepath.stem().string() : _filename;
 		std::string outname = !g_config.outputName.empty() ? g_config.outputName : filename;
 		bool ownModel = false;
+		std::string parent = "";
 		std::string subdir = "";
 
 		if (isFuncM2P)
@@ -309,21 +326,26 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 				continue;
 
 			keyvalue = entity->getKey("parent_model");
-			if (keyvalue != "")
+			if (!keyvalue.empty())
 			{
-				for (const auto& brush : entity->brushes)
+				if (entity->getKeyInt("spawnflags") & Spawnflags::IS_SUBMODEL)
+					parent = keyvalue;
+				else
 				{
-					if (brush->faces.empty())
-						continue;
-
-					if (brush->isToolBrush(M2PEntity::ToolTexture::ORIGIN))
+					for (const auto& brush : entity->brushes)
 					{
-						Vector3 ori = brush->getCenter();
-						entity->setKey("origin", std::format("{:.6g} {:.6g} {:.6g}", ori.x, ori.y, ori.z));
-						break;
+						if (brush->faces.empty())
+							continue;
+
+						if (brush->isToolBrush(M2PEntity::ToolTexture::ORIGIN))
+						{
+							Vector3 ori = brush->getCenter();
+							entity->setKey("origin", std::format("{:.6g} {:.6g} {:.6g}", ori.x, ori.y, ori.z));
+							break;
+						}
 					}
+					continue;
 				}
-				continue;
 			}
 
 			if (g_config.mapcompile || entity->getKeyInt("own_model") > 0)
@@ -394,6 +416,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 		
 		if (!modelsMap.contains(outname))
 		{
+			modelsMap[outname].targetname = entity->getKey("targetname");
 			modelsMap[outname].outname = outname;
 			modelsMap[outname].subdir = subdir;
 			modelsMap[outname].triangles.reserve(256);
@@ -402,6 +425,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 			modelsMap[outname].smoothing = smoothing;
 			modelsMap[outname].renameChrome = chrome;
 			modelsMap[outname].qcFlags = qcFlags;
+			modelsMap[outname].parent = parent;
 		}
 
 		bool originFound = false, boundsFound = false, clipFound = false;
@@ -536,6 +560,18 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 	for (const auto& kv : modelsMap)
 		models.push_back(kv.second);
 
+	for (const auto& model : models)
+	{
+		if (!model.parent.empty())
+		{
+			for (auto& other : models)
+			{
+				if (model.parent == other.targetname)
+					other.submodels.push_back(model.outname);
+			}
+		}
+	}
+
 	return models;
 }
 
@@ -582,6 +618,9 @@ int M2PExport::processModels(std::vector<ModelData>& models, bool missingTexture
 
 	for (const ModelData& model : models)
 	{
+		if (!model.parent.empty())
+			continue;
+
 		returnCodes += compileModel(model);
 	}
 
