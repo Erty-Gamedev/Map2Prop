@@ -36,25 +36,6 @@ namespace M2PExport
 		std::set<std::string> maskedTextures;
 	};
 
-	class Smd
-	{
-	public:
-		~Smd() { if (m_file.is_open()) { m_file.close(); } };
-		bool writeSmd(const ModelData& model);
-	private:
-		std::ofstream m_file;
-	};
-
-	class Qc
-	{
-	public:
-		~Qc() { if (m_file.is_open()) { m_file.close(); } };
-		bool writeQc(const ModelData& model);
-	private:
-		std::ofstream m_file;
-	};
-
-
 	std::vector<ModelData> prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename = "");
 	int processModels(std::vector<ModelData>& models, bool missingTextures);
 	void rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>>& entities);
