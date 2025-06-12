@@ -53,6 +53,32 @@ static inline bool pointInBounds(Vector3 point, const std::vector<Bounds>& bound
 	return false;
 }
 
+static inline void renameChrome(ModelData& model)
+{
+	if (!model.renameChrome)
+		return;
+
+	for (auto& triangle : model.triangles)
+	{
+		std::string textureName = triangle.textureName;
+		if (M2PUtils::toUpperCase(textureName).find("CHROME") == std::string::npos)
+			continue;
+
+		fs::path textureFilepath = g_config.extractDir() / (triangle.textureName + ".bmp");
+		if (!fs::exists(textureFilepath))
+		{
+			logger.warning("Could not rename file \"" + triangle.textureName + ".bmp\"" + ". File was not found");
+			continue;
+		}
+
+		std::string newName = M2PUtils::toLowerCase(triangle.textureName);
+		M2PUtils::replaceToken(newName, "chrome", "chrm");
+
+		fs::copy_file(textureFilepath, g_config.extractDir() / (newName + ".bmp"), fs::copy_options::overwrite_existing);
+		triangle.textureName = newName;
+	}
+}
+
 static inline void applySmooth(ModelData& model)
 {
 	mergeNearby(model);
@@ -362,7 +388,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 			if (!(keyvalue = entity->getKey("qc_flags")).empty())
 				qcFlags = keyvalue;
 
-			chrome = entity->getKeyInt("chrome") == 1;
+			chrome = entity->getKeyInt("chrome") == 1 || entity->getKeyInt("spawnflags") & Spawnflags::RENAME_CHROME;
 		}
 
 		
@@ -521,6 +547,7 @@ int M2PExport::processModels(std::vector<ModelData>& models, bool missingTexture
 
 	for (ModelData& model : models)
 	{
+		renameChrome(model);
 		applySmooth(model);
 
 		if (!writeSmd(model))
@@ -575,7 +602,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 	{
 		// TODO: Only make a M2P copy if we're working on an unmodified MAP
 		fs::path copyPath = g_config.inputDir / (stem + ".m2p");
-		std::filesystem::copy_file(g_config.inputFilepath, copyPath, fs::copy_options::overwrite_existing);
+		fs::copy_file(g_config.inputFilepath, copyPath, fs::copy_options::overwrite_existing);
 		logger.info(std::format("Created copy at \"{}\"", copyPath.string()));
 		
 		filepath = g_config.inputFilepath;
