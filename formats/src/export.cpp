@@ -213,14 +213,8 @@ static inline bool writeQc(const ModelData& model)
 	}
 
 	Vector3 qcOffset{ g_config.qcOffset[0], g_config.qcOffset[1], g_config.qcOffset[2] };
-	if (model.offset != Vector3::zero())
-	{
-		offset = std::format("{:.6g} {:.6g} {:.6g}", model.offset.x, model.offset.y, model.offset.z);
-	}
-	else if (qcOffset != Vector3::zero())
-	{
+	if (qcOffset != Vector3::zero())
 		offset = std::format("{:.6g} {:.6g} {:.6g}", qcOffset.x, qcOffset.y, qcOffset.z);
-	}
 
 	if (model.bounds != Bounds::zero())
 	{
@@ -583,6 +577,8 @@ int M2PExport::processModels(std::vector<ModelData>& models, bool missingTexture
 
 	for (ModelData& model : models)
 	{
+		model.applyOffset();
+
 		renameChrome(model);
 		applySmooth(model);
 

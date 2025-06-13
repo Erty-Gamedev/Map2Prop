@@ -37,6 +37,14 @@ namespace M2PExport
 		std::vector<M2PGeo::Bounds> alwaysSmooth;
 		std::vector<M2PGeo::Bounds> neverSmooth;
 		std::set<std::string> maskedTextures;
+
+		void applyOffset()
+		{
+			for (auto& triangle : triangles)
+				for (auto& vertex : triangle.vertices)
+					vertex -= offset;
+		}
+
 	};
 
 	std::vector<ModelData> prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename = "");
