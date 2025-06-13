@@ -274,6 +274,7 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 {
 	int n = 0;
 	std::unordered_map<std::string, ModelData> modelsMap;
+	std::unordered_map<std::string, unsigned int> submodelIndices;
 	std::string keyvalue;
 	keyvalue.reserve(256);
 
@@ -323,7 +324,14 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 			if (!keyvalue.empty())
 			{
 				if (entity->getKeyInt("spawnflags") & Spawnflags::IS_SUBMODEL)
+				{
 					parent = keyvalue;
+					if (!submodelIndices.contains(keyvalue))
+						submodelIndices[keyvalue] = 1;
+					else
+						++submodelIndices[keyvalue];
+					entity->setKey("body", std::to_string(submodelIndices[keyvalue]));
+				}
 				else
 				{
 					for (const auto& brush : entity->brushes)
@@ -660,7 +668,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 		{
 			logger.info(std::format(
 				"Naming conflict: Multiple func_map2prop entities with name \"{}\". "
-				"Only the first one will be used as template parent",
+				"Only the first one will be used as template/submodel parent",
 				entity->getKey("targetname")
 			));
 			continue;
@@ -696,9 +704,11 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 
 		if (entity->hasKey("parent_model"))
 		{
-			if (!parentModels.contains(entity->getKey("parent_model")))
+			std::string parentModel = entity->getKey("parent_model");
+
+			if (!parentModels.contains(parentModel))
 			{
-				logger.warning("");
+				logger.warning("Parent model with targetname \"" + parentModel + "\" not found");
 				continue;
 			}
 
@@ -715,7 +725,9 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 
 		file << "{\n\"classname\" \"" << newClass << "\"\n";
 		file << "\"model\" \"" << entity->getKey("model") << "\"\n";
-		file << "\"spawnflags\" \"" << spawnflags << "\"\n";
+
+		if (spawnflags)
+			file << "\"spawnflags\" \"" << spawnflags << "\"\n";
 
 		if (entity->hasKey("targetname"))
 			file << "\"targetname\" \"" << entity->getKey("targetname") << "\"\n";
@@ -728,6 +740,9 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 
 		if (entity->hasKey("origin"))
 			file << "\"origin\" \"" << entity->getKey("origin") << "\"\n";
+
+		if (entity->hasKey("body"))
+			file << "\"body\" \"" << entity->getKey("body") << "\"\n";
 
 		file << "}\n";
 	}
