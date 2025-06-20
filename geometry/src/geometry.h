@@ -24,8 +24,11 @@ namespace M2PGeo {
 
     struct Vector2
     {
-        FP x, y;
-    public:
+        union { struct { FP x, y; };  FP v[2]; };
+
+        Vector2() = default;
+        Vector2(FP _x, FP _y) : x(_x), y(_y) {};
+
         FP magnitude() const;
         FP dot(const Vector2 &other) const;
         /**
@@ -37,22 +40,25 @@ namespace M2PGeo {
         bool operator==(const Vector2& other) const;
         bool operator!=(const Vector2& other) const;
 
-        static Vector2 zero();
+        static Vector2 zero() { return Vector2{ 0.0f, 0.0f }; }
     };
 
     class Vector3
     {
     public:
-        FP x, y, z;
+        union { struct { FP x, y, z; };  FP v[3]; };
+
+        Vector3() : x(0.), y(0.), z(0.) {}
+        Vector3(FP _x, FP _y, FP _z) : x(_x), y(_y), z(_z) {}
+        Vector3(const float xyz[3]) : x(static_cast<FP>(xyz[0])), y(static_cast<FP>(xyz[1])), z(static_cast<FP>(xyz[2])) {}
+        Vector3(const double xyz[3]) : x(static_cast<FP>(xyz[0])), y(static_cast<FP>(xyz[1])), z(static_cast<FP>(xyz[2])) {}
+
         FP magnitude() const;
         FP dot(const Vector3& other) const;
         Vector3 cross(const Vector3& other) const;
         Vector3 normalised() const;
         FP distance(const Vector3& other) const;
         FP angle(const Vector3& other) const;
-        Vector3() : x(0), y(0), z(0) {}
-        Vector3(FP _x, FP _y, FP _z) : x(_x), y(_y), z(_z) {}
-        Vector3(const FP xyz[3]) : x(xyz[0]), y(xyz[1]), z(xyz[2]) {}
         Vector3 operator+() const;
         Vector3 operator+(const Vector3& other) const;
         Vector3& operator+=(const Vector3& other);
@@ -90,7 +96,7 @@ namespace M2PGeo {
         Vector3 normal = Vector3::zero();
         Vertex() : Vector3() {};
         Vertex(FP _x, FP _y, FP _z) : Vector3(_x, _y, _z) {}
-        Vertex(const float xyz[3]) : Vector3(xyz) {}
+        Vertex(const FP xyz[3]) : Vector3(xyz) {}
         Vertex(const Vector3& point) { x = point.x; y = point.y; z = point.z; }
         Vertex(const Vector3& point, const Vector3& _normal)
         {

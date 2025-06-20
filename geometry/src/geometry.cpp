@@ -21,10 +21,6 @@ FP M2PGeo::clip(FP value, FP minimum, FP maximum)
 }
 
 
-Vector2 Vector2::zero()
-{
-	return Vector2(0.0f, 0.0f);
-}
 FP Vector2::magnitude() const
 {
 	return sqrt((x * x) + (y * y));
@@ -51,7 +47,7 @@ bool Vector2::operator!=(const Vector2& other) const { return !(*this == other);
 
 Vector3 Vector3::zero()
 {
-	return Vector3(0.0f, 0.0f, 0.0f);
+	return Vector3(0., 0., 0.);
 }
 FP Vector3::magnitude() const
 {
