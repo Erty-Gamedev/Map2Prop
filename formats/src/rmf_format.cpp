@@ -308,10 +308,10 @@ M2PEntity::Face RmfReader::readFace()
 	{
 		Vector3 normalPoints[3] = { Vector3(planepoints[2]), Vector3(planepoints[1]), Vector3(planepoints[0]) };
 		Vector3 normal = planeNormal(normalPoints);
-		float vecs[2][3]{};
+		FP vecs[2][3]{};
 		int sv, tv;
-		float theta = deg2rad(face.texture.angle);
-		float sinv = sin(theta), cosv = cos(theta);
+		FP theta = deg2rad(face.texture.angle);
+		FP sinv = sin(theta), cosv = cos(theta);
 		textureAxisFromPlane(normal, vecs[0], vecs[1]);
 
 		if (static_cast<int>(round(vecs[0][0]))) sv = 0;
@@ -324,8 +324,8 @@ M2PEntity::Face RmfReader::readFace()
 
 		for (int i = 0; i < 2; ++i)
 		{
-			float ns = cosv * vecs[i][sv] - sinv * vecs[i][tv];
-			float nt = sinv * vecs[i][sv] + cosv * vecs[i][tv];
+			FP ns = cosv * vecs[i][sv] - sinv * vecs[i][tv];
+			FP nt = sinv * vecs[i][sv] + cosv * vecs[i][tv];
 			vecs[i][sv] = ns;
 			vecs[i][tv] = nt;
 		}
@@ -376,10 +376,10 @@ void RmfReader::readPathNode()
 }
 
 
-void M2PRMF::textureAxisFromPlane(const Vector3 normal, float xvOut[3], float yvOut[3])
+void M2PRMF::textureAxisFromPlane(const Vector3 normal, FP xvOut[3], FP yvOut[3])
 {
 	int bestaxis = 0;
-	float best = 0.;
+	FP best = 0.;
 
 	for (int i = 0; i < 6; ++i)
 	{

@@ -68,7 +68,7 @@ namespace M2PRMF
 		std::string toString() const override;
 	};
 
-	void textureAxisFromPlane(const M2PGeo::Vector3 normal, float xvOut[3], float yvOut[3]);
+	void textureAxisFromPlane(const M2PGeo::Vector3 normal, FP xvOut[3], FP yvOut[3]);
 }
 
 namespace M2PFormat
