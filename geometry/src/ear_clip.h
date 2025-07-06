@@ -7,7 +7,6 @@ namespace M2PGeo
 
 	std::vector<Triangle> earClip(
 		const std::vector<Vertex> &_polygon,
-		const Vector3 &normal,
-		const std::string &textureName
+		const Vector3 &normal
 	);
 }

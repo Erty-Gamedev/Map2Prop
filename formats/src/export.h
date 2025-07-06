@@ -5,11 +5,11 @@
 #include "entity.h"
 #include "geometry.h"
 #include "wad3handler.h"
+#include "halfedge.h"
 
 
 namespace M2PExport
 {
-	constexpr unsigned int c_VEC_GROUP_PRECISION = 1;
 	static inline const char* c_NOTE_KEY{ "_note" };
 	static inline const char* c_NOTE_VALUE{ "Modified by Map2Prop" };
 
@@ -37,14 +37,13 @@ namespace M2PExport
 		std::vector<M2PGeo::Bounds> alwaysSmooth;
 		std::vector<M2PGeo::Bounds> neverSmooth;
 		std::set<std::string> maskedTextures;
+		M2PHalfEdge::Mesh mesh;
 
 		void applyOffset()
 		{
-			for (auto& triangle : triangles)
-				for (auto& vertex : triangle.vertices)
-					vertex -= offset;
+			for (auto& coord : mesh.vertices)
+				*coord -= offset;
 		}
-
 	};
 
 	std::vector<ModelData> prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename = "");

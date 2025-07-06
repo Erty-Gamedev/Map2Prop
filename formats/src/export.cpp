@@ -7,6 +7,7 @@
 #include "logging.h"
 #include "utils.h"
 #include "ear_clip.h"
+#include "halfedge.h"
 
 
 static inline Logging::Logger& logger = Logging::Logger::getLogger("export");
@@ -18,108 +19,39 @@ using namespace M2PGeo;
 namespace fs = std::filesystem;
 
 
-static inline void mergeNearby(ModelData& model, FP threshold = 0.01)
-{
-	for (Triangle& triangle : model.triangles)
-	{
-		for (const Vertex& a : triangle.vertices)
-		{
-			for (Triangle& triangleOther : model.triangles)
-			{
-				for (Vertex& b : triangleOther.vertices)
-				{
-					if (&a == &b)
-						continue;
-
-					if (a.distance(b) < threshold)
-					{
-						b.x = a.x;
-						b.y = a.y;
-						b.z = a.z;
-					}
-				}
-			}
-		}
-	}
-}
-
-static inline bool pointInBounds(Vector3 point, const std::vector<Bounds>& bounds)
-{
-	for (const Bounds& b : bounds)
-	{
-		if (b.pointInside(point))
-			return true;
-	}
-	return false;
-}
-
 static inline void renameChrome(ModelData& model)
 {
 	if (!model.renameChrome)
 		return;
 
-	for (auto& triangle : model.triangles)
+	for (auto& face : model.mesh.faces)
 	{
-		std::string textureName = triangle.textureName;
+		std::string textureName = face->texture.name;
 		if (M2PUtils::toUpperCase(textureName).find("CHROME") == std::string::npos)
 			continue;
 
-		fs::path textureFilepath = g_config.extractDir() / (triangle.textureName + ".bmp");
+		fs::path textureFilepath = g_config.extractDir() / (face->texture.name + ".bmp");
 		if (!fs::exists(textureFilepath))
 		{
-			logger.warning("Could not rename file \"" + triangle.textureName + ".bmp\"" + ". File was not found");
+			logger.warning("Could not rename file \"" + face->texture.name + ".bmp\"" + ". File was not found");
 			continue;
 		}
 
-		std::string newName = M2PUtils::toLowerCase(triangle.textureName);
+		std::string newName = M2PUtils::toLowerCase(face->texture.name);
 		M2PUtils::replaceToken(newName, "chrome", "chrm");
 
 		fs::copy_file(textureFilepath, g_config.extractDir() / (newName + ".bmp"), fs::copy_options::overwrite_existing);
-		triangle.textureName = newName;
+		face->texture.name = newName;
 	}
 }
 
+
 static inline void applySmooth(ModelData& model)
 {
-	mergeNearby(model);
-	if (model.smoothing == 0)
-		return;
+	model.mesh.markSmoothEdges(model.smoothing, model.alwaysSmooth, model.neverSmooth);
 
-	size_t vertCount = model.triangles.size() * 3;
-	GroupedVertices vertices;
-	GroupedVertices flipped;
-	GroupedVertices alwaysSmooth;
-	GroupedVertices alwaysSmoothFlipped;
-	vertices.reserve(vertCount);
-	flipped.reserve(vertCount);
-	alwaysSmooth.reserve(vertCount);
-	alwaysSmoothFlipped.reserve(vertCount);
-
-	bool neverSmooth = !model.neverSmooth.empty();
-
-	for (Triangle& triangle : model.triangles)
-	{
-		for (Vertex& vertex : triangle.vertices)
-		{
-			if (neverSmooth && pointInBounds(vertex.coord(), model.neverSmooth))
-				continue;
-
-			bool shouldAlwaysSmooth = pointInBounds(vertex.coord(), model.alwaysSmooth);
-
-			GroupedVertices& vList = vertices;
-			if (triangle.flipped)
-				vList = shouldAlwaysSmooth ? alwaysSmoothFlipped : flipped;
-			else
-				vList = shouldAlwaysSmooth ? alwaysSmooth : vertices;
-
-			vList[vertex.coord()].push_back(vertex);
-		}
-	}
-
-	averageNearNormals(vertices, model.smoothing);
-	averageNearNormals(flipped, model.smoothing);
-	averageNormals(alwaysSmooth);
-	averageNormals(alwaysSmoothFlipped);
+	for (auto& vertex : model.mesh.vertices)
+		model.mesh.getSmoothFansByVertex(vertex);
 }
 
 static inline int compileModel(const ModelData& model)
@@ -147,26 +79,57 @@ static inline bool writeSmd(const ModelData& model)
 
 	file << "version 1\nnodes\n0 \"root\" -1\nend\nskeleton\ntime 0\n0 0 0 0 0 0 0\nend\ntriangles\n";
 
-	for (const M2PGeo::Triangle &triangle : model.triangles)
+	for (const std::shared_ptr<M2PHalfEdge::Face>& face : model.mesh.faces)
 	{
-		file << triangle.textureName << ".bmp\n";
-		for (const M2PGeo::Vertex &vertex : triangle.vertices)
+		file << face->texture.name << ".bmp\n";
+
+		for (const std::shared_ptr<M2PHalfEdge::Vertex>& pVertex : face->vertices)
 		{
+			const M2PGeo::Vector3& vertex = *pVertex->position;
 			file << "0\t";
-			const M2PGeo::Vector3& normal = vertex.normal;
+			const M2PGeo::Vector3& normal = pVertex->normal;
 			if (g_config.isObj())
 			{
 				file << std::format("{:.6f} {:.6f} {:.6f}\t", vertex.x, -vertex.z, vertex.y);
 				file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, -normal.z, normal.y);
-				file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
+				file << std::format("{:.6f} {:.6f}", pVertex->uv.x, pVertex->uv.y + 1);
 			}
 			else
 			{
 				file << std::format("{:.6f} {:.6f} {:.6f}\t", vertex.x, vertex.y, vertex.z);
 				file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, normal.y, normal.z);
-				file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
+				file << std::format("{:.6f} {:.6f}", pVertex->uv.x, pVertex->uv.y + 1);
 			}
 			file << "\n";
+		}
+
+		if (face->flipped)
+		{
+			file << face->texture.name << ".bmp\n";
+
+			auto triangle = face->vertices;
+			std::swap(triangle[0], triangle[2]);
+			for (int i = 0; i < 3; ++i)
+			{
+				const std::shared_ptr<M2PHalfEdge::Vertex>& pVertex = triangle[i];
+				const M2PGeo::Vector3& vertex = *pVertex->position;
+				const M2PGeo::Vector3& normal = -pVertex->normal;
+
+				file << "0\t";
+				if (g_config.isObj())
+				{
+					file << std::format("{:.6f} {:.6f} {:.6f}\t", vertex.x, -vertex.z, vertex.y);
+					file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, -normal.z, normal.y);
+					file << std::format("{:.6f} {:.6f}", pVertex->uv.x, pVertex->uv.y + 1);
+				}
+				else
+				{
+					file << std::format("{:.6f} {:.6f} {:.6f}\t", vertex.x, vertex.y, vertex.z);
+					file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, normal.y, normal.z);
+					file << std::format("{:.6f} {:.6f}", pVertex->uv.x, pVertex->uv.y + 1);
+				}
+				file << "\n";
+			}
 		}
 	}
 	file << "end\n";
@@ -506,6 +469,8 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 				continue;
 			}
 
+			bool hasContentWater = brush->hasContentWater();
+
 			for (const M2PEntity::Face& face : brush->faces)
 			{
 				if (M2PWad3::Wad3Handler::isSkipTexture(face.texture.name) || M2PWad3::Wad3Handler::isToolTexture(face.texture.name))
@@ -514,42 +479,31 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 				if (face.texture.name.starts_with('{'))
 					modelsMap[outname].maskedTextures.insert(face.texture.name);
 
-				M2PUtils::extendVector(modelsMap[outname].triangles, earClip(face.vertices, face.normal, face.texture.name));
-			}
+				ModelData& currentModel = modelsMap[outname];
 
-			if (brush->hasContentWater())
-			{
-				std::vector<Triangle> flipped{ modelsMap[outname].triangles };
-				for (Triangle& triangle : flipped)
-				{
-					triangle.normal = -triangle.normal;
-					std::swap(triangle.vertices[0], triangle.vertices[2]);
-					for (auto& vertex : triangle.vertices)
-						vertex.normal = -vertex.normal;
-					triangle.flipped = true;
-				}
-				M2PUtils::extendVector(modelsMap[outname].triangles, flipped);
+				const std::vector<Triangle> triangles = earClip(face.vertices, face.normal);
+
+				for (const Triangle& triangle : triangles)
+					currentModel.mesh.addTriangle(triangle, face.normal, face.texture, hasContentWater);
 			}
 		}
 
 		if (modelsMap[outname].offset == Vector3::zero() && !entity->getKeyInt("use_world_origin"))
 		{
-			Vector3 aabbMin = modelsMap[outname].triangles[0].vertices[0].coord();
-			Vector3 aabbMax = modelsMap[outname].triangles[0].vertices[0].coord();
+			Vector3 aabbMin = modelsMap[outname].mesh.vertices[0]->coord();
+			Vector3 aabbMax = modelsMap[outname].mesh.vertices[0]->coord();
 
-			for (const auto& triangle : modelsMap[outname].triangles)
+			for (const auto& vertex : modelsMap[outname].mesh.vertices)
 			{
-				for (const auto& vertex : triangle.vertices)
-				{
-					if (vertex.x < aabbMin.x) aabbMin.x = vertex.x;
-					if (vertex.y < aabbMin.y) aabbMin.y = vertex.y;
-					if (vertex.z < aabbMin.z) aabbMin.z = vertex.z;
+				if (vertex->x < aabbMin.x) aabbMin.x = vertex->x;
+				if (vertex->y < aabbMin.y) aabbMin.y = vertex->y;
+				if (vertex->z < aabbMin.z) aabbMin.z = vertex->z;
 
-					if (vertex.x > aabbMax.x) aabbMax.x = vertex.x;
-					if (vertex.y > aabbMax.y) aabbMax.y = vertex.y;
-					if (vertex.z > aabbMax.z) aabbMax.z = vertex.z;
-				}
+				if (vertex->x > aabbMax.x) aabbMax.x = vertex->x;
+				if (vertex->y > aabbMax.y) aabbMax.y = vertex->y;
+				if (vertex->z > aabbMax.z) aabbMax.z = vertex->z;
 			}
+
 			modelsMap[outname].offset = geometricCenter(std::vector{ aabbMin, aabbMax });
 			modelsMap[outname].offset.z -= (aabbMax.z - aabbMin.z) / 2;
 
@@ -585,10 +539,10 @@ int M2PExport::processModels(std::vector<ModelData>& models, bool missingTexture
 
 	for (ModelData& model : models)
 	{
-		model.applyOffset();
-
 		renameChrome(model);
 		applySmooth(model);
+
+		model.applyOffset();
 
 		if (!writeSmd(model))
 			return 1;

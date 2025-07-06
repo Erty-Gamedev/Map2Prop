@@ -16,6 +16,8 @@ namespace M2PGeo {
     static inline constexpr int c_MAX_TEXTURE_NAME = 16;
     static inline constexpr int c_MAP_DIGITS_PRECISION = 6;
     static inline constexpr FP c_EPSILON = 1. / 1024.;
+    static inline constexpr FP c_EPSILON_FIND = static_cast<FP>(0.001);
+    static inline constexpr FP c_EPSILON_MERGE = static_cast<FP>(0.000001);
     static inline constexpr FP c_DEG2RAD = static_cast<FP>(std::numbers::pi / 180.);
     static inline constexpr FP c_RAD2DEG = static_cast<FP>(180. / std::numbers::pi);
 
@@ -89,6 +91,9 @@ namespace M2PGeo {
         bool pointInside(Vector3 p) const;
     };
 
+    bool pointInBounds(Vector3 point, const std::vector<Bounds>& bounds);
+
+
     class Vertex : public Vector3
     {
     public:
@@ -123,7 +128,6 @@ namespace M2PGeo {
         bool flipped;
         M2PGeo::Vector3 normal;
         Vertex vertices[3] = { Vertex::zero(), Vertex::zero(), Vertex::zero() };
-        std::string textureName;
     };
 
     struct Texture

@@ -79,7 +79,7 @@ static inline int findOptimalEar(const std::vector<Vertex>& polygon, const std::
     return optimalIndex;
 }
 
-std::vector<Triangle> M2PGeo::earClip(const std::vector<Vertex>& _polygon, const Vector3& normal, const std::string &textureName)
+std::vector<Triangle> M2PGeo::earClip(const std::vector<Vertex>& _polygon, const Vector3& normal)
 {
     size_t numVertices = _polygon.size();
 
@@ -87,8 +87,7 @@ std::vector<Triangle> M2PGeo::earClip(const std::vector<Vertex>& _polygon, const
         return std::vector<Triangle>{Triangle{
             .flipped = false,
             .normal = normal,
-            .vertices = {_polygon[0], _polygon[1], _polygon[2]},
-            .textureName = textureName
+            .vertices = {_polygon[0], _polygon[1], _polygon[2]}
         }};
     if (numVertices < 3)
         throw std::runtime_error("Polygon with less than 3 sides");
@@ -109,8 +108,7 @@ std::vector<Triangle> M2PGeo::earClip(const std::vector<Vertex>& _polygon, const
                 M2PUtils::getCircular(polygon, i - 1),
                 polygon[i],
                 M2PUtils::getCircular(polygon, i + 1)
-            },
-            .textureName = textureName
+            }
         });
 
         polygon.erase(polygon.begin() + i);
@@ -119,8 +117,7 @@ std::vector<Triangle> M2PGeo::earClip(const std::vector<Vertex>& _polygon, const
     triangles.push_back(Triangle{
         .flipped = false,
         .normal = normal,
-        .vertices = {polygon[0], polygon[1], polygon[2]},
-        .textureName = textureName
+        .vertices = {polygon[0], polygon[1], polygon[2]}
     });
 
     return triangles;

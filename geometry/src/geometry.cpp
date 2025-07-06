@@ -162,6 +162,14 @@ bool Bounds::pointInside(Vector3 p) const
 	return p.x > min.x && p.x < max.x && p.y > min.y && p.y < max.y && p.z > min.z && p.z < max.z;
 }
 
+bool M2PGeo::pointInBounds(Vector3 point, const std::vector<Bounds>& bounds)
+{
+	for (const Bounds& b : bounds)
+		if (b.pointInside(point))
+			return true;
+	return false;
+}
+
 
 bool Vertex::operator==(const Vertex& other) const
 {
