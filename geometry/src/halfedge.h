@@ -103,10 +103,6 @@ namespace M2PHalfEdge
 			bool flipped = false
 		);
 
-		std::vector<std::shared_ptr<Edge>> getEdgesByVertex(const Coord& vertex);
-
-		std::vector<std::shared_ptr<Face>> getFacesByVertex(const Coord& vertex);
-
 		void markSmoothEdges(
 			FP smoothing,
 			const std::vector<M2PGeo::Bounds>& alwaysSmooth,
