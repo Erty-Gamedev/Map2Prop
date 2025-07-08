@@ -27,7 +27,7 @@ std::shared_ptr<Vertex> Face::getVertex(Coord coord) const
 {
 	for (int i = 0; i < 3; ++i)
 	{
-		if ((*vertices[i]->position).distance(coord) < 0.001)
+		if (vertices[i]->position->index == coord.index)
 			return vertices[i];
 	}
 	return std::shared_ptr<Vertex>(nullptr);
@@ -45,7 +45,7 @@ M2PGeo::Vector3 Face::fullNormal() const
 bool Face::operator<(const Face& rhs) const
 {
 	for (int i = 0; i < 3; ++i)
-		if (*vertices[i]->position != *rhs.vertices[i]->position)
+		if (vertices[i]->position->index != rhs.vertices[i]->position->index)
 			return true;
 	return false;
 }
@@ -53,7 +53,7 @@ bool Face::operator<(const Face& rhs) const
 bool M2PHalfEdge::Face::operator==(const Face& rhs) const
 {
 	for (int i = 0; i < 3; ++i)
-		if (*vertices[i]->position != *rhs.vertices[i]->position)
+		if (vertices[i]->position->index != rhs.vertices[i]->position->index)
 			return false;
 	return flipped == rhs.flipped;
 }
@@ -99,12 +99,12 @@ std::shared_ptr<Coord>& Mesh::addVertex(const M2PGeo::Vertex _vertex)
 
 void Mesh::findTwins(std::shared_ptr<Edge>& edge)
 {
-	std::shared_ptr<Coord>& origin = edge->origin;
-	std::shared_ptr<Coord>& end = edge->next->origin;
+	const std::shared_ptr<Coord>& origin = edge->origin;
+	const std::shared_ptr<Coord>& end = edge->next->origin;
 
 	for (std::shared_ptr<Edge>& other : edges)
 	{
-		if (other->origin == end && other->next->origin == origin)
+		if (other->origin->index == end->index && other->next->origin->index == origin->index)
 		{
 			edge->twin = other;
 			other->twin = edge;
