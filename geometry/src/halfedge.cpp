@@ -35,11 +35,11 @@ std::shared_ptr<Vertex> Face::getVertex(Coord coord) const
 
 M2PGeo::Vector3 Face::fullNormal() const
 {
-	auto& a = edge->origin;
-	auto& b = edge->next->origin;
-	auto& c = edge->next->next->origin;
-
-	return M2PGeo::segmentsCross(a->coord(), b->coord(), c->coord());
+	return M2PGeo::segmentsCross(
+		vertices[0]->position->coord(),
+		vertices[1]->position->coord(),
+		vertices[2]->position->coord()
+	);
 }
 
 bool Face::operator<(const Face& rhs) const
