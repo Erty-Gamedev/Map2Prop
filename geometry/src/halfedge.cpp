@@ -144,34 +144,6 @@ void Mesh::addTriangle(const M2PGeo::Triangle& triangle, const M2PGeo::Vector3 n
 	findTwins(e2);
 }
 
-std::vector<std::shared_ptr<Edge>> Mesh::getEdgesByVertex(const Coord& vertex)
-{
-	std::vector<std::shared_ptr<Edge>> foundEdges;
-
-	for (auto& edge : edges)
-	{
-		if (*edge->origin == vertex || *edge->next->origin == vertex)
-			foundEdges.push_back(edge);
-	}
-
-	return foundEdges;
-}
-
-std::vector<std::shared_ptr<Face>> Mesh::getFacesByVertex(const Coord& vertex)
-{
-	std::vector<std::shared_ptr<Face>> foundFaces;
-
-	for (auto& edge : getEdgesByVertex(vertex))
-	{
-		if (edge->face)
-			foundFaces.push_back(edge->face);
-		if (edge->twin && edge->twin->face)
-			foundFaces.push_back(edge->twin->face);
-	}
-
-	return foundFaces;
-}
-
 void Mesh::markSmoothEdges(
 	FP smoothing,
 	const std::vector<M2PGeo::Bounds>& alwaysSmooth,
