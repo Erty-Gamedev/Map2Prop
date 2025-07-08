@@ -232,7 +232,7 @@ static inline SmoothFan walkSmoothFan(
 
 	g = 0;
 	std::shared_ptr<Edge>& prevEdge = startEdge->prev->twin;
-	while (backwards && prevEdge)
+	while (backwards && prevEdge && !prevEdge->sharp)
 	{
 		if (g > 100)
 			throw std::runtime_error("loop detected");
