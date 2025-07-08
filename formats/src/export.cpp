@@ -50,7 +50,7 @@ static inline void applySmooth(ModelData& model)
 {
 	model.mesh.markSmoothEdges(model.smoothing, model.alwaysSmooth, model.neverSmooth);
 
-	for (auto& vertex : model.mesh.vertices)
+	for (std::shared_ptr<M2PHalfEdge::Coord>& vertex : model.mesh.vertices)
 		model.mesh.getSmoothFansByVertex(vertex);
 }
 
@@ -85,8 +85,8 @@ static inline bool writeSmd(const ModelData& model)
 
 		for (const std::shared_ptr<M2PHalfEdge::Vertex>& pVertex : face->vertices)
 		{
-			const M2PGeo::Vector3& vertex = *pVertex->position;
 			file << "0\t";
+			const M2PGeo::Vector3& vertex = *pVertex->position;
 			const M2PGeo::Vector3& normal = pVertex->normal;
 			if (g_config.isObj())
 			{
@@ -384,7 +384,6 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 			modelsMap[outname].targetname = entity->getKey("targetname");
 			modelsMap[outname].outname = outname;
 			modelsMap[outname].subdir = subdir;
-			modelsMap[outname].triangles.reserve(256);
 			modelsMap[outname].scale = scale;
 			modelsMap[outname].rotation = rotation;
 			modelsMap[outname].smoothing = smoothing;

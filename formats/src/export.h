@@ -33,7 +33,6 @@ namespace M2PExport
 		std::string parent;
 		std::string targetname;
 		std::vector<std::string> submodels;
-		std::vector<M2PGeo::Triangle> triangles;
 		std::vector<M2PGeo::Bounds> alwaysSmooth;
 		std::vector<M2PGeo::Bounds> neverSmooth;
 		std::set<std::string> maskedTextures;
