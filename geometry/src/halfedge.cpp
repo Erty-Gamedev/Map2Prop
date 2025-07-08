@@ -61,18 +61,11 @@ bool M2PHalfEdge::Face::operator==(const Face& rhs) const
 void SmoothFan::addFace(std::shared_ptr<Face>& face)
 {
 	faces.push_back(face);
-	auto faceNormal = face->fullNormal();
-	for (const M2PGeo::Vector3& normal : normals)
-		if (normal == face->normal)
-			return;
-	normals.push_back(face->normal);
 	accumulatedNormal += face->fullNormal();
 }
 
 void SmoothFan::applySmooth() const
 {
-	M2PGeo::Vector3 average = accumulatedNormal;
-
 	for (auto& face : faces)
 	{
 		for (int i = 0; i < 3; ++i)
