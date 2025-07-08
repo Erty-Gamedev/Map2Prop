@@ -11,9 +11,10 @@ M2PGeo::Vector3 Coord::coord()
 }
 
 
-Vertex::Vertex(std::shared_ptr<Coord>& coord, const M2PGeo::Vector2& _uv)
+Vertex::Vertex(std::shared_ptr<Coord>& coord, const M2PGeo::Vector3& _normal, const M2PGeo::Vector2& _uv)
 {
 	position = coord;
+	normal = _normal;
 	uv = _uv;
 }
 
@@ -121,9 +122,9 @@ void Mesh::addTriangle(const M2PGeo::Triangle& triangle, const M2PGeo::Vector3 n
 	std::shared_ptr<Coord> v1 = addVertex(triangle.vertices[1]);
 	std::shared_ptr<Coord> v2 = addVertex(triangle.vertices[2]);
 
-	face->vertices[0] = std::make_shared<Vertex>(v0, triangle.vertices[0].uv);
-	face->vertices[1] = std::make_shared<Vertex>(v1, triangle.vertices[1].uv);
-	face->vertices[2] = std::make_shared<Vertex>(v2, triangle.vertices[2].uv);
+	face->vertices[0] = std::make_shared<Vertex>(v0, face->normal, triangle.vertices[0].uv);
+	face->vertices[1] = std::make_shared<Vertex>(v1, face->normal, triangle.vertices[1].uv);
+	face->vertices[2] = std::make_shared<Vertex>(v2, face->normal, triangle.vertices[2].uv);
 
 	edges.push_back(std::make_shared<Edge>(static_cast<unsigned int>(edges.size()), v0, face));
 	std::shared_ptr<Edge> e0 = edges.back();

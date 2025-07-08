@@ -27,7 +27,7 @@ namespace M2PHalfEdge
 		M2PGeo::Vector3 normal;
 		M2PGeo::Vector2 uv;
 
-		Vertex(std::shared_ptr<Coord>& coord, const M2PGeo::Vector2& _uv);
+		Vertex(std::shared_ptr<Coord>& coord, const M2PGeo::Vector3& _normal, const M2PGeo::Vector2& _uv);
 	};
 
 	struct Edge
