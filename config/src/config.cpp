@@ -254,6 +254,11 @@ void M2PConfig::handleArgs(int argc, char** argv)
             g_config.eager = true;
             continue;
         }
+        if (strcmp(argv[i], "--verbose") == 0)
+        {
+            Logging::Logger::setGlobalConsoleLevelDebug;
+            continue;
+        }
 
 
         if (strncmp(argv[i], "-", 1) == 0)

@@ -190,6 +190,7 @@ namespace Logging
 	{
 	public:
 		static Logger& getLogger(const std::string&);
+		static void setGlobalConsoleLevelDebug();
 
 		Logger(const std::string&);
 		Logger() : Logger("logger") {}
@@ -208,8 +209,8 @@ namespace Logging
 		void setFileHandlerLevel(const LogLevel&);
 		void setFileHandlerLogDir(const std::filesystem::path& logDir);
 	private:
-		static inline std::unordered_map<std::string, Logger> s_loggers {};
-		static inline ConsoleHandler s_defaultConsoleHandler { DEFAULT_LOG_LEVEL };
+		static inline std::unordered_map<std::string, Logger> s_loggers{};
+		static inline ConsoleHandler s_defaultConsoleHandler{ DEFAULT_LOG_LEVEL };
 		static inline FileHandler s_defaultFileHandler;
 
 		std::string m_name;

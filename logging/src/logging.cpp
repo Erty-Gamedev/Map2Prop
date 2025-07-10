@@ -109,6 +109,17 @@ Logger& Logger::getLogger(const std::string& loggerName)
     return Logger::s_loggers[loggerName];
 }
 
+void Logging::Logger::setGlobalConsoleLevelDebug()
+{
+    s_defaultConsoleHandler.setLevel(LogLevel::LOG_DEBUG);
+
+    for (std::pair<const std::string, Logger>& kv : s_loggers)
+    {
+        kv.second.setLevel(LogLevel::LOG_DEBUG);
+        kv.second.setConsoleHandlerLevel(LogLevel::LOG_DEBUG);
+    }
+}
+
 
 LogHandler::LogHandler() { m_loglevel = LogLevel::LOG_INFO; }
 LogHandler::LogHandler(const LogLevel& loglevel) { m_loglevel = loglevel; }

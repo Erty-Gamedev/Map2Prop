@@ -28,6 +28,7 @@ Options:
   -n | --wadcache       max number of .wad files to keep in memory
   -s | --smoothing      angle threshold for applying smoothing (use 0 to smooth all edges)
   -t | --time           timeout for running studiomdl.exe (default 60.0 seconds)
+  --verbose             enable verbose logging
   --renamechrome        rename chrome textures (disables chrome)
   --eager               use eager triangulation algorithm (faster)
 
