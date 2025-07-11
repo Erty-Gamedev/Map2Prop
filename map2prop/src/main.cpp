@@ -9,8 +9,7 @@
 #include "export.h"
 
 
-using Logging::Logger;
-static Logger& logger = Logger::getLogger("map2prop");
+static Logging::Logger& logger = Logging::Logger::getLogger("map2prop");
 
 
 int main(int argc, char** argv)
