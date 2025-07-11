@@ -256,7 +256,7 @@ void M2PConfig::handleArgs(int argc, char** argv)
         }
         if (strcmp(argv[i], "--verbose") == 0)
         {
-            Logging::Logger::setGlobalConsoleLevelDebug;
+            Logging::Logger::setGlobalConsoleLevelDebug();
             continue;
         }
 
