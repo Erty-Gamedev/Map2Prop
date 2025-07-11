@@ -7,6 +7,68 @@
 #include <unordered_map>
 #include <chrono>
 
+#ifdef _WIN32
+#include <wchar.h>
+#include <windows.h>
+#endif
+
+
+/**
+ * Check if we can enable virtual terminal (needed for ANSI escape sequences)
+ * From: https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#example-of-enabling-virtual-terminal-processing
+ */
+static inline bool enableVirtualTerminal()
+{
+#ifdef _WIN32
+	// Set output mode to handle virtual terminal sequences
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hOut == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+	HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+	if (hIn == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+	DWORD dwOriginalOutMode = 0;
+	DWORD dwOriginalInMode = 0;
+	if (!GetConsoleMode(hOut, &dwOriginalOutMode))
+	{
+		return false;
+	}
+	if (!GetConsoleMode(hIn, &dwOriginalInMode))
+	{
+		return false;
+	}
+
+	DWORD dwRequestedOutModes = ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
+	DWORD dwRequestedInModes = ENABLE_VIRTUAL_TERMINAL_INPUT;
+
+	DWORD dwOutMode = dwOriginalOutMode | dwRequestedOutModes;
+	if (!SetConsoleMode(hOut, dwOutMode))
+	{
+		// We failed to set both modes, try to step down mode gracefully.
+		dwRequestedOutModes = ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+		dwOutMode = dwOriginalOutMode | dwRequestedOutModes;
+		if (!SetConsoleMode(hOut, dwOutMode))
+		{
+			// Failed to set any VT mode, can't do anything here.
+			return false;
+		}
+	}
+
+	DWORD dwInMode = dwOriginalInMode | dwRequestedInModes;
+	if (!SetConsoleMode(hIn, dwInMode))
+	{
+		// Failed to set VT input mode, can't do anything here.
+		return false;
+	}
+#endif
+	return true;
+}
+
 
 namespace Styling
 {
@@ -43,13 +105,15 @@ namespace Styling
 
 static inline std::string formattedDatetime(const char* fmt)
 {
+	std::stringstream buffer;
 	time_t t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 	struct tm timeinfo;
+#ifdef _WIN32
 	localtime_s(&timeinfo, &t);
-
-	std::stringstream buffer;
+#else
+	localtime_r(&t, &timeinfo);
+#endif
 	buffer << std::put_time(&timeinfo, fmt);
-
 	return buffer.str();
 }
 
@@ -65,21 +129,32 @@ namespace Logging
 		LOG_ERROR,
 	};
 
-	inline const std::unordered_map<LogLevel, const char*> c_LOGLEVELNAME{
-		{LogLevel::LOG_DEBUG,   "DEBUG:   "},
-		{LogLevel::LOG_LOG,     ""         },
-		{LogLevel::LOG_INFO,    "INFO:    "},
-		{LogLevel::LOG_WARNING, "WARNING: "},
-		{LogLevel::LOG_ERROR,   "ERROR:   "},
-	};
-	
-	inline const std::unordered_map<LogLevel, const char*> c_LOGLEVELTITLE{
-		{LogLevel::LOG_DEBUG,   "DEBUG"   },
-		{LogLevel::LOG_LOG,     ""        },
-		{LogLevel::LOG_INFO,    "INFO"    },
-		{LogLevel::LOG_WARNING, "WARNING" },
-		{LogLevel::LOG_ERROR,   "ERROR"   },
-	};
+	inline const char* getLogLevelName(LogLevel level, bool titleOnly = false)
+	{
+		if (titleOnly)
+		{
+			switch (level)
+			{
+			case LogLevel::LOG_DEBUG:   return "DEBUG";
+			case LogLevel::LOG_LOG:     return "";
+			case LogLevel::LOG_INFO:    return "INFO";
+			case LogLevel::LOG_WARNING: return "WARNING";
+			case LogLevel::LOG_ERROR:   return "ERROR";
+			}
+		}
+		else
+		{
+			switch (level)
+			{
+			case LogLevel::LOG_DEBUG:   return "DEBUG:   ";
+			case LogLevel::LOG_LOG:     return "";
+			case LogLevel::LOG_INFO:    return "INFO:    ";
+			case LogLevel::LOG_WARNING: return "WARNING: ";
+			case LogLevel::LOG_ERROR:   return "ERROR:   ";
+			}
+		}
+		return "";
+	}
 
 #ifdef _DEBUG
 	static inline constexpr LogLevel DEFAULT_LOG_LEVEL = LogLevel::LOG_DEBUG;
@@ -87,19 +162,19 @@ namespace Logging
 	static inline constexpr LogLevel DEFAULT_LOG_LEVEL = LogLevel::LOG_INFO;
 #endif
 
-	extern bool g_isVirtual;
+	static bool g_isVirtual = enableVirtualTerminal();
 
 	class LogHandler
 	{
 	protected:
 		LogLevel m_loglevel;
 	public:
-		LogHandler();
-		LogHandler(const LogLevel&);
-		void setLevel(const LogLevel&);
+		LogHandler() : m_loglevel(LogLevel::LOG_INFO) {}
+		LogHandler(const LogLevel& loglevel) : m_loglevel(loglevel) {}
+		void setLevel(const LogLevel& loglevel) { m_loglevel = loglevel; }
 	};
 
-	class ConsoleHandler : LogHandler
+	class ConsoleHandler : public LogHandler
 	{
 	public:
 		using LogHandler::LogHandler;
@@ -110,8 +185,8 @@ namespace Logging
 		{
 			if (level < m_loglevel) { return; }
 
-			std::ostream& os = (level > LogLevel::LOG_DEBUG) ? std::cout : std::clog;
-			const char* levelName = c_LOGLEVELNAME.at(level);
+			std::ostream& os = (level > LogLevel::LOG_INFO) ? std::cerr : std::cout;
+			const char* levelName = getLogLevelName(level);
 
 			if (!g_isVirtual)
 			{
@@ -137,7 +212,7 @@ namespace Logging
 		}
 	};
 
-	class FileHandler : LogHandler
+	class FileHandler : public LogHandler
 	{
 	private:
 		bool m_fileError = false;
@@ -146,11 +221,11 @@ namespace Logging
 		std::filesystem::path m_logdir;
 		std::ofstream m_logfile;
 	public:
-		FileHandler(const std::filesystem::path&, const LogLevel&);
+		FileHandler(const std::filesystem::path& logdir, const LogLevel& loglevel) : m_logdir(logdir) { m_loglevel = loglevel; }
 		FileHandler() : FileHandler("logs", LogLevel::LOG_WARNING) {}
-		~FileHandler();
+		~FileHandler() { if (m_logfile.is_open()) m_logfile.close(); }
 		using LogHandler::setLevel;
-		void setLogDir(const std::filesystem::path&);
+		void setLogDir(const std::filesystem::path& logdir) { m_logdir = logdir; }
 
 		template <typename T>
 		void log(const LogLevel& level, T message, std::string loggerName)
@@ -181,7 +256,7 @@ namespace Logging
 				m_logfileChecked = true;
 			}
 
-			m_logfile << formattedDatetime("[%FT%T]") << c_LOGLEVELTITLE.at(level) << "|"
+			m_logfile << formattedDatetime("[%FT%T]") << getLogLevelName(level, true) << "|"
 				<< loggerName << "|" << message << std::endl;
 		}
 	};
@@ -189,10 +264,7 @@ namespace Logging
 	class Logger
 	{
 	public:
-		static Logger& getLogger(const std::string&);
-		static void setGlobalConsoleLevelDebug();
-
-		Logger(const std::string&);
+		Logger(const std::string& name) : m_name(name), m_loglevel(DEFAULT_LOG_LEVEL) {}
 		Logger() : Logger("logger") {}
 		Logger(const Logger&) = delete;
 
@@ -203,28 +275,42 @@ namespace Logging
 		template <typename T> void warn(T message) { Logger::warning(message); }
 		template <typename T> void error(T message) { _log(LogLevel::LOG_ERROR, message); }
 
-		std::string getName() const;
-		void setLevel(const LogLevel&);
-		void setConsoleHandlerLevel(const LogLevel&);
-		void setFileHandlerLevel(const LogLevel&);
-		void setFileHandlerLogDir(const std::filesystem::path& logDir);
+		std::string getName() const { return m_name; }
+		void setLevel(const LogLevel& loglevel) { m_loglevel = loglevel; }
+		void setConsoleHandlerLevel(const LogLevel& loglevel) { m_consoleHandler.setLevel(loglevel); }
+		void setFileHandlerLevel(const LogLevel& loglevel) { m_fileHandler.setLevel(loglevel); }
+		void setFileHandlerLogDir(const std::filesystem::path& logDir) { m_fileHandler.setLogDir(logDir); }
+
+		static Logger& getLogger(const std::string& loggerName)
+		{
+			if (Logger::s_loggers.contains(loggerName)) return *Logger::s_loggers[loggerName];
+			Logger::s_loggers.insert(std::pair{ loggerName, std::make_unique<Logger>(loggerName) });
+			return *Logger::s_loggers[loggerName];
+		}
+		static void setGlobalConsoleLevelDebug()
+		{
+			s_defaultConsoleHandler.setLevel(LogLevel::LOG_DEBUG);
+			for (std::pair<const std::string, std::unique_ptr<Logger>>& kv : s_loggers)
+			{
+				kv.second->setLevel(LogLevel::LOG_DEBUG);
+				kv.second->setConsoleHandlerLevel(LogLevel::LOG_DEBUG);
+			}
+		}
 	private:
-		static inline std::unordered_map<std::string, Logger> s_loggers{};
+		static inline std::unordered_map<std::string, std::unique_ptr<Logger>> s_loggers{};
 		static inline ConsoleHandler s_defaultConsoleHandler{ DEFAULT_LOG_LEVEL };
 		static inline FileHandler s_defaultFileHandler;
 
-		std::string m_name;
+		const std::string m_name;
 		LogLevel m_loglevel = DEFAULT_LOG_LEVEL;
 		ConsoleHandler& m_consoleHandler = s_defaultConsoleHandler;
 		FileHandler& m_fileHandler = s_defaultFileHandler;
 
-		template <typename T>
-		void _log(const LogLevel& level, T message)
+		template <typename T> void _log(const LogLevel& level, T message)
 		{
 			if (level < m_loglevel) { return; }
 			m_consoleHandler.log(level, message);
 			m_fileHandler.log(level, message, m_name);
 		}
 	};
-
 }
