@@ -30,11 +30,9 @@ Wad3Reader::Wad3Reader(const std::filesystem::path& filepath)
 	}
 
 	m_file.seekg(header.nDirOffset, std::ios::beg);
-	m_dirEntries = std::vector<Wad3DirEntry>(header.nDir, {});
+	m_dirEntries.assign(header.nDir, {});
 	for (int i = 0; i < header.nDir; ++i)
-	{
 		m_file.read(reinterpret_cast<char*>(&(m_dirEntries[i])), sizeof(Wad3DirEntry));
-	}
 
 	m_file.close();
 }
