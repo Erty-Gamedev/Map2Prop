@@ -22,7 +22,7 @@ static std::filesystem::path getExePath()
     DWORD copied = 0;
     do {
         pathBuffer.resize(pathBuffer.size() + MAX_PATH);
-        copied = GetModuleFileName(NULL, &pathBuffer.at(0), static_cast<DWORD>(pathBuffer.size()));
+        copied = GetModuleFileNameW(NULL, &pathBuffer.at(0), static_cast<DWORD>(pathBuffer.size()));
     } while (copied >= pathBuffer.size());
     pathBuffer.resize(copied);
     std::wstring exeDir(pathBuffer.begin(), pathBuffer.end());
