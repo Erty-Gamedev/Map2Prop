@@ -414,6 +414,7 @@ test/
 config.ini
 
 # CMake
+out/
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
