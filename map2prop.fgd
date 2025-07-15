@@ -1,0 +1,43 @@
+
+@SolidClass = func_map2prop : "Entity for Map2Prop to turn into a model" 
+[
+	spawnflags(flags) =
+	[
+		1 : "Disable" : 0
+		2 : "Is submodel" : 0
+		4 : "Rename chrome" : 0
+	]
+
+	targetname(string) : "Name"
+	outname(string) : "Exported model's name"
+	subdir(string) : "Exported model subfolder"
+	gamma(string) : "Gamma (default 1.8)" : "1.8"
+	smoothing(string) : "Smoothing threshold (0 disables)" : "60.0"
+	scale(string) : "Scale" : "1.0"
+	qc_flags(integer) : "Model Flags" : 0
+	parent_model(string) : "Template/parent prop"
+	own_model(choices) : "Export as its own model" : 1 =
+	[
+		"": "No"
+		1: "Yes"
+	]
+	chrome(choices) : "Chrome setting override" : "" =
+	[
+		"": "Default"
+		1: "Rename chrome textures (disable chrome)"
+	]
+	convert_to(choices) : "Classname after conversion" : "cycler" =
+	[
+		"cycler" : "cycler"
+		"cycler_sprite" : "cycler_sprite"
+		"env_sprite" : "env_sprite"
+		"item_generic" : "item_generic"
+		"monster_furniture" : "monster_furniture"
+		"monster_generic" : "monster_generic"
+	]
+	use_world_origin(choices) : "Use world origin" : "" =
+	[
+		"": "No (calculate bottom-center)"
+		1: "Yes"
+	]
+]
