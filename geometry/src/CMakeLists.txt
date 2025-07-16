@@ -5,4 +5,4 @@ file(GLOB APP_SRC *.cpp)
 
 add_library(Geometry ${APP_HEADERS} ${APP_SRC})
 
-target_compile_features(Geometry PRIVATE cxx_std_20)
+target_compile_features(Geometry PUBLIC cxx_std_20)

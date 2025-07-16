@@ -5,4 +5,4 @@ file(GLOB APP_SRC *.cpp)
 
 add_library(Common ${APP_HEADERS} ${APP_SRC})
 
-target_compile_features(Common PRIVATE cxx_std_20)
+target_compile_features(Common PUBLIC cxx_std_20)

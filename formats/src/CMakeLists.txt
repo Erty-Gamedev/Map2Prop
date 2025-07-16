@@ -6,4 +6,4 @@ file(GLOB APP_SRC *.cpp)
 add_library(Formats ${APP_HEADERS} ${APP_SRC})
 
 target_link_libraries(Formats Common Config Geometry)
-target_compile_features(Formats PRIVATE cxx_std_20)
+target_compile_features(Formats PUBLIC cxx_std_20)
