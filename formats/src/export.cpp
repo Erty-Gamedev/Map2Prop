@@ -32,6 +32,8 @@ static inline void renameChrome(ModelData& model)
 			continue;
 
 		fs::path textureFilepath = g_config.extractDir() / (face->texture.name + ".bmp");
+		if (!fs::exists(textureFilepath)) // Check for lowercase version of the filename
+			textureFilepath = g_config.extractDir() / (M2PUtils::toLowerCase(face->texture.name) + ".bmp");
 		if (!fs::exists(textureFilepath))
 		{
 			logger.warning("Could not rename file \"" + face->texture.name + ".bmp\"" + ". File was not found");
