@@ -28,11 +28,8 @@ static std::filesystem::path getExePath()
     pathBuffer.resize(copied);
     std::wstring exeDir(pathBuffer.begin(), pathBuffer.end());
     return std::filesystem::path{ exeDir };
-#elif __linux__
-    // TODO: Needs testing
-    char pathBuffer[PATH_MAX];
-    ssize_t count = MIN(readlink("/proc/self/exe", pathBuffer, PATH_MAX));
-    return std::filesystem::path{ std::string(pathBuffer, (count > 0) ? count : 0) };
+#else
+    return std::filesystem::canonical("/proc/self/exe");
 #endif
 }
 
