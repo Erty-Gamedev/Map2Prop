@@ -61,7 +61,11 @@ static inline int compileModel(const ModelData& model)
 {
 	fs::path currentDir = fs::absolute(fs::current_path());
 	fs::current_path(fs::current_path() / g_config.extractDir());
+#ifdef _WIN32
+	int returnCode = std::system(("\"\"" + g_config.studiomdl.string() + "\" \"" + model.outname + ".qc\"\"").c_str());
+#else
 	int returnCode = std::system(("\"" + g_config.studiomdl.string() + "\" \"" + model.outname + ".qc\"").c_str());
+#endif
 	std::cout.flush();
 	fs::current_path(currentDir);
 	return returnCode;
