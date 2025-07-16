@@ -75,11 +75,10 @@ namespace M2PGeo {
         bool operator==(const Vector3& other) const;
         bool operator!=(const Vector3& other) const;
 
-        friend Vector3 operator*(const FP& lhs, const Vector3& rhs);
-        friend std::ostream& operator<<(std::ostream& os, const M2PGeo::Vector3& v);
-
         static Vector3 zero();
     };
+    Vector3 operator*(const FP& lhs, const Vector3& rhs);
+    std::ostream& operator<<(std::ostream& os, const M2PGeo::Vector3& v);
 
     struct Bounds
     {
@@ -116,11 +115,10 @@ namespace M2PGeo {
         bool operator==(const Vertex &other) const;
         bool operator!=(const Vertex &other) const;
 
-        friend bool operator==(const Vector3& lhs, const Vertex& rhs);
-        friend bool operator==(const Vertex& lhs, const Vector3& rhs);
-
         Vector3 coord() const { return Vector3(x, y, z); };
     };
+    bool operator==(const Vector3& lhs, const Vertex& rhs);
+    bool operator==(const Vertex& lhs, const Vector3& rhs);
 
     struct Triangle
     {

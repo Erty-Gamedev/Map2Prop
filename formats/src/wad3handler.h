@@ -32,17 +32,16 @@ namespace M2PWad3
         ImageInfo(const std::string&);
         ~ImageInfo();
 
-        friend std::ostream& operator<<(std::ostream& os, const M2PWad3::ImageInfo& info);
-    private:
+        private:
         std::ifstream m_file;
     };
+    std::ostream& operator<<(std::ostream& os, const M2PWad3::ImageInfo& info);
 
     struct ImageSize
     {
         int width = 16, height = 16;
-
-        friend std::ostream& operator<<(std::ostream& os, const M2PWad3::ImageSize& size);
     };
+    std::ostream& operator<<(std::ostream& os, const M2PWad3::ImageSize& size);
 
 
     class Wad3Handler
