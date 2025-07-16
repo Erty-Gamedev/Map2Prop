@@ -143,7 +143,7 @@ Wad3MipTex Wad3Reader::extract(const std::string& textureName, const std::filesy
 
 	// Save BMP
 
-	std::filesystem::path filepath = outdir / (std::string{ miptex.szName } + ".bmp");
+	std::filesystem::path filepath = outdir / (toLowerCase(miptex.szName) + ".bmp");
 	bmp.save(filepath);
 
 	return miptex;

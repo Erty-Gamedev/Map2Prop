@@ -22,7 +22,7 @@ ImageInfo::ImageInfo(const std::string& textureName)
 	if (!std::filesystem::exists(g_config.extractDir()))
 		std::filesystem::create_directories(g_config.extractDir());
 
-	std::filesystem::path textureFile = g_config.extractDir() / (textureName + ".bmp");
+	std::filesystem::path textureFile = g_config.extractDir() / (toLowerCase(textureName) + ".bmp");
 	m_file.open(textureFile, std::ios::binary);
 	if (!m_file.is_open() || !m_file.good())
 	{
@@ -113,7 +113,7 @@ ImageSize Wad3Handler::checkTexture(const std::string& textureName)
 		return Wad3Handler::s_images[textureName];
 	}
 
-	std::string textureFile = textureName + ".bmp";
+	std::string textureFile = toLowerCase(textureName) + ".bmp";
 
 	Wad3Reader* reader = checkWads(textureName);
 

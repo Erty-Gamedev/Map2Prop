@@ -61,7 +61,8 @@ static inline int compileModel(const ModelData& model)
 {
 	fs::path currentDir = fs::absolute(fs::current_path());
 	fs::current_path(fs::current_path() / g_config.extractDir());
-	int returnCode = std::system((g_config.studiomdl.string() + " \"" + model.outname + ".qc\"").c_str());
+	int returnCode = std::system(("\"" + g_config.studiomdl.string() + "\" \"" + model.outname + ".qc\"").c_str());
+	std::cout.flush();
 	fs::current_path(currentDir);
 	return returnCode;
 }
@@ -84,7 +85,7 @@ static inline bool writeSmd(const ModelData& model)
 
 	for (const std::shared_ptr<M2PHalfEdge::Face>& face : model.mesh.faces)
 	{
-		file << face->texture.name << ".bmp\n";
+		file << M2PUtils::toLowerCase(face->texture.name) << ".bmp\n";
 
 		for (const std::shared_ptr<M2PHalfEdge::Vertex>& pVertex : face->vertices)
 		{
@@ -108,7 +109,7 @@ static inline bool writeSmd(const ModelData& model)
 
 		if (face->flipped)
 		{
-			file << face->texture.name << ".bmp\n";
+			file << M2PUtils::toLowerCase(face->texture.name) << ".bmp\n";
 
 			auto triangle = face->vertices;
 			std::swap(triangle[0], triangle[2]);
@@ -173,9 +174,7 @@ static inline bool writeQc(const ModelData& model)
 	if (!model.maskedTextures.empty())
 	{
 		for (const std::string& masked : model.maskedTextures)
-		{
-			rendermodes += "$texrendermode " + masked + ".bmp masked\n";
-		}
+			rendermodes += "$texrendermode " + M2PUtils::toLowerCase(masked) + ".bmp masked\n";
 	}
 
 	Vector3 qcOffset{ g_config.qcOffset[0], g_config.qcOffset[1], g_config.qcOffset[2] };
