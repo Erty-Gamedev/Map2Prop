@@ -1,4 +1,5 @@
 #include "doctest.h"
+#include <cmath>
 #include "geometry.h"
 
 using namespace M2PGeo;
