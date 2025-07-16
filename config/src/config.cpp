@@ -6,8 +6,8 @@
 #include "logging.h"
 #include "utils.h"
 
+namespace M2PConfig { Config g_config{}; }
 using M2PConfig::g_config;
-M2PConfig::Config g_config{};
 
 
 #ifdef _WIN32

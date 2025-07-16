@@ -1,9 +1,9 @@
 #include "ear_clip.h"
 #include "utils.h"
 
-using namespace M2PGeo;
+namespace M2PGeo { bool g_isEager = false; }
 using M2PGeo::g_isEager;
-bool g_isEager = false;
+using namespace M2PGeo;
 
 
 static inline bool pointInsideTriangle(const Vector3 &point, const Vertex3 &triangle)
