@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <fstream>
+#include <filesystem>
 #include <vector>
 
 namespace M2PBmp

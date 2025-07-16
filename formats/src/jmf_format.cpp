@@ -1,4 +1,5 @@
 #include <string>
+#include <cstring>
 #include <vector>
 #include "jmf_format.h"
 #include "logging.h"

@@ -1,3 +1,6 @@
+#include <cmath>
+#include <numbers>
+#include <algorithm>
 #include <format>
 #include "geometry.h"
 

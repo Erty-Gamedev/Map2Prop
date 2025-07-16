@@ -1,3 +1,4 @@
+#include <cstring>
 #include "utils.h"
 #include "config.h"
 #include "logging.h"

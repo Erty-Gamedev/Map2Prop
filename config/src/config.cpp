@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <format>
+#include <cstring>
 #include "config.h"
 #include "logging.h"
 #include "utils.h"

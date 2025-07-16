@@ -1,4 +1,5 @@
 #include <vector>
+#include <cstdint>
 #include "binutils.h"
 
 using namespace M2PBinUtils;

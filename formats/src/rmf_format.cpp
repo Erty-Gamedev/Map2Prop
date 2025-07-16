@@ -1,4 +1,6 @@
+#include <cmath>
 #include <string>
+#include <cstring>
 #include <format>
 #include <vector>
 #include <array>

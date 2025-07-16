@@ -1,4 +1,5 @@
 #include <set>
+#include <memory>
 #include "halfedge.h"
 
 
