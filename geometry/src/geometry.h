@@ -15,8 +15,8 @@ namespace M2PGeo {
      */
     static inline constexpr int c_MAX_TEXTURE_NAME = 16;
     static inline constexpr int c_MAP_DIGITS_PRECISION = 6;
-    static inline constexpr FP c_EPSILON = 1. / 1024.;
-    static inline constexpr FP c_EPSILON_MERGE = static_cast<FP>(0.001);
+    static inline constexpr FP c_EPSILON = static_cast<FP>(1. / 1024.);
+    static inline constexpr FP c_EPSILON_MERGE = static_cast<FP>(1. / 1024.);
     static inline constexpr FP c_DEG2RAD = static_cast<FP>(std::numbers::pi / 180.);
     static inline constexpr FP c_RAD2DEG = static_cast<FP>(180. / std::numbers::pi);
 

@@ -84,7 +84,7 @@ std::shared_ptr<Coord>& Mesh::addVertex(const M2PGeo::Vertex _vertex)
 {
 	for (std::shared_ptr<Coord>& vertex : vertices)
 	{
-		if (_vertex.coord().distance(*vertex) < M2PGeo::c_EPSILON_MERGE)
+		if (vertex->coord() == _vertex.coord())
 			return vertex;
 	}
 	vertices.push_back(std::make_shared<Coord>(static_cast<unsigned int>(vertices.size()), _vertex));

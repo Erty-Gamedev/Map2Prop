@@ -135,9 +135,9 @@ Vector3 M2PGeo::Vector3::operator/(const size_t other) const
 }
 bool Vector3::operator==(const Vector3& other) const
 {
-	return abs(x - other.x) < c_EPSILON
-		&& abs(y - other.y) < c_EPSILON
-		&& abs(z - other.z) < c_EPSILON;
+	return abs(other.x - x) < c_EPSILON_MERGE
+		&& abs(other.y - y) < c_EPSILON_MERGE
+		&& abs(other.z - z) < c_EPSILON_MERGE;
 }
 bool Vector3::operator!=(const Vector3& other) const { return !(*this == other); }
 
