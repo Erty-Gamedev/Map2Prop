@@ -59,10 +59,22 @@ bool M2PHalfEdge::Face::operator==(const Face& rhs) const
 	return flipped == rhs.flipped;
 }
 
+static bool containsVector3(std::vector<M2PGeo::Vector3> haystack, M2PGeo::Vector3 needle)
+{
+	for (const M2PGeo::Vector3& item : haystack)
+		if (item == needle)
+			return true;
+	return false;
+}
+
 void SmoothFan::addFace(std::shared_ptr<Face>& face)
 {
 	faces.push_back(face);
-	accumulatedNormal += face->fullNormal();
+	if (!containsVector3(normals, face->normal))
+	{
+		normals.push_back(face->normal);
+		accumulatedNormal += face->fullNormal();
+	}
 }
 
 void SmoothFan::applySmooth() const
