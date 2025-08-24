@@ -46,7 +46,7 @@ int main(int argc, char** argv)
             return olReader.process();
         }
 
-        std::vector<M2PExport::ModelData> models = M2PExport::prepareModels(reader);
+        std::unordered_map<std::string, M2PExport::ModelData> models = M2PExport::prepareModels(reader);
 
         if (models.empty())
         {
@@ -68,5 +68,6 @@ int main(int argc, char** argv)
     catch (const std::exception& e)
     {
         logger.error(e.what());
+        return EXIT_FAILURE;
     }
 }

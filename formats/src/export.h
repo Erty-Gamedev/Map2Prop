@@ -38,14 +38,22 @@ namespace M2PExport
 		std::set<std::string> maskedTextures;
 		M2PHalfEdge::Mesh mesh;
 
+		ModelData() = default;
+		ModelData(ModelData& other) = delete;
+		~ModelData() = default;
+
 		void applyOffset()
 		{
-			for (auto& coord : mesh.vertices)
-				*coord -= offset;
+			for (auto& coord : mesh.coords)
+			{
+				coord->x -= offset.x;
+				coord->y -= offset.y;
+				coord->z -= offset.z;
+			}
 		}
 	};
 
-	std::vector<ModelData> prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename = "");
-	int processModels(std::vector<ModelData>& models, bool missingTextures);
+	std::unordered_map<std::string, ModelData> prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename = "");
+	int processModels(std::unordered_map<std::string, ModelData>& models, bool missingTextures);
 	void rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>>& entities);
 }

@@ -253,7 +253,7 @@ static inline bool writeQc(const ModelData& model)
 }
 
 
-std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename)
+std::unordered_map<std::string, ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename)
 {
 	int n = 0;
 	std::unordered_map<std::string, ModelData> modelsMap;
@@ -531,33 +531,33 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 		}
 	}
 
-	std::vector<ModelData> models;
 	for (const auto& kv : modelsMap)
-		models.push_back(kv.second);
-
-	for (const auto& model : models)
 	{
+		const auto& model = kv.second;
 		if (!model.parent.empty())
 		{
-			for (auto& other : models)
+			for (auto& kv2 : modelsMap)
 			{
+				auto& other = kv2.second;
 				if (model.parent == other.targetname)
 					other.submodels.push_back(model.outname);
 			}
 		}
 	}
 
-	return models;
+	return modelsMap;
 }
 
-int M2PExport::processModels(std::vector<ModelData>& models, bool missingTextures)
+int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models, bool missingTextures)
 {
 	int returnCodes = 0;
 
 	logger.debug(std::format("Processing {} model{}", models.size(), models.size() > 1 ? "s" : ""));
 
-	for (ModelData& model : models)
+	for (auto& kv : models)
 	{
+		ModelData& model = kv.second;
+
 		renameChrome(model);
 		applySmooth(model);
 
@@ -593,8 +593,10 @@ int M2PExport::processModels(std::vector<ModelData>& models, bool missingTexture
 		return 1;
 	}
 
-	for (const ModelData& model : models)
+	for (auto& kv : models)
 	{
+		ModelData& model = kv.second;
+
 		if (!model.parent.empty())
 			continue;
 

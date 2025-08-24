@@ -72,7 +72,7 @@ int OlReader::process()
 		std::string filename = M2PUtils::slugify(entry.name);
 		RmfReader reader = RmfReader(m_filepath, m_outputDir, entry.offset);
 
-		std::vector<M2PExport::ModelData> models = M2PExport::prepareModels(reader, filename);
+		std::unordered_map<std::string, M2PExport::ModelData> models = M2PExport::prepareModels(reader, filename);
 
 		if (models.empty())
 		{
