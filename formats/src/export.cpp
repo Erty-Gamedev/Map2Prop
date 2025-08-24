@@ -25,26 +25,29 @@ static inline void renameChrome(ModelData& model)
 	if (!model.renameChrome)
 		return;
 
-	for (auto& face : model.mesh.faces)
+	for (auto& pFace : model.mesh.faces)
 	{
-		std::string textureName = face->texture.name;
+		if (!pFace)
+			continue;
+
+		std::string textureName = pFace->textureName;
 		if (M2PUtils::toUpperCase(textureName).find("CHROME") == std::string::npos)
 			continue;
 
-		fs::path textureFilepath = g_config.extractDir() / (face->texture.name + ".bmp");
+		fs::path textureFilepath = g_config.extractDir() / (textureName + ".bmp");
 		if (!fs::exists(textureFilepath)) // Check for lowercase version of the filename
-			textureFilepath = g_config.extractDir() / (M2PUtils::toLowerCase(face->texture.name) + ".bmp");
+			textureFilepath = g_config.extractDir() / (M2PUtils::toLowerCase(textureName) + ".bmp");
 		if (!fs::exists(textureFilepath))
 		{
-			logger.warning("Could not rename file \"" + face->texture.name + ".bmp\"" + ". File was not found");
+			logger.warning("Could not rename file \"" + textureName + ".bmp\"" + ". File was not found");
 			continue;
 		}
 
-		std::string newName = M2PUtils::toLowerCase(face->texture.name);
+		std::string newName = M2PUtils::toLowerCase(textureName);
 		M2PUtils::replaceToken(newName, "chrome", "chrm");
 
 		fs::copy_file(textureFilepath, g_config.extractDir() / (newName + ".bmp"), fs::copy_options::overwrite_existing);
-		face->texture.name = newName;
+		pFace->textureName = newName;
 	}
 }
 
@@ -91,54 +94,60 @@ static inline bool writeSmd(const ModelData& model)
 
 	file << "version 1\nnodes\n0 \"root\" -1\nend\nskeleton\ntime 0\n0 0 0 0 0 0 0\nend\ntriangles\n";
 
-	for (const std::shared_ptr<M2PHalfEdge::Face>& face : model.mesh.faces)
+	for (const auto& pFace : model.mesh.faces)
 	{
-		file << M2PUtils::toLowerCase(face->texture.name) << ".bmp\n";
+		if (!pFace)
+			continue;
 
-		for (const std::shared_ptr<M2PHalfEdge::Vertex>& pVertex : face->vertices)
+		file << M2PUtils::toLowerCase(pFace->textureName) << ".bmp\n";
+
+		for (const auto& vertex : pFace->vertices)
 		{
 			file << "0\t";
-			const M2PGeo::Vector3& vertex = *pVertex->position;
-			const M2PGeo::Vector3& normal = pVertex->normal;
+			const M2PGeo::Vector3& pos = vertex.position->coord();
+			const M2PGeo::Vector3& normal = vertex.normal;
+
 			if (g_config.isObj())
 			{
-				file << std::format("{:.6f} {:.6f} {:.6f}\t", vertex.x, -vertex.z, vertex.y);
+				file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, -pos.z, pos.y);
 				file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, -normal.z, normal.y);
-				file << std::format("{:.6f} {:.6f}", pVertex->uv.x, pVertex->uv.y + 1);
+				file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
 			}
 			else
 			{
-				file << std::format("{:.6f} {:.6f} {:.6f}\t", vertex.x, vertex.y, vertex.z);
+				file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, pos.y, pos.z);
 				file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, normal.y, normal.z);
-				file << std::format("{:.6f} {:.6f}", pVertex->uv.x, pVertex->uv.y + 1);
+				file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
 			}
 			file << "\n";
 		}
 
-		if (face->flipped)
+		if (pFace->flipped)
 		{
-			file << M2PUtils::toLowerCase(face->texture.name) << ".bmp\n";
+			file << M2PUtils::toLowerCase(pFace->textureName) << ".bmp\n";
 
-			auto triangle = face->vertices;
-			std::swap(triangle[0], triangle[2]);
+			std::array<M2PHalfEdge::Vertex, 3> triangle{
+				triangle[2], triangle[1], triangle[0]
+			};
+
 			for (int i = 0; i < 3; ++i)
 			{
-				const std::shared_ptr<M2PHalfEdge::Vertex>& pVertex = triangle[i];
-				const M2PGeo::Vector3& vertex = *pVertex->position;
-				const M2PGeo::Vector3& normal = -pVertex->normal;
+				const auto& vertex = triangle[i];
+				const M2PGeo::Vector3& pos = vertex.position->coord();
+				const M2PGeo::Vector3& normal = vertex.normal;
 
 				file << "0\t";
 				if (g_config.isObj())
 				{
-					file << std::format("{:.6f} {:.6f} {:.6f}\t", vertex.x, -vertex.z, vertex.y);
+					file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, -pos.z, pos.y);
 					file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, -normal.z, normal.y);
-					file << std::format("{:.6f} {:.6f}", pVertex->uv.x, pVertex->uv.y + 1);
+					file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
 				}
 				else
 				{
-					file << std::format("{:.6f} {:.6f} {:.6f}\t", vertex.x, vertex.y, vertex.z);
+					file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, pos.y, pos.z);
 					file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, normal.y, normal.z);
-					file << std::format("{:.6f} {:.6f}", pVertex->uv.x, pVertex->uv.y + 1);
+					file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
 				}
 				file << "\n";
 			}

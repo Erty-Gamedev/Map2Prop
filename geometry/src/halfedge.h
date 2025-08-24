@@ -57,17 +57,16 @@ namespace M2PHalfEdge
 		unsigned int index;
 		std::shared_ptr<Edge> edge;
 		M2PGeo::Vector3 normal;
-		M2PGeo::Texture texture;
-		std::shared_ptr<Vertex> vertices[3];
+		std::string textureName;
 		bool flipped{ false };
 
 		Face() = default;
 		Face(
 			unsigned int _index,
 			const M2PGeo::Vector3 _normal,
-			const M2PGeo::Texture& _texture,
+			const std::string& _textureName,
 			bool _flipped = false
-		) : index(_index), normal(_normal), texture(_texture), flipped(_flipped) {}
+		) : index(_index), normal(_normal), textureName(_textureName), flipped(_flipped) {}
 
 		std::shared_ptr<Vertex> getVertex(Coord coord) const;
 		M2PGeo::Vector3 fullNormal() const;
