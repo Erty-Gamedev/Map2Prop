@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <array>
 #include <memory>
 #include "geometry.h"
 
@@ -16,37 +17,37 @@ namespace M2PHalfEdge
 	{
 	public:
 		unsigned int index;
-		std::shared_ptr<Edge> edge;
+		Edge* edge = nullptr;
 
 		Coord(unsigned int _index, const M2PGeo::Vertex vertex) : index(_index), M2PGeo::Vector3(vertex.coord()) {}
 
-		M2PGeo::Vector3 coord();
+		M2PGeo::Vector3 coord() const;
 	};
 
 	struct Vertex
 	{
-		std::shared_ptr<Coord> position;
-		M2PGeo::Vector3 normal;
-		M2PGeo::Vector2 uv;
+		Coord* position = nullptr;
+		M2PGeo::Vector3 normal = M2PGeo::Vector3::zero();
+		M2PGeo::Vector2 uv = M2PGeo::Vector2::zero();
 
-		Vertex(std::shared_ptr<Coord>& coord, const M2PGeo::Vector3& _normal, const M2PGeo::Vector2& _uv);
+		Vertex() = default;
+		Vertex(Coord* coord, const M2PGeo::Vector3& _normal, const M2PGeo::Vector2& _uv);
 	};
 
 	struct Edge
 	{
 		unsigned int index;
-		std::shared_ptr<Coord> origin;
-		std::shared_ptr<Face> face;
-		std::shared_ptr<Edge> twin;
-		std::shared_ptr<Edge> next;
-		std::shared_ptr<Edge> prev;
+		Coord* origin = nullptr;
+		Face* face = nullptr;
+		Edge* twin = nullptr;
+		Edge* next = nullptr;
+		Edge* prev = nullptr;
 		bool sharp{ true };
 
-		Edge() = default;
 		Edge(
 			unsigned int _index,
-			std::shared_ptr<Coord>& _origin,
-			std::shared_ptr<Face>& _face
+			Coord* _origin,
+			Face* _face
 		) : index(_index), origin(_origin), face(_face) {};
 
 		bool operator==(const Edge& rhs) const;
@@ -55,12 +56,12 @@ namespace M2PHalfEdge
 	struct Face
 	{
 		unsigned int index;
-		std::shared_ptr<Edge> edge;
+		Edge* edge{};
 		M2PGeo::Vector3 normal;
 		std::string textureName;
+		std::array<Vertex, 3> vertices{};
 		bool flipped{ false };
 
-		Face() = default;
 		Face(
 			unsigned int _index,
 			const M2PGeo::Vector3 _normal,
@@ -68,7 +69,7 @@ namespace M2PHalfEdge
 			bool _flipped = false
 		) : index(_index), normal(_normal), textureName(_textureName), flipped(_flipped) {}
 
-		std::shared_ptr<Vertex> getVertex(Coord coord) const;
+
 		M2PGeo::Vector3 fullNormal() const;
 
 		bool operator<(const Face& rhs) const;
@@ -77,29 +78,33 @@ namespace M2PHalfEdge
 
 	struct SmoothFan
 	{
-		std::shared_ptr<Coord> vertex;
+		unsigned int coordIndex;
 		M2PGeo::Vector3 accumulatedNormal = M2PGeo::Vector3::zero();
-		std::vector<std::shared_ptr<Face>> faces;
+		std::vector<Face*> faces;
 		std::vector<M2PGeo::Vector3> normals;
 
-		void addFace(std::shared_ptr<Face>& face);
+		void addFace(Face* face);
 		void applySmooth() const;
 	};
 
-	struct Mesh
+	class Mesh
 	{
-		std::vector<std::shared_ptr<Coord>> vertices;
-		std::vector<std::shared_ptr<Edge>> edges;
-		std::vector<std::shared_ptr<Face>> faces;
+	public:
+		std::vector<std::unique_ptr<Coord>> coords;
+		std::vector<std::unique_ptr<Edge>> edges;
+		std::vector<std::unique_ptr<Face>> faces;
+
+		Mesh() = default;
+		Mesh(Mesh& other) = delete;
+		~Mesh() = default;
 
 
-		std::shared_ptr<Coord>& addVertex(const M2PGeo::Vertex _vertex);
+		Coord* addVertex(const M2PGeo::Vertex _vertex);
 
-		void findTwins(std::shared_ptr<Edge>& edge);
+		void findTwins(Edge* edge);
 
 		void addTriangle(
 			const M2PGeo::Triangle& triangle,
-			const M2PGeo::Vector3 normal,
 			const M2PGeo::Texture& texture,
 			bool flipped = false
 		);
@@ -109,6 +114,6 @@ namespace M2PHalfEdge
 			const std::vector<M2PGeo::Bounds>& alwaysSmooth,
 			const std::vector<M2PGeo::Bounds>& neverSmooth
 		);
-		std::vector<SmoothFan> getSmoothFansByVertex(std::shared_ptr<Coord>& vertex);
+		std::vector<SmoothFan> getSmoothFansByVertex(const Coord& vertex);
 	};
 }

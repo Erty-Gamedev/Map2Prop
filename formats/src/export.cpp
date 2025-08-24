@@ -56,8 +56,9 @@ static inline void applySmooth(ModelData& model)
 {
 	model.mesh.markSmoothEdges(model.smoothing, model.alwaysSmooth, model.neverSmooth);
 
-	for (std::shared_ptr<M2PHalfEdge::Coord>& vertex : model.mesh.vertices)
-		model.mesh.getSmoothFansByVertex(vertex);
+	for (const auto& pVertex : model.mesh.coords)
+		if (pVertex)
+			model.mesh.getSmoothFansByVertex(*pVertex);
 }
 
 static inline int compileModel(const ModelData& model)
@@ -502,16 +503,16 @@ std::vector<ModelData> M2PExport::prepareModels(M2PEntity::BaseReader& reader, c
 				const std::vector<Triangle> triangles = earClip(face.vertices, face.normal);
 
 				for (const Triangle& triangle : triangles)
-					currentModel.mesh.addTriangle(triangle, face.normal, face.texture, hasContentWater);
+					currentModel.mesh.addTriangle(triangle, face.texture, hasContentWater);
 			}
 		}
 
 		if (modelsMap[outname].offset == Vector3::zero() && !entity->getKeyInt("use_world_origin"))
 		{
-			Vector3 aabbMin = modelsMap[outname].mesh.vertices[0]->coord();
-			Vector3 aabbMax = modelsMap[outname].mesh.vertices[0]->coord();
+			Vector3 aabbMin = modelsMap[outname].mesh.coords[0]->coord();
+			Vector3 aabbMax = modelsMap[outname].mesh.coords[0]->coord();
 
-			for (const auto& vertex : modelsMap[outname].mesh.vertices)
+			for (const auto& vertex : modelsMap[outname].mesh.coords)
 			{
 				if (vertex->x < aabbMin.x) aabbMin.x = vertex->x;
 				if (vertex->y < aabbMin.y) aabbMin.y = vertex->y;

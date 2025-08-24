@@ -6,13 +6,13 @@
 using namespace M2PHalfEdge;
 
 
-M2PGeo::Vector3 Coord::coord()
+M2PGeo::Vector3 Coord::coord() const
 {
 	return { x, y, z };
 }
 
 
-Vertex::Vertex(std::shared_ptr<Coord>& coord, const M2PGeo::Vector3& _normal, const M2PGeo::Vector2& _uv)
+Vertex::Vertex(Coord* coord, const M2PGeo::Vector3& _normal, const M2PGeo::Vector2& _uv)
 {
 	position = coord;
 	normal = _normal;
@@ -24,29 +24,19 @@ bool Edge::operator==(const Edge& rhs) const
 	return origin->coord() == rhs.origin->coord() && next->origin->coord() == rhs.next->origin->coord();
 }
 
-std::shared_ptr<Vertex> Face::getVertex(Coord coord) const
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		if (vertices[i]->position->index == coord.index)
-			return vertices[i];
-	}
-	return std::shared_ptr<Vertex>(nullptr);
-}
-
 M2PGeo::Vector3 Face::fullNormal() const
 {
 	return M2PGeo::segmentsCross(
-		vertices[0]->position->coord(),
-		vertices[1]->position->coord(),
-		vertices[2]->position->coord()
+		vertices[0].position->coord(),
+		vertices[1].position->coord(),
+		vertices[2].position->coord()
 	);
 }
 
 bool Face::operator<(const Face& rhs) const
 {
 	for (int i = 0; i < 3; ++i)
-		if (vertices[i]->position->index != rhs.vertices[i]->position->index)
+		if (vertices[i].position->index != rhs.vertices[i].position->index)
 			return true;
 	return false;
 }
@@ -54,7 +44,7 @@ bool Face::operator<(const Face& rhs) const
 bool M2PHalfEdge::Face::operator==(const Face& rhs) const
 {
 	for (int i = 0; i < 3; ++i)
-		if (vertices[i]->position->index != rhs.vertices[i]->position->index)
+		if (vertices[i].position->index != rhs.vertices[i].position->index)
 			return false;
 	return flipped == rhs.flipped;
 }
@@ -67,7 +57,7 @@ static bool containsVector3(std::vector<M2PGeo::Vector3> haystack, M2PGeo::Vecto
 	return false;
 }
 
-void SmoothFan::addFace(std::shared_ptr<Face>& face)
+void SmoothFan::addFace(Face* face)
 {
 	faces.push_back(face);
 	if (!containsVector3(normals, face->normal))
@@ -81,73 +71,76 @@ void SmoothFan::applySmooth() const
 {
 	for (auto& face : faces)
 	{
+		if (!face)
+			continue;
+
 		for (int i = 0; i < 3; ++i)
 		{
-			if (face->vertices[i]->position->index == vertex->index)
+			if (face->vertices[i].position->index == coordIndex)
 			{
-				face->vertices[i]->normal = accumulatedNormal.normalised();
+				face->vertices[i].normal = accumulatedNormal.normalised();
 				break;
 			}
 		}
 	}
 }
 
-std::shared_ptr<Coord>& Mesh::addVertex(const M2PGeo::Vertex _vertex)
+Coord* Mesh::addVertex(const M2PGeo::Vertex vertex)
 {
-	for (std::shared_ptr<Coord>& vertex : vertices)
+	for (const auto& coord : coords)
 	{
-		if (vertex->coord() == _vertex.coord())
-			return vertex;
+		if (coord->coord() == vertex.coord())
+			return coord.get();
 	}
-	vertices.push_back(std::make_shared<Coord>(static_cast<unsigned int>(vertices.size()), _vertex));
-	return vertices.back();
+	return coords.emplace_back(std::make_unique<Coord>(static_cast<unsigned int>(coords.size()), vertex)).get();
 }
 
-void Mesh::findTwins(std::shared_ptr<Edge>& edge)
+void Mesh::findTwins(Edge* edge)
 {
-	const std::shared_ptr<Coord>& origin = edge->origin;
-	const std::shared_ptr<Coord>& end = edge->next->origin;
+	const int origin = edge->origin->index;
+	const int end = edge->next->origin->index;
 
-	for (std::shared_ptr<Edge>& other : edges)
+	for (auto& other : edges)
 	{
-		if (other->origin->index == end->index && other->next->origin->index == origin->index)
+		if (other->origin->index == end && other->next->origin->index == origin)
 		{
-			edge->twin = other;
+			edge->twin = other.get();
 			other->twin = edge;
 			break;
 		}
 	}
 }
 
-void Mesh::addTriangle(const M2PGeo::Triangle& triangle, const M2PGeo::Vector3 normal, const M2PGeo::Texture& texture, bool flipped)
+void Mesh::addTriangle(const M2PGeo::Triangle& triangle, const M2PGeo::Texture& texture, bool flipped)
 {
-	faces.push_back(std::make_shared<Face>(static_cast<unsigned int>(faces.size()), normal, texture, flipped));
-	std::shared_ptr<Face> face = faces.back();
+	const auto& pFace = faces.emplace_back(std::make_unique<Face>(
+		static_cast<unsigned int>(faces.size()),
+		triangle.normal,
+		texture.name,
+		flipped
+	)).get();
 
-	std::shared_ptr<Coord> v0 = addVertex(triangle.vertices[0]);
-	std::shared_ptr<Coord> v1 = addVertex(triangle.vertices[1]);
-	std::shared_ptr<Coord> v2 = addVertex(triangle.vertices[2]);
+	Coord* v0 = addVertex(triangle.vertices[0]);
+	Coord* v1 = addVertex(triangle.vertices[1]);
+	Coord* v2 = addVertex(triangle.vertices[2]);
+	
+	pFace->vertices[0] = Vertex{v0, pFace->normal, triangle.vertices[0].uv};
+	pFace->vertices[1] = Vertex{v1, pFace->normal, triangle.vertices[1].uv};
+	pFace->vertices[2] = Vertex{v2, pFace->normal, triangle.vertices[2].uv};
 
-	face->vertices[0] = std::make_shared<Vertex>(v0, face->normal, triangle.vertices[0].uv);
-	face->vertices[1] = std::make_shared<Vertex>(v1, face->normal, triangle.vertices[1].uv);
-	face->vertices[2] = std::make_shared<Vertex>(v2, face->normal, triangle.vertices[2].uv);
+	Edge* pE0 = edges.emplace_back(std::make_unique<Edge>(static_cast<unsigned int>(edges.size()), v0, pFace)).get();
+	Edge* pE1 = edges.emplace_back(std::make_unique<Edge>(static_cast<unsigned int>(edges.size()), v1, pFace)).get();
+	Edge* pE2 = edges.emplace_back(std::make_unique<Edge>(static_cast<unsigned int>(edges.size()), v2, pFace)).get();
 
-	edges.push_back(std::make_shared<Edge>(static_cast<unsigned int>(edges.size()), v0, face));
-	std::shared_ptr<Edge> e0 = edges.back();
-	edges.push_back(std::make_shared<Edge>(static_cast<unsigned int>(edges.size()), v1, face));
-	std::shared_ptr<Edge> e1 = edges.back();
-	edges.push_back(std::make_shared<Edge>(static_cast<unsigned int>(edges.size()), v2, face));
-	std::shared_ptr<Edge> e2 = edges.back();
+	pFace->edge = pE0;
 
-	face->edge = e0;
+	pE0->next = pE1; pE0->prev = pE2; v0->edge = pE0;
+	pE1->next = pE2; pE1->prev = pE0; v1->edge = pE1;
+	pE2->next = pE0; pE2->prev = pE1; v2->edge = pE2;
 
-	e0->next = e1; e0->prev = e2; v0->edge = e0;
-	e1->next = e2; e1->prev = e0; v1->edge = e1;
-	e2->next = e0; e2->prev = e1; v2->edge = e2;
-
-	findTwins(e0);
-	findTwins(e1);
-	findTwins(e2);
+	findTwins(pE0);
+	findTwins(pE1);
+	findTwins(pE2);
 }
 
 void Mesh::markSmoothEdges(
@@ -158,7 +151,7 @@ void Mesh::markSmoothEdges(
 	FP threshold = M2PGeo::deg2rad(smoothing);
 	std::set<unsigned int> visitedEdges;
 
-	for (std::shared_ptr<Edge>& edge : edges)
+	for (auto& edge : edges)
 	{
 		if (visitedEdges.find(edge->index) != visitedEdges.end())
 			continue;
@@ -178,40 +171,35 @@ void Mesh::markSmoothEdges(
 			continue;
 		}
 
-		if (!alwaysSmooth.empty()
+		if ((!alwaysSmooth.empty()
 			&& M2PGeo::pointInBounds(edge->origin->coord(), alwaysSmooth)
-			&& M2PGeo::pointInBounds(edge->next->origin->coord(), alwaysSmooth)
+			&& M2PGeo::pointInBounds(edge->next->origin->coord(), alwaysSmooth))
+			|| edge->face->normal.angle(edge->twin->face->normal) < threshold
 			)
 		{
 			edge->sharp = false;
 			edge->twin->sharp = false;
 			continue;
 		}
-
-		if (edge->face->normal.angle(edge->twin->face->normal) < threshold)
-		{
-			edge->sharp = false;
-			edge->twin->sharp = false;
-		}
 	}
 }
 
 static inline SmoothFan walkSmoothFan(
-	std::shared_ptr<Coord>& vertex, std::shared_ptr<Edge>& currentEdge,
+	const Coord& vertex, Edge* currentEdge,
 	std::set<unsigned int>& visitedFaces
 )
 {
-	SmoothFan fan{ vertex };
+	SmoothFan fan{ vertex.index };
 
 	// If both edges from this vertex are sharp, this fan only contains this face
-	if (currentEdge->sharp && currentEdge->prev->sharp)
+	if (currentEdge->sharp && currentEdge->prev && currentEdge->prev->sharp)
 	{
 		visitedFaces.insert(currentEdge->face->index);
 		fan.addFace(currentEdge->face);
 		return fan;
 	}
 
-	std::shared_ptr<Edge> startEdge = currentEdge;
+	Edge* startEdge = currentEdge;
 	bool backwards{ true };
 
 	int g = 0;
@@ -236,8 +224,11 @@ static inline SmoothFan walkSmoothFan(
 		++g;
 	}
 
+	if (startEdge->prev == nullptr)
+		throw std::runtime_error("previous was null");
+
 	g = 0;
-	std::shared_ptr<Edge>& prevEdge = startEdge->prev->twin;
+	Edge* prevEdge = startEdge->prev->twin;
 	while (backwards && prevEdge && !prevEdge->sharp)
 	{
 		if (g > 100)
@@ -259,13 +250,13 @@ static inline SmoothFan walkSmoothFan(
 	return fan;
 }
 
-std::vector<SmoothFan> Mesh::getSmoothFansByVertex(std::shared_ptr<Coord>& vertex)
+std::vector<SmoothFan> Mesh::getSmoothFansByVertex(const Coord& vertex)
 {
 	std::vector<SmoothFan> fans;
 
 	std::set<unsigned int> visitedFaces;
 
-	std::shared_ptr<Edge> currentEdge = vertex->edge;
+	Edge* currentEdge = vertex.edge;
 
 	while (true)
 	{
