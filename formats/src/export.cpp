@@ -80,6 +80,38 @@ static inline int compileModel(const ModelData& model)
 }
 
 
+static inline void writeSmdFace(std::ofstream& file, std::array<M2PHalfEdge::Vertex, 3> vertices, bool flipped)
+{
+	if (flipped)
+	{
+		std::swap(vertices[0], vertices[1]);
+		for (M2PHalfEdge::Vertex &vertex : vertices)
+			vertex.normal = -vertex.normal;
+	}
+
+	for (const M2PHalfEdge::Vertex &vertex : vertices)
+	{
+		file << "0\t";
+		const M2PGeo::Vector3& pos = vertex.position->coord();
+		const M2PGeo::Vector3& normal = vertex.normal;
+
+		if (g_config.isObj())
+		{
+			file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, -pos.z, pos.y);
+			file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, -normal.z, normal.y);
+			file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
+		}
+		else
+		{
+			file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, pos.y, pos.z);
+			file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, normal.y, normal.z);
+			file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
+		}
+		file << "\n";
+	}
+}
+
+
 static inline bool writeSmd(const ModelData& model)
 {
 	fs::path filepath = g_config.extractDir() / (model.outname + ".smd");
@@ -101,57 +133,11 @@ static inline bool writeSmd(const ModelData& model)
 			continue;
 
 		file << M2PUtils::toLowerCase(pFace->textureName) << ".bmp\n";
-
-		for (const auto& vertex : pFace->vertices)
-		{
-			file << "0\t";
-			const M2PGeo::Vector3& pos = vertex.position->coord();
-			const M2PGeo::Vector3& normal = vertex.normal;
-
-			if (g_config.isObj())
-			{
-				file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, -pos.z, pos.y);
-				file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, -normal.z, normal.y);
-				file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
-			}
-			else
-			{
-				file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, pos.y, pos.z);
-				file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, normal.y, normal.z);
-				file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
-			}
-			file << "\n";
-		}
-
+		writeSmdFace(file, pFace->vertices, false);
 		if (pFace->flipped)
 		{
 			file << M2PUtils::toLowerCase(pFace->textureName) << ".bmp\n";
-
-			std::array<M2PHalfEdge::Vertex, 3> triangle{
-				triangle[2], triangle[1], triangle[0]
-			};
-
-			for (int i = 0; i < 3; ++i)
-			{
-				const auto& vertex = triangle[i];
-				const M2PGeo::Vector3& pos = vertex.position->coord();
-				const M2PGeo::Vector3& normal = vertex.normal;
-
-				file << "0\t";
-				if (g_config.isObj())
-				{
-					file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, -pos.z, pos.y);
-					file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, -normal.z, normal.y);
-					file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
-				}
-				else
-				{
-					file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, pos.y, pos.z);
-					file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, normal.y, normal.z);
-					file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
-				}
-				file << "\n";
-			}
+			writeSmdFace(file, pFace->vertices, true);
 		}
 	}
 	file << "end\n";
