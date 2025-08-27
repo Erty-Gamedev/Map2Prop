@@ -2,6 +2,8 @@
 #include <cmath>
 #include "geometry.h"
 
+#pragma warning ( disable: 4305 )
+
 using namespace M2PGeo;
 
 
