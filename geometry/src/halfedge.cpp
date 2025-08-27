@@ -257,11 +257,18 @@ std::vector<SmoothFan> Mesh::getSmoothFansByVertex(const Coord& vertex)
 	std::set<unsigned int> visitedFaces;
 
 	Edge* currentEdge = vertex.edge;
+	unsigned int startEdgeIndex = currentEdge->index;
 
 	while (true)
 	{
 		if (visitedFaces.find(currentEdge->face->index) != visitedFaces.end())
-			break;
+		{
+			if (currentEdge->index == startEdgeIndex || !currentEdge->twin)
+				break;
+
+			currentEdge = currentEdge->twin->next;
+			continue;
+		}
 
 		SmoothFan fan = walkSmoothFan(vertex, currentEdge, visitedFaces);
 		fan.applySmooth();
