@@ -88,12 +88,27 @@ void SmoothFan::applySmooth() const
 Coord* Mesh::addVertex(const M2PGeo::Vertex vertex)
 {
 	for (const auto& coord : coords)
-	{
 		if (coord->coord() == vertex.coord())
 			return coord.get();
-	}
 	return coords.emplace_back(std::make_unique<Coord>(static_cast<unsigned int>(coords.size()), vertex)).get();
 }
+
+Edge* Mesh::addEdge(Coord* origin, const Coord* end, Face* face)
+{
+	Edge* edge = nullptr;
+	for (const auto& other : edges)
+		if (other->origin->index == origin->index && other->next->origin->index == end->index)
+		{
+			edge = other.get();
+			break;
+		}
+	if (!edge)
+		edge = edges.emplace_back(std::make_unique<Edge>(static_cast<unsigned int>(edges.size()), origin, face)).get();
+
+	edge->faceIndices.insert(face->index);
+	return edge;
+}
+
 
 void Mesh::findTwins(Edge* edge)
 {
@@ -128,11 +143,9 @@ void Mesh::addTriangle(const M2PGeo::Triangle& triangle, const M2PGeo::Texture& 
 	pFace->vertices[1] = Vertex{v1, pFace->normal, triangle.vertices[1].uv};
 	pFace->vertices[2] = Vertex{v2, pFace->normal, triangle.vertices[2].uv};
 
-	Edge* pE0 = edges.emplace_back(std::make_unique<Edge>(static_cast<unsigned int>(edges.size()), v0, pFace)).get();
-	Edge* pE1 = edges.emplace_back(std::make_unique<Edge>(static_cast<unsigned int>(edges.size()), v1, pFace)).get();
-	Edge* pE2 = edges.emplace_back(std::make_unique<Edge>(static_cast<unsigned int>(edges.size()), v2, pFace)).get();
-
-	pFace->edge = pE0;
+	Edge* pE0 = addEdge(v0, v1, pFace);
+	Edge* pE1 = addEdge(v1, v2, pFace);
+	Edge* pE2 = addEdge(v2, v0, pFace);
 
 	pE0->next = pE1; pE0->prev = pE2; v0->edge = pE0;
 	pE1->next = pE2; pE1->prev = pE0; v1->edge = pE1;
@@ -157,6 +170,9 @@ void Mesh::markSmoothEdges(
 			continue;
 
 		visitedEdges.insert(edge->index);
+
+		if (edge->faceIndices.size() != 1)
+			continue;
 
 		if (!edge->face || !edge->twin || !edge->twin->face)
 			continue;
@@ -202,11 +218,16 @@ static inline SmoothFan walkSmoothFan(
 	Edge* startEdge = currentEdge;
 	bool backwards{ true };
 
+#ifdef _DEBUG
 	int g = 0;
+#endif
 	while (true)
 	{
+#ifdef _DEBUG
 		if (g > 100)
 			throw std::runtime_error("loop detected");
+		++g;
+#endif
 
 		if (visitedFaces.find(currentEdge->face->index) != visitedFaces.end())
 		{
@@ -215,36 +236,53 @@ static inline SmoothFan walkSmoothFan(
 		}
 
 		visitedFaces.insert(currentEdge->face->index);
+
+		if (currentEdge->face->normal.dot(startEdge->face->normal) < 0)
+		{
+			currentEdge = currentEdge->twin->next;
+			continue;
+		}
+
 		fan.addFace(currentEdge->face);
 
 		if (!currentEdge->twin || currentEdge->sharp)
 			break;
 
 		currentEdge = currentEdge->twin->next;
-		++g;
 	}
 
 	if (startEdge->prev == nullptr)
 		throw std::runtime_error("previous was null");
 
+#ifdef _DEBUG
 	g = 0;
+#endif
 	Edge* prevEdge = startEdge->prev->twin;
 	while (backwards && prevEdge && !prevEdge->sharp)
 	{
+#ifdef _DEBUG
 		if (g > 100)
 			throw std::runtime_error("loop detected");
+		++g;
+#endif
 
 		if (visitedFaces.find(prevEdge->face->index) != visitedFaces.end())
 			break;
 
 		visitedFaces.insert(prevEdge->face->index);
+
+		if (prevEdge->face->normal.dot(startEdge->face->normal) < 0)
+		{
+			prevEdge = prevEdge->prev->twin;
+			continue;
+		}
+
 		fan.addFace(prevEdge->face);
 
 		if (!prevEdge->prev->twin || prevEdge->prev->twin->sharp)
 			break;
 
 		prevEdge = prevEdge->prev->twin;
-		++g;
 	}
 
 	return fan;
@@ -259,8 +297,17 @@ std::vector<SmoothFan> Mesh::getSmoothFansByVertex(const Coord& vertex)
 	Edge* currentEdge = vertex.edge;
 	unsigned int startEdgeIndex = currentEdge->index;
 
+#ifdef _DEBUG
+	int g = 0;
+#endif
 	while (true)
 	{
+#ifdef _DEBUG
+		if (g > 1000)
+			throw std::runtime_error("loop detected");
+		++g;
+#endif
+
 		if (visitedFaces.find(currentEdge->face->index) != visitedFaces.end())
 		{
 			if (currentEdge->index == startEdgeIndex || !currentEdge->twin)

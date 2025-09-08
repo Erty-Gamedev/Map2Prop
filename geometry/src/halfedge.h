@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <array>
+#include <set>
 #include <memory>
 #include "geometry.h"
 
@@ -43,6 +44,7 @@ namespace M2PHalfEdge
 		Edge* next = nullptr;
 		Edge* prev = nullptr;
 		bool sharp{ true };
+		std::set<unsigned int> faceIndices;
 
 		Edge(
 			unsigned int _index,
@@ -56,7 +58,6 @@ namespace M2PHalfEdge
 	struct Face
 	{
 		unsigned int index;
-		Edge* edge{};
 		M2PGeo::Vector3 normal;
 		std::string textureName;
 		std::array<Vertex, 3> vertices{};
@@ -100,6 +101,7 @@ namespace M2PHalfEdge
 
 
 		Coord* addVertex(const M2PGeo::Vertex _vertex);
+		Edge* addEdge(Coord* origin, const Coord* end, Face* face);
 
 		void findTwins(Edge* edge);
 

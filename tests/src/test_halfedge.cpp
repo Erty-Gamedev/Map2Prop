@@ -285,4 +285,148 @@ TEST_SUITE("half_edge")
             }
         }
     }
+
+    TEST_CASE("two meshes with intersecting faces")
+    {
+        Mesh mesh;
+        M2PGeo::Vertex v0{    0, -16,  -8 };
+        M2PGeo::Vertex v1{    0,  16,  -8 };
+        M2PGeo::Vertex v2{    0,  16,   8 };
+        M2PGeo::Vertex v3{    0, -16,   8 };
+        M2PGeo::Vertex v4{   -8, -16, -24 };
+        M2PGeo::Vertex v5{   -8, -16,  24 };
+        M2PGeo::Vertex v6{  -24, -16,  32 };
+        M2PGeo::Vertex v7{  -40, -16,  24 };
+        M2PGeo::Vertex v8{  -48, -16,  -0 };
+        M2PGeo::Vertex v9{  -40, -16, -24 };
+        M2PGeo::Vertex v10{ -24, -16, -32 };
+        M2PGeo::Vertex v11{ -24,  16, -32 };
+        M2PGeo::Vertex v12{  -8,  16, -24 };
+        M2PGeo::Vertex v13{ -24,  16,  32 };
+        M2PGeo::Vertex v14{  -8,  16,  24 };
+        M2PGeo::Vertex v15{ -40,  16,  24 };
+        M2PGeo::Vertex v16{ -48,  16,  -0 };
+        M2PGeo::Vertex v17{ -40,  16, -24 };
+        M2PGeo::Vertex v18{   8,  16, -24 };
+        M2PGeo::Vertex v19{   8,  16,  24 };
+        M2PGeo::Vertex v20{  24,  16,  32 };
+        M2PGeo::Vertex v21{  40,  16,  24 };
+        M2PGeo::Vertex v22{  48,  16,   0 };
+        M2PGeo::Vertex v23{  40,  16, -24 };
+        M2PGeo::Vertex v24{  24,  16, -32 };
+        M2PGeo::Vertex v25{  24, -16, -32 };
+        M2PGeo::Vertex v26{   8, -16, -24 };
+        M2PGeo::Vertex v27{  24, -16,  32 };
+        M2PGeo::Vertex v28{   8, -16,  24 };
+        M2PGeo::Vertex v29{  40, -16,  24 };
+        M2PGeo::Vertex v30{  48, -16,   0 };
+        M2PGeo::Vertex v31{  40, -16, -24 };
+
+        std::array<M2PGeo::Triangle, 50> triangles{
+            M2PGeo::Triangle{.vertices = { v0, v1, v2 } },
+            M2PGeo::Triangle{.vertices = { v2, v3, v0 } },
+            M2PGeo::Triangle{.vertices = { v4, v0, v3 } },
+            M2PGeo::Triangle{.vertices = { v3, v5, v6 } },
+            M2PGeo::Triangle{.vertices = { v7, v8, v9 } },
+            M2PGeo::Triangle{.vertices = { v10, v4, v3 } },
+            M2PGeo::Triangle{.vertices = { v6, v7, v9 } },
+            M2PGeo::Triangle{.vertices = { v3, v6, v9 } },
+            M2PGeo::Triangle{.vertices = { v3, v9, v10 } },
+            M2PGeo::Triangle{.vertices = { v10, v11, v12 } },
+            M2PGeo::Triangle{.vertices = { v12, v4, v10 } },
+            M2PGeo::Triangle{.vertices = { v13, v6, v5 } },
+            M2PGeo::Triangle{.vertices = { v5, v14, v13 } },
+            M2PGeo::Triangle{.vertices = { v5, v3, v2 } },
+            M2PGeo::Triangle{.vertices = { v2, v14, v5 } },
+            M2PGeo::Triangle{.vertices = { v15, v7, v6 } },
+            M2PGeo::Triangle{.vertices = { v6, v13, v15 } },
+            M2PGeo::Triangle{.vertices = { v4, v12, v1 } },
+            M2PGeo::Triangle{.vertices = { v1, v0, v4 } },
+            M2PGeo::Triangle{.vertices = { v16, v8, v7 } },
+            M2PGeo::Triangle{.vertices = { v7, v15, v16 } },
+            M2PGeo::Triangle{.vertices = { v9, v17, v11 } },
+            M2PGeo::Triangle{.vertices = { v11, v10, v9 } },
+            M2PGeo::Triangle{.vertices = { v17, v9, v8 } },
+            M2PGeo::Triangle{.vertices = { v8, v16, v17 } },
+            M2PGeo::Triangle{.vertices = { v1, v0, v3 } },
+            M2PGeo::Triangle{.vertices = { v3, v2, v1 } },
+            M2PGeo::Triangle{.vertices = { v18, v1, v2 } },
+            M2PGeo::Triangle{.vertices = { v2, v19, v20 } },
+            M2PGeo::Triangle{.vertices = { v21, v22, v23 } },
+            M2PGeo::Triangle{.vertices = { v24, v18, v2 } },
+            M2PGeo::Triangle{.vertices = { v20, v21, v23 } },
+            M2PGeo::Triangle{.vertices = { v2, v20, v23 } },
+            M2PGeo::Triangle{.vertices = { v2, v23, v24 } },
+            M2PGeo::Triangle{.vertices = { v24, v25, v26 } },
+            M2PGeo::Triangle{.vertices = { v26, v18, v24 } },
+            M2PGeo::Triangle{.vertices = { v27, v20, v19 } },
+            M2PGeo::Triangle{.vertices = { v19, v28, v27 } },
+            M2PGeo::Triangle{.vertices = { v19, v2, v3 } },
+            M2PGeo::Triangle{.vertices = { v3, v28, v19 } },
+            M2PGeo::Triangle{.vertices = { v29, v21, v20 } },
+            M2PGeo::Triangle{.vertices = { v20, v27, v29 } },
+            M2PGeo::Triangle{.vertices = { v18, v26, v0 } },
+            M2PGeo::Triangle{.vertices = { v0, v1, v18 } },
+            M2PGeo::Triangle{.vertices = { v30, v22, v21 } },
+            M2PGeo::Triangle{.vertices = { v21, v29, v30 } },
+            M2PGeo::Triangle{.vertices = { v23, v31, v25 } },
+            M2PGeo::Triangle{.vertices = { v25, v24, v23 } },
+            M2PGeo::Triangle{.vertices = { v31, v23, v22 } },
+            M2PGeo::Triangle{.vertices = { v22, v30, v31 } }
+        };
+
+
+        for (M2PGeo::Triangle& triangle : triangles)
+        {
+            M2PGeo::Vector3 planepoints[3] = { triangle.vertices[0].coord(), triangle.vertices[1].coord(), triangle.vertices[2].coord() };
+            triangle.normal = M2PGeo::planeNormal(planepoints);
+
+            mesh.addTriangle(triangle, M2PGeo::Texture());
+        }
+
+        mesh.markSmoothEdges(60., {}, {});
+
+
+        auto fans = mesh.getSmoothFansByVertex(*mesh.coords[0]);
+
+        CHECK(fans.size() == 3);
+
+
+        SUBCASE("check expected edges are sharp")
+        {
+            std::vector<std::pair<M2PGeo::Vertex, M2PGeo::Vertex>> expectedSharp{
+                // Internal sharp edges
+                {v0, v1}, {v1, v2}, {v2, v3}, {v3, v0},
+
+                // Border edges front left
+                {v0, v3}, {v3, v5}, {v5, v6}, {v6, v7}, {v7, v8}, {v8, v9}, {v9, v10}, {v10, v4}, {v4, v0},
+                // Border edges front right
+                {v3, v0}, {v0, v26}, {v26, v25}, {v25, v31}, {v31, v30}, {v30, v29}, {v29, v27}, {v27, v28}, {v28, v3},
+
+                // Border edges back left
+                {v1, v2}, {v2, v19}, {v19, v20}, {v20, v21}, {v21, v22}, {v22, v23}, {v23, v24}, {v24, v18}, {v18, v1},
+                // Border edges back right
+                {v2, v1}, {v1, v12}, {v12, v11}, {v11, v17}, {v17, v16}, {v16, v15}, {v15, v13}, {v13, v14}, {v14, v2}
+            };
+
+            for (const auto& edge : mesh.edges)
+            {
+                bool shouldBeSharp = false;
+
+                for (const std::pair<M2PGeo::Vertex, M2PGeo::Vertex>& expected : expectedSharp)
+                {
+                    if ((edge->origin->coord() == expected.first && edge->next->origin->coord() == expected.second)
+                        || (edge->origin->coord() == expected.second && edge->next->origin->coord() == expected.first))
+                    {
+                        shouldBeSharp = true;
+                        break;
+                    }
+                }
+
+                CAPTURE(edge->origin->index);
+                CAPTURE(edge->next->origin->index);
+                CHECK(edge->sharp == shouldBeSharp);
+            }
+        }
+    }
 }
