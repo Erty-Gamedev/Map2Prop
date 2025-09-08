@@ -579,6 +579,9 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 		return 1;
 	}
 
+	std::vector<fs::path> successes;
+	successes.reserve(models.size());
+
 	for (auto& kv : models)
 	{
 		ModelData& model = kv.second;
@@ -586,13 +589,29 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 		if (!model.parent.empty())
 			continue;
 
-		returnCodes += compileModel(model);
+		int returnCode = compileModel(model);
+
+		if (!returnCode)
+			successes.emplace_back(model.outname + ".mdl");
+		returnCodes += returnCode;
 	}
+
+	size_t numSuccesses = successes.size();
 
 	if (returnCodes > 0)
 		logger.warning("Something went wrong during compilation. Check logs for more info");
-	else
-		logger.info(std::format("Finished compiling {} model{}", models.size(), models.size() > 1 ? "s" : ""));
+
+	if (numSuccesses == 0)
+		return returnCodes;
+
+	logger.log("\n");
+	logger.info(std::format("Finished compiling {} model{}:", numSuccesses, numSuccesses == 1 ? "" : "s"));
+
+	std::string successList{ "" };
+	for (const fs::path& successPath : successes)
+		successList += Styling::fgBrightGreen
+			+ fs::absolute(g_config.extractDir() / successPath).string() + Styling::reset + "\n";
+	logger.log(successList);
 
 	return returnCodes;
 }
