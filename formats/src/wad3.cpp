@@ -129,7 +129,7 @@ Wad3MipTex Wad3Reader::extract(const std::string& textureName, const std::filesy
 
 	bmp.m_palette = std::vector<unsigned char>(c_BMPPALETTESIZE * 4);
 	BGRA bgra;
-	for (int i = 0, j = 0; i < c_BMPPALETTESIZE; ++i)
+	for (int i = 0; i < c_BMPPALETTESIZE; ++i)
 	{
 		bgra = {
 			palette[i * 3 + 2],

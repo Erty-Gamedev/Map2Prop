@@ -20,8 +20,6 @@ std::string JmfBrush::getRaw() const
 	std::string raw = "{\n";
 	raw.reserve(1024);
 
-	const char* p = ".6g";
-	size_t countFaces = faces.size();
 	for (const auto& face : faces)
 	{
 		Vertex x = M2PUtils::getCircular(face.vertices, -1);
@@ -195,7 +193,7 @@ void JmfReader::readPathNode()
 
 void JmfReader::readEntity()
 {
-	entities.push_back(std::make_unique<JmfEntity>());
+	entities.emplace_back(std::make_unique<JmfEntity>());
 	Entity& entity = *entities.back();
 
 	entity.classname = readIntLPString(m_file);
@@ -239,7 +237,7 @@ void JmfReader::readEntity()
 
 void JmfReader::readBrush(Entity& parent)
 {
-	parent.brushes.push_back(std::make_unique<JmfBrush>());
+	parent.brushes.emplace_back(std::make_unique<JmfBrush>());
 	Brush& brush = *parent.brushes.back();
 
 	JmfBrushHeader header{};

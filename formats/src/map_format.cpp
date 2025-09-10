@@ -41,7 +41,7 @@ void MapReader::parse()
 	{
 		if (line.starts_with('{'))
 		{
-			entities.push_back(std::make_unique<Entity>());
+			entities.emplace_back(std::make_unique<Entity>());
 			readEntity(*entities.back());
 		}
 	}
@@ -82,7 +82,7 @@ void MapReader::readEntity(Entity &entity)
 		{
 			bool valid = true;
 
-			entity.brushes.push_back(std::make_unique<Brush>());
+			entity.brushes.emplace_back(std::make_unique<Brush>());
 			Brush& brush = *entity.brushes.back();
 			readBrush(brush, line, valid);
 

@@ -23,8 +23,6 @@ std::string RmfBrush::getRaw() const
 	std::string raw = "{\n";
 	raw.reserve(1024);
 
-	const char* p = ".6g";
-	size_t countFaces = faces.size();
 	for (const auto& face : faces)
 	{
 		Vertex x = M2PUtils::getCircular(face.vertices, -1);
@@ -129,7 +127,7 @@ void RmfReader::parse()
 	for (int i = 0; i < visgroupCount; ++i)
 		readVisgroup();
 
-	entities.push_back(std::make_unique<RmfEntity>());
+	entities.emplace_back(std::make_unique<RmfEntity>());
 	auto& worldspawn = *entities[0];
 	worldspawn.classname = "worldspawn";
 	worldspawn.keyvalues.emplace_back("classname", worldspawn.classname);
@@ -176,14 +174,14 @@ void RmfReader::readChildren(int count, Entity &parent)
 
 		if (objectType == "CMapSolid")
 		{
-			parent.brushes.push_back(std::make_unique<RmfBrush>());
+			parent.brushes.emplace_back(std::make_unique<RmfBrush>());
 			Brush& brush = *parent.brushes.back();
 			readBrush(brush);
 			continue;
 		}
 		if (objectType == "CMapEntity")
 		{
-			entities.push_back(std::make_unique<RmfEntity>());
+			entities.emplace_back(std::make_unique<RmfEntity>());
 			readEntity(*entities.back());
 			continue;
 		}
@@ -356,7 +354,7 @@ void RmfReader::readPath()
 {
 	std::string name = readNTString(m_file, 128);
 	std::string classname = readNTString(m_file, 128);
-	std::int32_t pathType = readInt(m_file);
+	readInt(m_file); // pathType
 	std::int32_t nodeCount = readInt(m_file);
 	for (int i = 0; i < nodeCount; ++i)
 		readPathNode();
@@ -366,7 +364,7 @@ void RmfReader::readPathNode()
 {
 	float position[3]{};
 	m_file.read(reinterpret_cast<char*>(&position), sizeof(position));
-	std::int32_t index = readInt(m_file);
+	readInt(m_file); // index
 	std::string targetname = readNTString(m_file, 128);
 	std::int32_t kvCount = readInt(m_file);
 	std::string key, value;
