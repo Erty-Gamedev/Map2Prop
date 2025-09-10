@@ -58,7 +58,28 @@ int main(int argc, char** argv)
             return EXIT_SUCCESS;
         }
 
-        int res = M2PExport::processModels(models, reader.hasMissingTextures());
+
+        std::vector<std::filesystem::path> successes;
+        successes.reserve(models.size());
+
+        int res = M2PExport::processModels(models, reader.hasMissingTextures(), successes);
+
+
+        if (res > 0)
+            logger.warning("Something went wrong during compilation. Check logs for more info");
+
+        size_t numSuccesses = successes.size();
+        if (numSuccesses != 0)
+        {
+            logger.log("\n");
+            logger.info(std::format("Finished compiling {} model{}:", numSuccesses, numSuccesses == 1 ? "" : "s"));
+
+            std::string successList{ "" };
+            for (const std::filesystem::path& successPath : successes)
+                successList += Styling::fgBrightGreen
+                + std::filesystem::absolute(g_config.extractDir() / successPath).string() + Styling::reset + "\n";
+            logger.log(successList);
+        }
 
         if (g_config.mapcompile && !res)
             M2PExport::rewriteMap(reader.entities);

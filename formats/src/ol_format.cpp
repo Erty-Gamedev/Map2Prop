@@ -67,6 +67,9 @@ int OlReader::process()
 {
 	int res = 0;
 
+	std::vector<std::filesystem::path> successes;
+	successes.reserve(m_entries.size() * 10);
+
 	for (const PrefabHeader& entry : m_entries)
 	{
 		std::string filename = M2PUtils::slugify(entry.name);
@@ -80,7 +83,23 @@ int OlReader::process()
 			continue;
 		}
 
-		res += M2PExport::processModels(models, reader.hasMissingTextures());
+		res += M2PExport::processModels(models, reader.hasMissingTextures(), successes);
+	}
+
+	if (res > 0)
+		logger.warning("Something went wrong during compilation. Check logs for more info");
+
+	size_t numSuccesses = successes.size();
+	if (numSuccesses != 0)
+	{
+		logger.log("\n");
+		logger.info(std::format("Finished compiling {} model{}:", numSuccesses, numSuccesses == 1 ? "" : "s"));
+
+		std::string successList{ "" };
+		for (const std::filesystem::path& successPath : successes)
+			successList += Styling::fgBrightGreen
+			+ std::filesystem::absolute(g_config.extractDir() / successPath).string() + Styling::reset + "\n";
+		logger.log(successList);
 	}
 
 	return res;
