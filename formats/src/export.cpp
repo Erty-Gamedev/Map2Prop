@@ -589,7 +589,7 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 		int returnCode = compileModel(model);
 
 		if (!returnCode)
-			successes.emplace_back(model.outname + ".mdl");
+			successes.emplace_back(fs::path{ model.subdir } / (model.outname + ".mdl"));
 		returnCodes += returnCode;
 	}
 
