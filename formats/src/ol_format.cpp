@@ -98,8 +98,8 @@ int OlReader::process()
 
 		std::string successList{ "" };
 		for (const std::filesystem::path& successPath : successes)
-			successList += Styling::fgBrightGreen
-			+ std::filesystem::absolute(g_config.extractDir() / successPath).string() + Styling::reset + "\n";
+			successList += Styling::style(Styling::success)
+			+ std::filesystem::absolute(g_config.extractDir() / successPath).string() + Styling::style() + "\n";
 		logger.log(successList);
 	}
 
