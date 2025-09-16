@@ -80,6 +80,7 @@ JmfReader::JmfReader(const std::filesystem::path& filepath, const std::filesyste
 	}
 
 	parse();
+	m_file.close();
 }
 JmfReader::~JmfReader()
 {

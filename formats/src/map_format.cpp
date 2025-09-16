@@ -26,6 +26,7 @@ MapReader::MapReader(const std::filesystem::path& filepath, const std::filesyste
 	}
 
 	parse();
+	m_file.close();
 }
 MapReader::~MapReader()
 {

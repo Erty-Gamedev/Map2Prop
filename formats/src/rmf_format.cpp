@@ -70,20 +70,6 @@ std::string RmfEntity::toString() const
 	return str;
 }
 
-RmfReader::RmfReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir)
-{
-	m_filepath = filepath;
-	m_outputDir = outputDir;
-	m_file.open(filepath, std::ios::binary);
-	if (!m_file.is_open() || !m_file.good())
-	{
-		m_file.close();
-		logger.error("Could not open file " + filepath.string());
-		exit(EXIT_FAILURE);
-	}
-
-	parse();
-}
 RmfReader::RmfReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir, int seekTo)
 {
 	m_filepath = filepath;
@@ -95,9 +81,11 @@ RmfReader::RmfReader(const std::filesystem::path& filepath, const std::filesyste
 		logger.error("Could not open file " + filepath.string());
 		exit(EXIT_FAILURE);
 	}
+	if (seekTo)
+		m_file.seekg(seekTo, std::ios::beg);
 
-	m_file.seekg(seekTo, std::ios::beg);
 	parse();
+	m_file.close();
 }
 RmfReader::~RmfReader()
 {

@@ -76,8 +76,7 @@ namespace M2PFormat
 	class RmfReader : public M2PEntity::BaseReader
 	{
 	public:
-		RmfReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir);
-		RmfReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir, int seekTo);
+		RmfReader(const std::filesystem::path& filepath, const std::filesystem::path& outputDir, int seekTo = 0);
 		~RmfReader();
 	private:
 		int m_version;
