@@ -92,6 +92,7 @@ int OlReader::process()
 	size_t numSuccesses = successes.size();
 	if (numSuccesses != 0)
 	{
+		std::sort(successes.begin(), successes.end());
 		logger.log("\n");
 		logger.info(std::format("Finished compiling {} model{}:", numSuccesses, numSuccesses == 1 ? "" : "s"));
 
