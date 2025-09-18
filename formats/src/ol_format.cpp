@@ -94,7 +94,7 @@ int OlReader::process()
 	{
 		std::sort(successes.begin(), successes.end());
 		logger.log("\n");
-		logger.info(std::format("Finished compiling {} model{}:", numSuccesses, numSuccesses == 1 ? "" : "s"));
+		logger.info("Finished compiling %u model%c", numSuccesses, numSuccesses == 1 ? '\0' : 's');
 
 		std::string successList{ "" };
 		for (const std::filesystem::path& successPath : successes)

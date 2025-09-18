@@ -538,7 +538,7 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 {
 	int returnCodes = 0;
 
-	logger.debug(std::format("Processing {} model{}", models.size(), models.size() > 1 ? "s" : ""));
+	logger.debug("Processing %u model%c", models.size(), models.size() == 1 ? '\0' : 's');
 
 	for (auto& kv : models)
 	{
@@ -556,12 +556,12 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 			return 1;
 	}
 
-	logger.info(std::format("Finished processing {} model{}", models.size(), models.size() > 1 ? "s" : ""));
+	logger.info("Finished processing %u model%c", models.size(), models.size() == 1 ? '\0' : 's');
 
 	if (!g_config.autocompile)
 		return 0;
 
-	logger.info(std::string{ "Autocompile enabled, compiling model" } + (models.size() > 1 ? "s" : "") + "...");
+	logger.info("Autocompile enabled, compiling model%c...", models.size() == 1 ? '\0' : 's');
 
 	if (missingTextures)
 	{
