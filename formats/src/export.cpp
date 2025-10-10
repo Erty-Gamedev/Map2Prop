@@ -105,7 +105,7 @@ static inline void writeSmdFace(std::ofstream& file, std::array<M2PHalfEdge::Ver
 		{
 			file << std::format("{:.6f} {:.6f} {:.6f}\t", pos.x, pos.y, pos.z);
 			file << std::format("{:.6f} {:.6f} {:.6f}\t", normal.x, normal.y, normal.z);
-			file << std::format("{:.6f} {:.6f}", vertex.uv.x, vertex.uv.y + 1);
+			file << std::format("{:.6f} {:.6f}", vertex.uv.x, -vertex.uv.y + 1);
 		}
 		file << "\n";
 	}
