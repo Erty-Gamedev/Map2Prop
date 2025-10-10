@@ -12,13 +12,6 @@ M2PGeo::Vector3 Coord::coord() const
 }
 
 
-Vertex::Vertex(Coord* coord, const M2PGeo::Vector3& _normal, const M2PGeo::Vector2& _uv)
-{
-	position = coord;
-	normal = _normal;
-	uv = _uv;
-}
-
 bool Edge::operator==(const Edge& rhs) const
 {
 	return origin->coord() == rhs.origin->coord() && next->origin->coord() == rhs.next->origin->coord();
