@@ -17,13 +17,13 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 
 include_directories(PUBLIC "common/src")
 include_directories(PUBLIC "config/src")
-include_directories(PUBLIC "formats/src")
+include_directories(PUBLIC "formats")
 include_directories(PUBLIC "geometry")
 include_directories(PUBLIC "${PROJECT_SOURCE_DIR}/vendor/logging/src")
 
 add_subdirectory("common/src")
 add_subdirectory("config/src")
-add_subdirectory("formats/src")
+add_subdirectory("formats")
 add_subdirectory("geometry")
 add_subdirectory("map2prop")
 
