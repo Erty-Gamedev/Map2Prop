@@ -18,14 +18,14 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 include_directories(PUBLIC "common/src")
 include_directories(PUBLIC "config/src")
 include_directories(PUBLIC "formats/src")
-include_directories(PUBLIC "geometry/src")
+include_directories(PUBLIC "geometry")
 include_directories(PUBLIC "${PROJECT_SOURCE_DIR}/vendor/logging/src")
 
 add_subdirectory("common/src")
 add_subdirectory("config/src")
 add_subdirectory("formats/src")
-add_subdirectory("geometry/src")
-add_subdirectory("map2prop/src")
+add_subdirectory("geometry")
+add_subdirectory("map2prop")
 
 option(BUILD_TESTS "Build tests" OFF)
 
