@@ -30,6 +30,6 @@ add_subdirectory("map2prop/src")
 option(BUILD_TESTS "Build tests" OFF)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTS)
-    include_directories(PUBLIC "tests/src")
-    add_subdirectory("tests/src")
+    include_directories(PUBLIC "tests")
+    add_subdirectory("tests")
 endif()
