@@ -8,7 +8,7 @@
 
 namespace M2PConfig
 {
-    static inline const char* NAME = { "Map2Prop v2.0.0-alpha.2" };
+    static inline const char* NAME = { "Map2Prop v2.0.0-beta1" };
 
     static inline const char* USAGE = R"USAGE(Usage: Map2Prop input [options]
 Converts a .map/.rmf/.jmf/.ol or J.A.C.K .obj into GoldSrc .smd files for model creation.
