@@ -7,8 +7,8 @@
 
 namespace M2PBmp
 {
-    constexpr size_t c_BMPSIZEHEADER = 1078; // sizeof(BMPHeader) + sizeof(BMPInfoHeader) + Palette (256 * 4)
-    constexpr size_t c_BMPPALETTESIZE = 256;
+    static inline constexpr size_t c_BMPSIZEHEADER = 1078; // sizeof(BMPHeader) + sizeof(BMPInfoHeader) + Palette (256 * 4)
+    static inline constexpr size_t c_BMPPALETTESIZE = 256;
 
 #pragma pack(push, 1)
     struct BGRA

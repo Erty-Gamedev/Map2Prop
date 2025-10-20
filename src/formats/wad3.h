@@ -9,9 +9,9 @@
 
 namespace M2PWad3
 {
-    constexpr size_t c_MAXTEXTURENAME = 16;
-    constexpr size_t c_MIPLEVELS = 4;
-    constexpr size_t c_PALETTESIZE = 768;
+    static inline constexpr size_t c_MAXTEXTURENAME = 16;
+    static inline constexpr size_t c_MIPLEVELS = 4;
+    static inline constexpr size_t c_PALETTESIZE = 768;
 
 #pragma pack(push, 1)
     enum EntryType : std::int8_t

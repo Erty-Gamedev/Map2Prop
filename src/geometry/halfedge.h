@@ -20,7 +20,7 @@ namespace M2PHalfEdge
 		unsigned int index;
 		Edge* edge = nullptr;
 
-		Coord(unsigned int _index, const M2PGeo::Vertex vertex) : index(_index), M2PGeo::Vector3(vertex.coord()) {}
+		Coord(unsigned int _index, const M2PGeo::Vertex vertex) : M2PGeo::Vector3(vertex.coord()), index(_index) {}
 
 		M2PGeo::Vector3 coord() const;
 	};
