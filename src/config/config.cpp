@@ -16,7 +16,7 @@ using M2PConfig::g_config;
 #include <limits.h>
 #include <unistd.h>
 #endif
-static std::filesystem::path getExePath()
+static inline std::filesystem::path getExePath()
 {
 #ifdef _WIN32
     std::vector<wchar_t> pathBuffer;
