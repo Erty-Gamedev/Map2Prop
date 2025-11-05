@@ -97,6 +97,7 @@ Please see [CONTRIBUTING.md](./.github/CONTRIBUTING.md).
 ## Special Thanks
 
 Many thanks goes out to these great people who have provided *lots* of help, feedback, advice and more throughout the development of this application:
+* Captain P
 * Penguinboy
 * Kimilil
 * AdamBean
