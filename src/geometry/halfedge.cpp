@@ -1,7 +1,10 @@
 #include <set>
 #include <memory>
 #include "halfedge.h"
+#include "logging.h"
 
+
+static inline Logging::Logger& logger = Logging::Logger::getLogger("halfedge");
 
 using namespace M2PHalfEdge;
 
@@ -211,16 +214,15 @@ static inline SmoothFan walkSmoothFan(
 	Edge* startEdge = currentEdge;
 	bool backwards{ true };
 
-#ifdef _DEBUG
 	int g = 0;
-#endif
 	while (true)
 	{
-#ifdef _DEBUG
 		if (g > 100)
-			throw std::runtime_error("loop detected");
+		{
+			logger.debug("Loop detected in %s() @ L%i", __func__, __LINE__);
+			break;
+		}
 		++g;
-#endif
 
 		if (visitedFaces.find(currentEdge->face->index) != visitedFaces.end())
 		{
@@ -247,17 +249,16 @@ static inline SmoothFan walkSmoothFan(
 	if (startEdge->prev == nullptr)
 		throw std::runtime_error("previous was null");
 
-#ifdef _DEBUG
 	g = 0;
-#endif
 	Edge* prevEdge = startEdge->prev->twin;
 	while (backwards && prevEdge && !prevEdge->sharp)
 	{
-#ifdef _DEBUG
 		if (g > 100)
-			throw std::runtime_error("loop detected");
+		{
+			logger.debug("Loop detected in %s() @ L%i", __func__, __LINE__);
+			break;
+		}
 		++g;
-#endif
 
 		if (visitedFaces.find(prevEdge->face->index) != visitedFaces.end())
 			break;
@@ -290,16 +291,15 @@ std::vector<SmoothFan> Mesh::getSmoothFansByVertex(const Coord& vertex)
 	Edge* currentEdge = vertex.edge;
 	unsigned int startEdgeIndex = currentEdge->index;
 
-#ifdef _DEBUG
 	int g = 0;
-#endif
 	while (true)
 	{
-#ifdef _DEBUG
-		if (g > 1000)
-			throw std::runtime_error("loop detected");
+		if (g > 100)
+		{
+			logger.debug("Loop detected in %s() @ L%i", __func__, __LINE__);
+			break;
+		}
 		++g;
-#endif
 
 		if (visitedFaces.find(currentEdge->face->index) != visitedFaces.end())
 		{
