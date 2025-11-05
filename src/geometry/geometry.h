@@ -17,6 +17,8 @@ namespace M2PGeo {
     static inline constexpr int c_MAP_DIGITS_PRECISION = 6;
     static inline constexpr FP c_EPSILON = static_cast<FP>(1. / 1024.);
     static inline constexpr FP c_EPSILON_MERGE = static_cast<FP>(1. / 1024.);
+    // According to LogicAndTrick, this epsilon matches Valve Hammer Editor (https://github.com/LogicAndTrick/sledge-formats/blob/d97d978d0eebbba3cfa87166eafd69d9db59abec/Sledge.Formats.Map/Objects/Solid.cs#L26)
+    static inline constexpr float c_EPSILON_ONPLANE = 0.0075f;
     static inline constexpr FP c_DEG2RAD = static_cast<FP>(std::numbers::pi / 180.);
     static inline constexpr FP c_RAD2DEG = static_cast<FP>(180. / std::numbers::pi);
 

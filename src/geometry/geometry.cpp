@@ -210,7 +210,7 @@ FP HessianPlane::distanceToPoint(Vector3 point) const
 PointRelation HessianPlane::pointRelation(const Vector3& point) const
 {
 	FP m_distance = distanceToPoint(point);
-	if (abs(m_distance) < M2PGeo::c_EPSILON)
+	if (abs(m_distance) < c_EPSILON_ONPLANE)
 		return PointRelation::ON_PLANE;
 	return m_distance > 0 ? PointRelation::INFRONT : PointRelation::BEHIND;
 }
