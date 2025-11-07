@@ -59,6 +59,9 @@ void MapReader::readEntity(Entity &entity)
 	line.reserve(512);
 	while (std::getline(m_file, line))
 	{
+#ifndef _WIN32
+		M2PUtils::replaceToken(line, "\r", "");
+#endif
 		entity.raw += line + "\n";
 
 		if (line.starts_with("//"))
