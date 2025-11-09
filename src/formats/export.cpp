@@ -596,6 +596,10 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 	return returnCodes;
 }
 
+const char* entProps[6] = {
+	"origin", "body", "rendermode", "renderamt", "rendercolor", "renderfx"
+};
+
 void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &entities)
 {
 	std::string stem = g_config.inputFilepath.stem().string();
@@ -698,11 +702,9 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 			file << "\"angles\" \"360 " << parts.at(1) << " 360\"\n";
 		}
 
-		if (entity->hasKey("origin"))
-			file << "\"origin\" \"" << entity->getKey("origin") << "\"\n";
-
-		if (entity->hasKey("body"))
-			file << "\"body\" \"" << entity->getKey("body") << "\"\n";
+		for (const auto& renderProp : entProps)
+			if (entity->hasKey(renderProp))
+				file << "\"" << renderProp << "\" \"" << entity->getKey(renderProp) << "\"\n";
 
 		file << "}\n";
 	}
