@@ -50,6 +50,7 @@ namespace M2PEntity
         void setKey(const std::string& key, const std::string& value);
         int getKeyInt(const std::string& key) const;
         bool getKeyBool(const std::string& key) const;
+        M2PGeo::Bounds getBounds() const;
         virtual std::string toString() const;
     };
 

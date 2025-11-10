@@ -145,3 +145,25 @@ bool Entity::getKeyBool(const std::string& key) const
 {
 	return getKeyInt(key) != 0;
 }
+
+M2PGeo::Bounds Entity::getBounds() const
+{
+	if (brushes.empty())
+		return M2PGeo::Bounds::zero();
+
+	M2PGeo::Bounds bounds = brushes[0]->getBounds();
+
+	for (const auto& brush : brushes)
+	{
+		M2PGeo::Bounds current = brush->getBounds();
+		if (current.min.x < bounds.min.x) bounds.min.x = current.min.x;
+		if (current.min.y < bounds.min.y) bounds.min.y = current.min.y;
+		if (current.min.z < bounds.min.z) bounds.min.z = current.min.z;
+
+		if (current.max.x > bounds.max.x) bounds.max.x = current.max.x;
+		if (current.max.y > bounds.max.y) bounds.max.y = current.max.y;
+		if (current.max.z > bounds.max.z) bounds.max.z = current.max.z;
+	}
+
+	return bounds;
+}
