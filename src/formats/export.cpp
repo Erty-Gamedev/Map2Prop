@@ -288,29 +288,6 @@ std::unordered_map<std::string, ModelData> M2PExport::prepareModels(M2PEntity::B
 			if (entity->getKeyInt("spawnflags") & Spawnflags::DISABLE)
 				continue;
 
-			if (g_config.mapcompile && entity->getKeyInt("clip_type") > 0)
-			{
-				reader.entities.emplace_back(std::make_unique<M2PEntity::Entity>());
-				M2PEntity::Entity& clipEnt = *reader.entities.back();
-				clipEnt.useRawString = true;
-
-				Bounds bb = entity->getBounds();
-				clipEnt.classname = "func_detail";
-				clipEnt.raw = "{\n\"classname\" \"func_detail\"\n"
-					"\"zhlt_detaillevel\" \"0\"\n\"zhlt_chopdown\" \"0\"\n"
-					"\"zhlt_chopup\" \"0\"\n\"zhlt_coplanarpriority\" \"1\"\n"
-					"\"zhlt_clipnodedetaillevel\" \"1\"\n{\n" +
-					std::format(
-						"( {3:.6g} {4:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-						"( {0:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-						"( {3:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-						"( {0:.6g} {4:.6g} {5:.6g} ) ( {0:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-						"( {0:.6g} {4:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
-						"( {3:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n",
-						bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z
-					) + "}\n}\n";
-			}
-
 			keyvalue = entity->getKey("parent_model");
 			if (!keyvalue.empty())
 			{
@@ -641,7 +618,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 
 	logger.info("Converting func_map2prop entities");
 
-	std::unordered_map<std::string, std::string> parentModels;
+	std::unordered_map<std::string, M2PEntity::Entity*> parentEntities;
 	for (std::unique_ptr<M2PEntity::Entity> &entity : entities)
 	{
 		if (entity->classname != "func_map2prop")
@@ -650,7 +627,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 		if (!entity->hasKey("targetname"))
 			continue;
 
-		if (parentModels.contains(entity->getKey("targetname")))
+		if (parentEntities.contains(entity->getKey("targetname")))
 		{
 			logger.info(std::format(
 				"Naming conflict: Multiple func_map2prop entities with name \"{}\". "
@@ -663,7 +640,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 		// Reset entity angles, as they're baked into the model now
 		entity->setKey("angles", "0 0 0");
 
-		parentModels[entity->getKey("targetname")] = entity->getKey("model");
+		parentEntities[entity->getKey("targetname")] = entity.get();
 	}
 
 	logger.info("Writing modified MAP as " + filepath.string());
@@ -680,25 +657,63 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 	{
 		if (entity->classname != "func_map2prop")
 		{
-			file << (entity->useRawString ? entity->raw : entity->toString());
+			file << entity->toString();
 			continue;
 		}
 
 		// Entity is disabled, skip
-		if (entity->getKeyInt("spawnflags") & 1)
+		if (entity->getKeyInt("spawnflags") & Spawnflags::DISABLE)
 			continue;
 
 		if (entity->hasKey("parent_model"))
 		{
-			std::string parentModel = entity->getKey("parent_model");
+			std::string parent = entity->getKey("parent_model");
 
-			if (!parentModels.contains(parentModel))
+			if (!parentEntities.contains(parent))
 			{
-				logger.warning("Parent model with targetname \"" + parentModel + "\" not found");
+				logger.warning("Parent model with targetname \"" + parent + "\" not found");
 				continue;
 			}
 
-			entity->setKey("model", parentModels.at(entity->getKey("parent_model")));
+			entity->setKey("model", parentEntities.at(entity->getKey("parent_model"))->getKey("model"));
+		}
+
+
+		if (entity->getKeyInt("clip_type") > 0)
+		{
+			Bounds bb;
+			if (entity->hasKey("parent_model") && !(entity->getKeyInt("spawnflags") & Spawnflags::IS_SUBMODEL))
+			{
+				M2PEntity::Entity& parent = *parentEntities.at(entity->getKey("parent_model"));
+				bb = parent.getBounds();
+
+				M2PGeo::Vector3 eOrigin, pOrigin, offset;
+				std::vector<std::string> eParts = M2PUtils::split(entity->getKey("origin"));
+				if (eParts.size() == 3)
+					eOrigin = { std::stof(eParts[0]), std::stof(eParts[1]), std::stof(eParts[2]) };
+
+				std::vector<std::string> pParts = M2PUtils::split(parent.getKey("origin"));
+				if (pParts.size() == 3)
+					pOrigin = { std::stof(pParts[0]), std::stof(pParts[1]), std::stof(pParts[2]) };
+
+				offset = eOrigin - pOrigin;
+				bb.min += offset;
+				bb.max += offset;
+			} else { bb = entity->getBounds(); }
+
+			file << "{\n\"classname\" \"func_detail\"\n"
+				<< "\"zhlt_detaillevel\" \"0\"\n\"zhlt_chopdown\" \"0\"\n"
+				<< "\"zhlt_chopup\" \"0\"\n\"zhlt_coplanarpriority\" \"1\"\n"
+				<< "\"zhlt_clipnodedetaillevel\" \"1\"\n{\n"
+				<< std::format(
+					"( {3:.6g} {4:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+					"( {0:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+					"( {3:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+					"( {0:.6g} {4:.6g} {5:.6g} ) ( {0:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+					"( {0:.6g} {4:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
+					"( {3:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n",
+					bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z)
+				<< "}\n}\n";
 		}
 
 		std::string newClass = entity->hasKey("convert_to") ? entity->getKey("convert_to") : "env_sprite";
