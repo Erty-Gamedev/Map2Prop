@@ -51,7 +51,6 @@ static inline void renameChrome(ModelData& model)
 	}
 }
 
-
 static inline void applySmooth(ModelData& model)
 {
 	model.mesh.markSmoothEdges(model.smoothing, model.alwaysSmooth, model.neverSmooth);
@@ -60,6 +59,7 @@ static inline void applySmooth(ModelData& model)
 		if (pVertex)
 			model.mesh.getSmoothFansByVertex(*pVertex);
 }
+
 
 static inline int compileModel(const ModelData& model)
 {
@@ -110,7 +110,6 @@ static inline void writeSmdFace(std::ofstream& file, std::array<M2PHalfEdge::Ver
 		file << "\n";
 	}
 }
-
 
 static inline bool writeSmd(const ModelData& model)
 {
@@ -288,6 +287,29 @@ std::unordered_map<std::string, ModelData> M2PExport::prepareModels(M2PEntity::B
 		{
 			if (entity->getKeyInt("spawnflags") & Spawnflags::DISABLE)
 				continue;
+
+			if (g_config.mapcompile && entity->getKeyInt("clip_type") > 0)
+			{
+				reader.entities.emplace_back(std::make_unique<M2PEntity::Entity>());
+				M2PEntity::Entity& clipEnt = *reader.entities.back();
+				clipEnt.useRawString = true;
+
+				Bounds bb = entity->getBounds();
+				clipEnt.classname = "func_detail";
+				clipEnt.raw = "{\n\"classname\" \"func_detail\"\n"
+					"\"zhlt_detaillevel\" \"0\"\n\"zhlt_chopdown\" \"0\"\n"
+					"\"zhlt_chopup\" \"0\"\n\"zhlt_coplanarpriority\" \"1\"\n"
+					"\"zhlt_clipnodedetaillevel\" \"1\"\n{\n" +
+					std::format(
+						"( {3:.6g} {4:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+						"( {0:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+						"( {3:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+						"( {0:.6g} {4:.6g} {5:.6g} ) ( {0:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+						"( {0:.6g} {4:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
+						"( {3:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n",
+						bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z
+					) + "}\n}\n";
+			}
 
 			keyvalue = entity->getKey("parent_model");
 			if (!keyvalue.empty())
@@ -658,7 +680,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 	{
 		if (entity->classname != "func_map2prop")
 		{
-			file << entity->toString();
+			file << (entity->useRawString ? entity->raw : entity->toString());
 			continue;
 		}
 

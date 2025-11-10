@@ -40,6 +40,11 @@
 		"": "No (calculate bottom-center)"
 		1: "Yes"
 	]
+	clip_type(choices) : "Generate clipping?" : "" =
+	[
+		"": "No"
+		1: "Box"
+	]
 
 	rendermode(choices) : "Render Mode" : 0 =
 	[

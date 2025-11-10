@@ -43,6 +43,7 @@ namespace M2PEntity
         std::vector< std::pair<std::string, std::string>> keyvalues;
         std::vector<std::unique_ptr<Brush>> brushes;
         std::string raw;
+        bool useRawString = false;
 
         Entity();
         bool hasKey(const std::string& key) const;
