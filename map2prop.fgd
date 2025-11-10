@@ -55,7 +55,7 @@
 		4: "Solid"
 		5: "Additive"
 	]
-	renderamt(integer) : "FX Amount (1 - 255)"
+	renderamt(integer) : "FX Amount (0 - 255)"
 	rendercolor(color255) : "FX Color (R G B)" : "0 0 0"
 	renderfx(choices) :"Render FX" : 0 =
 	[
@@ -73,7 +73,6 @@
 		6: "Fast Fade Away"
 		7: "Slow Become Solid"
 		8: "Fast Become Solid"
-		14: "Constant Glow"
 		15: "Distort"
 		16: "Hologram (Distort + fade)"
 		18: "Bulge Sideways"
