@@ -66,12 +66,13 @@ QC options:
         bool renameChrome = false;
         bool eager = false;
         int wadCache = 10;
-        float smoothing = 60.0f;
-        float timeout = 60.0f;
-        float qcScale = 1.0f;
+        float smoothing = 60.f;
+        float timeout = 60.f;
+        float clipThreshold = 4.f;
+        float qcScale = 1.f;
         float qcGamma = 1.8f;
-        float qcRotate = 270.0f;
-        float qcOffset[3] = { 0.0f, 0.0f, 0.0f };
+        float qcRotate = 270.f;
+        float qcOffset[3] = { 0.f, 0.f, 0.f };
         Extension extension;
         std::filesystem::path exeDir;
         std::filesystem::path inputFilepath;

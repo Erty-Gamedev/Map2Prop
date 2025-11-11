@@ -160,6 +160,7 @@ bool M2PConfig::ConfigFile::createConfigFile()
 
     m_file << R"CONFIG([default]
 smoothing threshold = 60.0
+clip threshold = 4.0
 rename chrome = no
 output directory = converted
 steam directory = C:/Program Files (x86)/Steam
@@ -167,7 +168,6 @@ game config = halflife
 studiomdl = %(steam directory)s/steamapps/common/Sven Co-op SDK/modelling/studiomdl.exe
 autocompile = yes
 timeout = 60.0
-autoexit = no
 wad cache = 10
 wad list = 
 ;Example wad list:

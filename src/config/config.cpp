@@ -44,6 +44,16 @@ static Logging::Logger& logger = Logging::Logger::getLogger("config");
 static inline void loadFromFileConfig(const M2PConfig::ConfigFile& configFile)
 {
     std::string value;
+
+    if (!(value = configFile.getConfig("smoothing threshold")).empty())
+        g_config.smoothing = std::stof(value);
+
+    if (!(value = configFile.getConfig("clip threshold")).empty())
+        g_config.clipThreshold = std::stof(value);
+
+    if (!(value = configFile.getConfig("rename chrome")).empty())
+        g_config.renameChrome = M2PUtils::strToBool(value);
+
     if (!(value = configFile.getConfig("output directory")).empty())
         g_config.outputDir = value;
 
