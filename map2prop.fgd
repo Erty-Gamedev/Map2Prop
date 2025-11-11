@@ -44,6 +44,7 @@
 	[
 		"": "No"
 		1: "Box"
+		2: "Cylinder"
 	]
 
 	rendermode(choices) : "Render Mode" : 0 =
