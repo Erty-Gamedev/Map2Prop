@@ -6,6 +6,10 @@
 #include "logging.h"
 #include "utils.h"
 
+#ifndef MAP2PROP_NAME_VERSION
+#define MAP2PROP_NAME_VERSION "Map2Prop v0.0.0"
+#endif
+
 namespace M2PConfig { Config g_config{}; }
 using M2PConfig::g_config;
 
@@ -138,7 +142,7 @@ void M2PConfig::handleArgs(int argc, char** argv)
     {
         if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)
         {
-            logger.log(NAME);
+            logger.log(MAP2PROP_NAME_VERSION);
             exit(EXIT_SUCCESS);
         }
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)

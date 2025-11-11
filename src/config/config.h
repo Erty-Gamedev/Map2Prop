@@ -8,8 +8,6 @@
 
 namespace M2PConfig
 {
-    static inline const char* NAME = { "Map2Prop v2.0.0" };
-
     static inline const char* USAGE =
 #ifdef _WIN32
     "Usage: Map2Prop input [options]\n"
