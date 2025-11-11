@@ -280,6 +280,10 @@ static inline void generateClip(std::ofstream& file, M2PEntity::Entity& entity, 
 		bb.max *= scale;
 	}
 
+	Vector3 boundsSize = bb.getSize();
+	if (boundsSize.x < g_config.clipThreshold && boundsSize.y < g_config.clipThreshold && boundsSize.z < g_config.clipThreshold)
+		return;
+
 	file << "{\n\"classname\" \"func_wall\"\n\"rendermode\" \"5\"\n\"renderamt\" \"200\"\n"
 		//file << "{\n\"classname\" \"func_detail\"\n"
 		<< "\"zhlt_detaillevel\" \"0\"\n\"zhlt_chopdown\" \"0\"\n"

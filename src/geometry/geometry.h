@@ -90,6 +90,7 @@ namespace M2PGeo {
         bool operator==(const Bounds& other) const { return min == other.min && max == other.max; };
 
         bool pointInside(Vector3 p) const;
+        Vector3 getSize() const { return max - min; }
     };
 
     bool pointInBounds(Vector3 point, const std::vector<Bounds>& bounds);
