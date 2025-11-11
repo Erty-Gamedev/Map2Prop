@@ -141,6 +141,11 @@ int Entity::getKeyInt(const std::string& key) const
 	return atoi(getKey(key).c_str());
 }
 
+FP Entity::getKeyFloat(const std::string& key) const
+{
+	return static_cast<FP>(atof(getKey(key).c_str()));
+}
+
 bool Entity::getKeyBool(const std::string& key) const
 {
 	return getKeyInt(key) != 0;

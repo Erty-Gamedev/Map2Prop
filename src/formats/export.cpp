@@ -12,6 +12,10 @@
 
 
 static inline Logging::Logger& logger = Logging::Logger::getLogger("export");
+static inline const char* entProps[] = {
+	"origin", "body", "rendermode", "renderamt", "rendercolor", "renderfx"
+};
+
 
 using M2PConfig::g_config;
 
@@ -235,6 +239,87 @@ static inline bool writeQc(const ModelData& model)
 
 	logger.debug("Successfully written " + filepath.string());
 	return true;
+}
+
+static inline void generateClip(std::ofstream& file, M2PEntity::Entity& entity, const std::unordered_map<std::string, M2PEntity::Entity*>& parentEntities)
+{
+	int clipGenType = entity.getKeyInt("clip_type");
+	if (clipGenType == 0) return;
+
+	Bounds bb;
+	FP scale;
+	if (entity.hasKey("parent_model") && !(entity.getKeyInt("spawnflags") & Spawnflags::IS_SUBMODEL))
+	{
+		M2PEntity::Entity& parent = *parentEntities.at(entity.getKey("parent_model"));
+		bb = parent.getBounds();
+
+		M2PGeo::Vector3 eOrigin, pOrigin, offset;
+		std::vector<std::string> eParts = M2PUtils::split(entity.getKey("origin"));
+		if (eParts.size() == 3)
+			eOrigin = { std::stof(eParts[0]), std::stof(eParts[1]), std::stof(eParts[2]) };
+
+		std::vector<std::string> pParts = M2PUtils::split(parent.getKey("origin"));
+		if (pParts.size() == 3)
+			pOrigin = { std::stof(pParts[0]), std::stof(pParts[1]), std::stof(pParts[2]) };
+
+		offset = eOrigin - pOrigin;
+		bb.min += offset;
+		bb.max += offset;
+
+		scale = parent.getKeyFloat("scale");
+	}
+	else
+	{
+		bb = entity.getBounds();
+		scale = entity.getKeyFloat("scale");
+	}
+
+	if (scale != .0 && scale != 1.)
+	{
+		bb.min *= scale;
+		bb.max *= scale;
+	}
+
+	file << "{\n\"classname\" \"func_wall\"\n\"rendermode\" \"5\"\n\"renderamt\" \"200\"\n"
+		//file << "{\n\"classname\" \"func_detail\"\n"
+		<< "\"zhlt_detaillevel\" \"0\"\n\"zhlt_chopdown\" \"0\"\n"
+		<< "\"zhlt_chopup\" \"0\"\n\"zhlt_coplanarpriority\" \"1\"\n"
+		<< "\"zhlt_clipnodedetaillevel\" \"1\"\n{\n";
+
+	switch (clipGenType)
+	{
+	case ClipGenType::BOX:
+		file << std::format(
+			"( {3:.6g} {4:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {0:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {3:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {0:.6g} {4:.6g} {5:.6g} ) ( {0:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {0:.6g} {4:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
+			"( {3:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n",
+			bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z);
+		break;
+	case ClipGenType::CYLINDER:
+		Bounds bc{ bb.min * c_SIN45, bb.max * c_SIN45 };
+		Vector3 center = (bb.min + bb.max) / 2;
+
+		file << std::format(
+			"( {12:.6g} {1:.6g} {2:.6g} ) ( {9:.6g} {7:.6g} {2:.6g} ) ( {6:.6g} {7:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
+			"( {9:.6g} {10:.6g} {5:.6g} ) ( {3:.6g} {13:.6g} {5:.6g} ) ( {12:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
+			"( {9:.6g} {7:.6g} {2:.6g} ) ( {9:.6g} {7:.6g} {5:.6g} ) ( {3:.6g} {13:.6g} {2:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {12:.6g} {1:.6g} {2:.6g} ) ( {12:.6g} {1:.6g} {5:.6g} ) ( {9:.6g} {7:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {6:.6g} {7:.6g} {2:.6g} ) ( {6:.6g} {7:.6g} {5:.6g} ) ( {12:.6g} {1:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {0:.6g} {13:.6g} {2:.6g} ) ( {0:.6g} {13:.6g} {5:.6g} ) ( {6:.6g} {7:.6g} {2:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {6:.6g} {10:.6g} {2:.6g} ) ( {6:.6g} {10:.6g} {5:.6g} ) ( {0:.6g} {13:.6g} {2:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {12:.6g} {4:.6g} {2:.6g} ) ( {12:.6g} {4:.6g} {5:.6g} ) ( {6:.6g} {10:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {9:.6g} {10:.6g} {2:.6g} ) ( {9:.6g} {10:.6g} {5:.6g} ) ( {12:.6g} {4:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {3:.6g} {13:.6g} {2:.6g} ) ( {3:.6g} {13:.6g} {5:.6g} ) ( {9:.6g} {10:.6g} {2:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n",
+			bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z,
+			bc.min.x, bc.min.y, bc.min.z, bc.max.x, bc.max.y, bc.max.z,
+			center.x, center.y, center.z);
+		break;
+	}
+
+	file << "}\n}\n";
 }
 
 
@@ -595,10 +680,6 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 	return returnCodes;
 }
 
-const char* entProps[6] = {
-	"origin", "body", "rendermode", "renderamt", "rendercolor", "renderfx"
-};
-
 void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &entities)
 {
 	std::string stem = g_config.inputFilepath.stem().string();
@@ -678,70 +759,8 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 			entity->setKey("model", parentEntities.at(entity->getKey("parent_model"))->getKey("model"));
 		}
 
+		generateClip(file, *entity, parentEntities);
 
-		int clipGenType = entity->getKeyInt("clip_type");
-		if (clipGenType > 0)
-		{
-			Bounds bb;
-			if (entity->hasKey("parent_model") && !(entity->getKeyInt("spawnflags") & Spawnflags::IS_SUBMODEL))
-			{
-				M2PEntity::Entity& parent = *parentEntities.at(entity->getKey("parent_model"));
-				bb = parent.getBounds();
-
-				M2PGeo::Vector3 eOrigin, pOrigin, offset;
-				std::vector<std::string> eParts = M2PUtils::split(entity->getKey("origin"));
-				if (eParts.size() == 3)
-					eOrigin = { std::stof(eParts[0]), std::stof(eParts[1]), std::stof(eParts[2]) };
-
-				std::vector<std::string> pParts = M2PUtils::split(parent.getKey("origin"));
-				if (pParts.size() == 3)
-					pOrigin = { std::stof(pParts[0]), std::stof(pParts[1]), std::stof(pParts[2]) };
-
-				offset = eOrigin - pOrigin;
-				bb.min += offset;
-				bb.max += offset;
-			} else { bb = entity->getBounds(); }
-
-			file << "{\n\"classname\" \"func_detail\"\n"
-				<< "\"zhlt_detaillevel\" \"0\"\n\"zhlt_chopdown\" \"0\"\n"
-				<< "\"zhlt_chopup\" \"0\"\n\"zhlt_coplanarpriority\" \"1\"\n"
-				<< "\"zhlt_clipnodedetaillevel\" \"1\"\n{\n";
-
-			switch (clipGenType)
-			{
-			case ClipGenType::BOX:
-				file << std::format(
-					"( {3:.6g} {4:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {0:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {3:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {0:.6g} {4:.6g} {5:.6g} ) ( {0:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {0:.6g} {4:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
-					"( {3:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n",
-					bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z);
-				break;
-			case ClipGenType::CYLINDER:
-				Bounds bc{ bb.min * c_SIN45, bb.max * c_SIN45 };
-				Vector3 center = (bb.min + bb.max) / 2;
-
-				file << std::format(
-					"( {12:.6g} {1:.6g} {2:.6g} ) ( {9:.6g} {7:.6g} {2:.6g} ) ( {6:.6g} {7:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
-					"( {9:.6g} {10:.6g} {5:.6g} ) ( {3:.6g} {13:.6g} {5:.6g} ) ( {12:.6g} {4:.6g} {5:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
-					"( {9:.6g} {7:.6g} {2:.6g} ) ( {9:.6g} {7:.6g} {5:.6g} ) ( {3:.6g} {13:.6g} {2:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {12:.6g} {1:.6g} {2:.6g} ) ( {12:.6g} {1:.6g} {5:.6g} ) ( {9:.6g} {7:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {6:.6g} {7:.6g} {2:.6g} ) ( {6:.6g} {7:.6g} {5:.6g} ) ( {12:.6g} {1:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {0:.6g} {13:.6g} {2:.6g} ) ( {0:.6g} {13:.6g} {5:.6g} ) ( {6:.6g} {7:.6g} {2:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {6:.6g} {10:.6g} {2:.6g} ) ( {6:.6g} {10:.6g} {5:.6g} ) ( {0:.6g} {13:.6g} {2:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {12:.6g} {4:.6g} {2:.6g} ) ( {12:.6g} {4:.6g} {5:.6g} ) ( {6:.6g} {10:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {9:.6g} {10:.6g} {2:.6g} ) ( {9:.6g} {10:.6g} {5:.6g} ) ( {12:.6g} {4:.6g} {2:.6g} ) GENERIC015V [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
-					"( {3:.6g} {13:.6g} {2:.6g} ) ( {3:.6g} {13:.6g} {5:.6g} ) ( {9:.6g} {10:.6g} {2:.6g} ) GENERIC015V [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n",
-					bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z,
-					bc.min.x, bc.min.y, bc.min.z, bc.max.x, bc.max.y, bc.max.z,
-					center.x, center.y, center.z);
-				break;
-			}
-
-			file << "}\n}\n";
-		}
 
 		std::string newClass = entity->hasKey("convert_to") ? entity->getKey("convert_to") : "env_sprite";
 

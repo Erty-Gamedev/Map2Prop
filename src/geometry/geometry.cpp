@@ -117,6 +117,11 @@ Vector3 Vector3::operator*(const FP other) const
 {
 	return Vector3(x * other, y * other, z * other);
 }
+Vector3& Vector3::operator*=(const FP other)
+{
+	x *= other;    y *= other;    z *= other;
+	return *this;
+}
 Vector3 Vector3::operator/(const Vector3& other) const
 {
 	return Vector3(x / other.x, y / other.y, z / other.z);
