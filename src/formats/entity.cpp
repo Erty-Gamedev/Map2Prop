@@ -30,6 +30,16 @@ bool Brush::isToolBrush(ToolTexture toolTexture) const
 	return true;
 }
 
+bool Brush::isToolBrushAny() const
+{
+	for (const auto& face : faces)
+	{
+		if (!M2PUtils::contains(c_toolTextures, M2PUtils::toLowerCase(face.texture.name)))
+			return false;
+	}
+	return true;
+}
+
 bool Brush::hasContentWater() const
 {
 	for (const auto& face : faces)
