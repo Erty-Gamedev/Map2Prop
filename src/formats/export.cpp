@@ -302,8 +302,9 @@ static inline void generateClip(std::ofstream& file, M2PEntity::Entity& entity, 
 			bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z);
 		break;
 	case ClipGenType::CYLINDER:
-		Bounds bc{ bb.min * c_SIN45, bb.max * c_SIN45 };
+		Vector3 boundsCornerSize = boundsSize * .5 * c_SIN45;
 		Vector3 center = (bb.min + bb.max) / 2;
+		Bounds bc{ center - boundsCornerSize, center + boundsCornerSize };
 
 		file << std::format(
 			"( {12:.6g} {1:.6g} {2:.6g} ) ( {9:.6g} {7:.6g} {2:.6g} ) ( {6:.6g} {7:.6g} {2:.6g} ) CLIP [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
