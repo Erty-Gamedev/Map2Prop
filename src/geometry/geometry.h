@@ -70,6 +70,7 @@ namespace M2PGeo {
         Vector3& operator-=(const Vector3& other);
         Vector3 operator*(const Vector3& other) const;
         Vector3 operator*(const FP other) const;
+        Vector3& operator*=(const FP other);
         Vector3 operator/(const Vector3& other) const;
         Vector3 operator/(const FP other) const;
         Vector3 operator/(const int other) const;
@@ -89,6 +90,7 @@ namespace M2PGeo {
         bool operator==(const Bounds& other) const { return min == other.min && max == other.max; };
 
         bool pointInside(Vector3 p) const;
+        Vector3 getSize() const { return max - min; }
     };
 
     bool pointInBounds(Vector3 point, const std::vector<Bounds>& bounds);

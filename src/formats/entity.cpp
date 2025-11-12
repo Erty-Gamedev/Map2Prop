@@ -30,6 +30,16 @@ bool Brush::isToolBrush(ToolTexture toolTexture) const
 	return true;
 }
 
+bool Brush::isToolBrushAny() const
+{
+	for (const auto& face : faces)
+	{
+		if (!M2PUtils::contains(c_toolTextures, M2PUtils::toLowerCase(face.texture.name)))
+			return false;
+	}
+	return true;
+}
+
 bool Brush::hasContentWater() const
 {
 	for (const auto& face : faces)
@@ -141,7 +151,94 @@ int Entity::getKeyInt(const std::string& key) const
 	return atoi(getKey(key).c_str());
 }
 
+FP Entity::getKeyFloat(const std::string& key) const
+{
+	return static_cast<FP>(atof(getKey(key).c_str()));
+}
+
 bool Entity::getKeyBool(const std::string& key) const
 {
 	return getKeyInt(key) != 0;
+}
+
+M2PGeo::Vector3 Entity::getOrigin() const
+{
+	std::vector<std::string> parts = M2PUtils::split(getKey("origin"));
+	if (parts.size() != 3)
+		return M2PGeo::Vector3::zero();
+	return { std::stof(parts[0]), std::stof(parts[1]), std::stof(parts[2]) };
+}
+
+M2PGeo::Bounds Entity::getBounds() const
+{
+	if (brushes.empty())
+		return M2PGeo::Bounds::zero();
+
+	M2PGeo::Bounds bounds;
+
+	// Find first non-tool brush
+	for (const auto& brush : brushes)
+	{
+		if (!brush->isToolBrushAny())
+		{
+			bounds = brush->getBounds();
+			break;
+		}
+	}
+
+	for (const auto& brush : brushes)
+	{
+		if (brush->isToolBrushAny())
+			continue;
+
+		M2PGeo::Bounds current = brush->getBounds();
+		if (current.min.x < bounds.min.x) bounds.min.x = current.min.x;
+		if (current.min.y < bounds.min.y) bounds.min.y = current.min.y;
+		if (current.min.z < bounds.min.z) bounds.min.z = current.min.z;
+
+		if (current.max.x > bounds.max.x) bounds.max.x = current.max.x;
+		if (current.max.y > bounds.max.y) bounds.max.y = current.max.y;
+		if (current.max.z > bounds.max.z) bounds.max.z = current.max.z;
+	}
+
+	return bounds;
+}
+
+M2PGeo::Bounds Entity::getCustomBounds() const
+{
+	std::string cMin = getKey("customclip_min"), cMax = getKey("customclip_max");
+	if (cMin.empty() || cMax.empty())
+		return M2PGeo::Bounds::zero();
+
+	std::vector<std::string> minParts = M2PUtils::split(cMin);
+	std::vector<std::string> maxParts = M2PUtils::split(cMax);
+
+	if (minParts.size() != 3 || maxParts.size() != 3)
+		return M2PGeo::Bounds::zero();
+
+	M2PGeo::Bounds bounds{
+		{ std::stof(minParts[0]), std::stof(minParts[1]), std::stof(minParts[2]) },
+		{ std::stof(maxParts[0]), std::stof(maxParts[1]), std::stof(maxParts[2]) }
+	};
+
+
+	M2PGeo::Vector3 cBoundsSize = bounds.getSize() / 2;
+	M2PGeo::Vector3 entOrigin = getOrigin();
+	M2PGeo::Vector3 boundsCenter;
+
+	if (getKeyBool("customclip_align"))
+	{
+		M2PGeo::Bounds entBounds = getBounds();
+		if (entBounds == M2PGeo::Bounds::zero())
+			boundsCenter = entOrigin;
+		else
+			boundsCenter = (entBounds.min + entBounds.max) / 2;
+	}
+	else
+	{
+		boundsCenter = getOrigin();
+		boundsCenter.z += cBoundsSize.z;
+	}
+
+	return { boundsCenter - cBoundsSize, boundsCenter + cBoundsSize };
 }

@@ -12,12 +12,19 @@ namespace M2PExport
 {
 	static inline const char* c_NOTE_KEY{ "_note" };
 	static inline const char* c_NOTE_VALUE{ "Modified by Map2Prop" };
+	static inline const FP c_SIN45 = static_cast<FP>(sin(std::numbers::pi / 4));
 
 	enum Spawnflags
 	{
 		DISABLE = 1,
 		IS_SUBMODEL = 2,
 		RENAME_CHROME = 4,
+	};
+
+	enum ClipGenType
+	{
+		BOX = 1,
+		CYLINDER = 2,
 	};
 
 	struct ModelData

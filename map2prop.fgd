@@ -40,4 +40,62 @@
 		"": "No (calculate bottom-center)"
 		1: "Yes"
 	]
+	clip_type(choices) : "Generate clipping?" : "" =
+	[
+		"": "No"
+		1: "Box"
+		2: "Cylinder"
+	]
+	customclip_min(choices) : "Custom clip box (min)" : "" =
+	[
+		"": "Default (fit)"
+		"-16 -16 0" : "Crouch (32, 32, 36)"
+		"-16 -16 0" : "Standing (32, 32, 72)"
+		"-32 -32 0" : "Big (64, 64, 64)"
+	]
+	customclip_max(choices) : "Custom clip box (max)" : "" =
+	[
+		"": "Default (fit)"
+		"16 16 36" : "Crouch (32, 32, 36)"
+		"16 16 72" : "Standing (32, 32, 72)"
+		"32 32 64" : "Big (64, 64, 64)"
+	]
+	customclip_align(choices) : "Custom clip box alignment" : "" =
+	[
+		"": "Bottom"
+		1 : "Center"
+	]
+
+	rendermode(choices) : "Render Mode" : 0 =
+	[
+		0: "Normal"
+		1: "Color"
+		2: "Texture"
+		3: "Glow"
+		4: "Solid"
+		5: "Additive"
+	]
+	renderamt(integer) : "FX Amount (0 - 255)"
+	rendercolor(color255) : "FX Color (R G B)" : "0 0 0"
+	renderfx(choices) :"Render FX" : 0 =
+	[
+		0: "Normal"
+		1: "Slow Pulse"
+		2: "Fast Pulse"
+		3: "Slow Wide Pulse"
+		4: "Fast Wide Pulse"
+		9: "Slow Strobe"
+		10: "Fast Strobe"
+		11: "Faster Strobe"
+		12: "Slow Flicker"
+		13: "Fast Flicker"
+		5: "Slow Fade Away"
+		6: "Fast Fade Away"
+		7: "Slow Become Solid"
+		8: "Fast Become Solid"
+		15: "Distort"
+		16: "Hologram (Distort + fade)"
+		18: "Bulge Sideways"
+		19: "Glow Shell"
+	]
 ]

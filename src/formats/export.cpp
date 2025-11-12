@@ -12,6 +12,10 @@
 
 
 static inline Logging::Logger& logger = Logging::Logger::getLogger("export");
+static inline const char* entProps[] = {
+	"origin", "body", "rendermode", "renderamt", "rendercolor", "renderfx"
+};
+
 
 using M2PConfig::g_config;
 
@@ -51,7 +55,6 @@ static inline void renameChrome(ModelData& model)
 	}
 }
 
-
 static inline void applySmooth(ModelData& model)
 {
 	model.mesh.markSmoothEdges(model.smoothing, model.alwaysSmooth, model.neverSmooth);
@@ -60,6 +63,7 @@ static inline void applySmooth(ModelData& model)
 		if (pVertex)
 			model.mesh.getSmoothFansByVertex(*pVertex);
 }
+
 
 static inline int compileModel(const ModelData& model)
 {
@@ -110,7 +114,6 @@ static inline void writeSmdFace(std::ofstream& file, std::array<M2PHalfEdge::Ver
 		file << "\n";
 	}
 }
-
 
 static inline bool writeSmd(const ModelData& model)
 {
@@ -236,6 +239,113 @@ static inline bool writeQc(const ModelData& model)
 
 	logger.debug("Successfully written " + filepath.string());
 	return true;
+}
+
+static inline void generateClip(std::ofstream& file, M2PEntity::Entity& entity, const std::unordered_map<std::string, M2PEntity::Entity*>& parentEntities)
+{
+	int clipGenType = entity.getKeyInt("clip_type");
+	if (clipGenType == 0) return;
+
+	Bounds bb = entity.getCustomBounds();
+	bool isCustom = bb != Bounds::zero();
+	FP scale;
+
+	if (entity.hasKey("parent_model") && !(entity.getKeyInt("spawnflags") & Spawnflags::IS_SUBMODEL))
+	{
+		M2PEntity::Entity& parent = *parentEntities.at(entity.getKey("parent_model"));
+
+		M2PGeo::Vector3 eOrigin = entity.getOrigin();
+		scale = parent.getKeyFloat("scale");
+
+		Vector3 offset;
+		if (!isCustom)
+		{
+			bb = parent.getCustomBounds();
+			if (bb == Bounds::zero())
+				bb = parent.getBounds();
+			else
+				isCustom = true;
+
+			M2PGeo::Vector3 pOrigin = parent.getOrigin();
+			offset = eOrigin - pOrigin;
+			bb.min += offset;
+			bb.max += offset;
+		}
+
+		if (isCustom && !entity.getKeyBool("customclip_align"))
+		{
+			Vector3 entBoundsSize = parent.getBounds().getSize() * .5 * scale;
+			offset = { 0., 0., eOrigin.z - bb.min.z };
+
+			bb.min += offset;
+			bb.max += offset;
+		}
+	}
+	else
+	{
+		if (bb == Bounds::zero())
+			bb = entity.getBounds();
+
+		scale = entity.getKeyFloat("scale");
+
+		if (isCustom && !entity.getKeyBool("customclip_align"))
+		{
+			Vector3 entBoundsSize = entity.getBounds().getSize() * .5 * scale;
+			bb.min.z -= entBoundsSize.z;
+			bb.max.z -= entBoundsSize.z;
+		}
+	}
+
+	if (!isCustom && scale != .0 && scale != 1.)
+	{
+		bb.min *= scale;
+		bb.max *= scale;
+	}
+
+	Vector3 boundsSize = bb.getSize();
+	if (boundsSize.x < g_config.clipThreshold && boundsSize.y < g_config.clipThreshold && boundsSize.z < g_config.clipThreshold)
+		return;
+
+	file << "{\n\"classname\" \"func_detail\"\n"
+		<< "\"zhlt_detaillevel\" \"0\"\n\"zhlt_chopdown\" \"0\"\n"
+		<< "\"zhlt_chopup\" \"0\"\n\"zhlt_coplanarpriority\" \"1\"\n"
+		<< "\"zhlt_clipnodedetaillevel\" \"1\"\n{\n";
+
+	switch (clipGenType)
+	{
+	case ClipGenType::BOX:
+		file << std::format(
+			"( {3:.6g} {4:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {1:.6g} {5:.6g} ) CLIP [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {0:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {4:.6g} {5:.6g} ) CLIP [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {3:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {1:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) CLIP [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {0:.6g} {4:.6g} {5:.6g} ) ( {0:.6g} {4:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) CLIP [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {0:.6g} {4:.6g} {2:.6g} ) ( {0:.6g} {1:.6g} {2:.6g} ) ( {3:.6g} {4:.6g} {2:.6g} ) CLIP [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
+			"( {3:.6g} {1:.6g} {5:.6g} ) ( {0:.6g} {1:.6g} {5:.6g} ) ( {3:.6g} {4:.6g} {5:.6g} ) CLIP [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n",
+			bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z);
+		break;
+	case ClipGenType::CYLINDER:
+		Vector3 boundsCornerSize = boundsSize * .5 * c_SIN45;
+		Vector3 center = (bb.min + bb.max) / 2;
+		Bounds bc{ center - boundsCornerSize, center + boundsCornerSize };
+
+		file << std::format(
+			"( {12:.6g} {1:.6g} {2:.6g} ) ( {9:.6g} {7:.6g} {2:.6g} ) ( {6:.6g} {7:.6g} {2:.6g} ) CLIP [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
+			"( {9:.6g} {10:.6g} {5:.6g} ) ( {3:.6g} {13:.6g} {5:.6g} ) ( {12:.6g} {4:.6g} {5:.6g} ) CLIP [ 1 0 0 0 ] [ 0 -1 0 0 ] 0 1 1\n"\
+			"( {9:.6g} {7:.6g} {2:.6g} ) ( {9:.6g} {7:.6g} {5:.6g} ) ( {3:.6g} {13:.6g} {2:.6g} ) CLIP [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {12:.6g} {1:.6g} {2:.6g} ) ( {12:.6g} {1:.6g} {5:.6g} ) ( {9:.6g} {7:.6g} {2:.6g} ) CLIP [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {6:.6g} {7:.6g} {2:.6g} ) ( {6:.6g} {7:.6g} {5:.6g} ) ( {12:.6g} {1:.6g} {2:.6g} ) CLIP [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {0:.6g} {13:.6g} {2:.6g} ) ( {0:.6g} {13:.6g} {5:.6g} ) ( {6:.6g} {7:.6g} {2:.6g} ) CLIP [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {6:.6g} {10:.6g} {2:.6g} ) ( {6:.6g} {10:.6g} {5:.6g} ) ( {0:.6g} {13:.6g} {2:.6g} ) CLIP [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {12:.6g} {4:.6g} {2:.6g} ) ( {12:.6g} {4:.6g} {5:.6g} ) ( {6:.6g} {10:.6g} {2:.6g} ) CLIP [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {9:.6g} {10:.6g} {2:.6g} ) ( {9:.6g} {10:.6g} {5:.6g} ) ( {12:.6g} {4:.6g} {2:.6g} ) CLIP [ 1 0 0 0 ] [ 0 0 -1 0 ] 0 1 1\n"\
+			"( {3:.6g} {13:.6g} {2:.6g} ) ( {3:.6g} {13:.6g} {5:.6g} ) ( {9:.6g} {10:.6g} {2:.6g} ) CLIP [ 0 1 0 0 ] [ 0 0 -1 0 ] 0 1 1\n",
+			bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z,
+			bc.min.x, bc.min.y, bc.min.z, bc.max.x, bc.max.y, bc.max.z,
+			center.x, center.y, center.z);
+		break;
+	}
+
+	file << "}\n}\n";
 }
 
 
@@ -615,7 +725,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 
 	logger.info("Converting func_map2prop entities");
 
-	std::unordered_map<std::string, std::string> parentModels;
+	std::unordered_map<std::string, M2PEntity::Entity*> parentEntities;
 	for (std::unique_ptr<M2PEntity::Entity> &entity : entities)
 	{
 		if (entity->classname != "func_map2prop")
@@ -624,7 +734,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 		if (!entity->hasKey("targetname"))
 			continue;
 
-		if (parentModels.contains(entity->getKey("targetname")))
+		if (parentEntities.contains(entity->getKey("targetname")))
 		{
 			logger.info(std::format(
 				"Naming conflict: Multiple func_map2prop entities with name \"{}\". "
@@ -637,7 +747,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 		// Reset entity angles, as they're baked into the model now
 		entity->setKey("angles", "0 0 0");
 
-		parentModels[entity->getKey("targetname")] = entity->getKey("model");
+		parentEntities[entity->getKey("targetname")] = entity.get();
 	}
 
 	logger.info("Writing modified MAP as " + filepath.string());
@@ -659,21 +769,24 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 		}
 
 		// Entity is disabled, skip
-		if (entity->getKeyInt("spawnflags") & 1)
+		if (entity->getKeyInt("spawnflags") & Spawnflags::DISABLE)
 			continue;
 
 		if (entity->hasKey("parent_model"))
 		{
-			std::string parentModel = entity->getKey("parent_model");
+			std::string parent = entity->getKey("parent_model");
 
-			if (!parentModels.contains(parentModel))
+			if (!parentEntities.contains(parent))
 			{
-				logger.warning("Parent model with targetname \"" + parentModel + "\" not found");
+				logger.warning("Parent model with targetname \"" + parent + "\" not found");
 				continue;
 			}
 
-			entity->setKey("model", parentModels.at(entity->getKey("parent_model")));
+			entity->setKey("model", parentEntities.at(entity->getKey("parent_model"))->getKey("model"));
 		}
+
+		generateClip(file, *entity, parentEntities);
+
 
 		std::string newClass = entity->hasKey("convert_to") ? entity->getKey("convert_to") : "env_sprite";
 
@@ -698,11 +811,9 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 			file << "\"angles\" \"360 " << parts.at(1) << " 360\"\n";
 		}
 
-		if (entity->hasKey("origin"))
-			file << "\"origin\" \"" << entity->getKey("origin") << "\"\n";
-
-		if (entity->hasKey("body"))
-			file << "\"body\" \"" << entity->getKey("body") << "\"\n";
+		for (const auto& renderProp : entProps)
+			if (entity->hasKey(renderProp))
+				file << "\"" << renderProp << "\" \"" << entity->getKey(renderProp) << "\"\n";
 
 		file << "}\n";
 	}

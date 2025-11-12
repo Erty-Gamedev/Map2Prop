@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <vector>
 #include <string>
 #include "geometry.h"
@@ -6,6 +7,10 @@
 
 namespace M2PEntity
 {
+    static inline std::array<std::string, 6> c_toolTextures{
+        "bevel", "boundingbox", "clip", "clipbevel", "contentwater", "origin"
+    };
+
     enum ToolTexture
     {
         BEVEL,
@@ -30,6 +35,7 @@ namespace M2PEntity
         std::string raw;
 
         bool isToolBrush(ToolTexture toolTexture) const;
+        bool isToolBrushAny() const;
         bool hasContentWater() const;
         M2PGeo::Bounds getBounds() const;
         M2PGeo::Vector3 getCenter() const;
@@ -49,7 +55,11 @@ namespace M2PEntity
         std::string getKey(const std::string& key) const;
         void setKey(const std::string& key, const std::string& value);
         int getKeyInt(const std::string& key) const;
+        FP getKeyFloat(const std::string& key) const;
         bool getKeyBool(const std::string& key) const;
+        M2PGeo::Vector3 getOrigin() const;
+        M2PGeo::Bounds getBounds() const;
+        M2PGeo::Bounds getCustomBounds() const;
         virtual std::string toString() const;
     };
 
