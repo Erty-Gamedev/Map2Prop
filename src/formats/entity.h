@@ -57,7 +57,9 @@ namespace M2PEntity
         int getKeyInt(const std::string& key) const;
         FP getKeyFloat(const std::string& key) const;
         bool getKeyBool(const std::string& key) const;
+        M2PGeo::Vector3 getOrigin() const;
         M2PGeo::Bounds getBounds() const;
+        M2PGeo::Bounds getCustomBounds() const;
         virtual std::string toString() const;
     };
 

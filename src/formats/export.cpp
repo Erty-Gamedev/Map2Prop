@@ -246,35 +246,57 @@ static inline void generateClip(std::ofstream& file, M2PEntity::Entity& entity, 
 	int clipGenType = entity.getKeyInt("clip_type");
 	if (clipGenType == 0) return;
 
-	Bounds bb;
+	Bounds bb = entity.getCustomBounds();
+	bool isCustom = bb != Bounds::zero();
 	FP scale;
+
 	if (entity.hasKey("parent_model") && !(entity.getKeyInt("spawnflags") & Spawnflags::IS_SUBMODEL))
 	{
 		M2PEntity::Entity& parent = *parentEntities.at(entity.getKey("parent_model"));
-		bb = parent.getBounds();
 
-		M2PGeo::Vector3 eOrigin, pOrigin, offset;
-		std::vector<std::string> eParts = M2PUtils::split(entity.getKey("origin"));
-		if (eParts.size() == 3)
-			eOrigin = { std::stof(eParts[0]), std::stof(eParts[1]), std::stof(eParts[2]) };
-
-		std::vector<std::string> pParts = M2PUtils::split(parent.getKey("origin"));
-		if (pParts.size() == 3)
-			pOrigin = { std::stof(pParts[0]), std::stof(pParts[1]), std::stof(pParts[2]) };
-
-		offset = eOrigin - pOrigin;
-		bb.min += offset;
-		bb.max += offset;
-
+		M2PGeo::Vector3 eOrigin = entity.getOrigin();
 		scale = parent.getKeyFloat("scale");
+
+		Vector3 offset;
+		if (!isCustom)
+		{
+			bb = parent.getCustomBounds();
+			if (bb == Bounds::zero())
+				bb = parent.getBounds();
+			else
+				isCustom = true;
+
+			M2PGeo::Vector3 pOrigin = parent.getOrigin();
+			offset = eOrigin - pOrigin;
+			bb.min += offset;
+			bb.max += offset;
+		}
+
+		if (isCustom && !entity.getKeyBool("customclip_align"))
+		{
+			Vector3 entBoundsSize = parent.getBounds().getSize() * .5 * scale;
+			offset = { 0., 0., eOrigin.z - bb.min.z };
+
+			bb.min += offset;
+			bb.max += offset;
+		}
 	}
 	else
 	{
-		bb = entity.getBounds();
+		if (bb == Bounds::zero())
+			bb = entity.getBounds();
+
 		scale = entity.getKeyFloat("scale");
+
+		if (isCustom && !entity.getKeyBool("customclip_align"))
+		{
+			Vector3 entBoundsSize = entity.getBounds().getSize() * .5 * scale;
+			bb.min.z -= entBoundsSize.z;
+			bb.max.z -= entBoundsSize.z;
+		}
 	}
 
-	if (scale != .0 && scale != 1.)
+	if (!isCustom && scale != .0 && scale != 1.)
 	{
 		bb.min *= scale;
 		bb.max *= scale;

@@ -46,6 +46,25 @@
 		1: "Box"
 		2: "Cylinder"
 	]
+	customclip_min(choices) : "Custom clip box (min)" : "" =
+	[
+		"": "Default (fit)"
+		"-16 -16 0" : "Crouch (32, 32, 36)"
+		"-16 -16 0" : "Standing (32, 32, 72)"
+		"-32 -32 0" : "Big (64, 64, 64)"
+	]
+	customclip_max(choices) : "Custom clip box (max)" : "" =
+	[
+		"": "Default (fit)"
+		"16 16 36" : "Crouch (32, 32, 36)"
+		"16 16 72" : "Standing (32, 32, 72)"
+		"32 32 64" : "Big (64, 64, 64)"
+	]
+	customclip_align(choices) : "Custom clip box alignment" : "" =
+	[
+		"": "Bottom"
+		1 : "Center"
+	]
 
 	rendermode(choices) : "Render Mode" : 0 =
 	[
