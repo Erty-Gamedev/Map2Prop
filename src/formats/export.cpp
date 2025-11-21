@@ -15,6 +15,7 @@ static inline Logging::Logger& logger = Logging::Logger::getLogger("export");
 static inline const char* entProps[] = {
 	"origin", "body", "rendermode", "renderamt", "rendercolor", "renderfx"
 };
+static inline M2PExport::MapCompileStats stats{};
 
 
 using M2PConfig::g_config;
@@ -701,6 +702,8 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 		if (!returnCode)
 			successes.emplace_back(fs::path{ model.subdir } / (model.outname + ".mdl"));
 		returnCodes += returnCode;
+
+		stats.countModels++;
 	}
 
 	return returnCodes;
@@ -708,6 +711,8 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 
 void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &entities)
 {
+	stats.clear();
+
 	std::string stem = g_config.inputFilepath.stem().string();
 
 	fs::path filepath;
@@ -753,7 +758,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 	logger.info("Writing modified MAP as " + filepath.string());
 
 	std::ofstream file{ filepath };
-	if (!file.good())
+	if (!file.is_open() || !file.good())
 	{
 		logger.error("Could not open \"" + filepath.string() + "\" for writing");
 		return;
@@ -783,7 +788,11 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 			}
 
 			entity->setKey("model", parentEntities.at(entity->getKey("parent_model"))->getKey("model"));
+
+			stats.countSubmodels++;
 		}
+
+		stats.entitiesReplaced++;
 
 		generateClip(file, *entity, parentEntities);
 
@@ -818,5 +827,40 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 		file << "}\n";
 	}
 
+	stats.write();
 	logger.info("MAP successfully written. Ready for CSG");
 }
+
+void M2PExport::MapCompileStats::clear()
+{
+	fs::path filepath{ g_config.inputFilepath };
+	filepath.replace_extension(".m2ps");
+
+	if (fs::exists(filepath) && !fs::remove(filepath))
+		logger.warning("Could not clear success log %s", filepath.string().c_str());
+}
+
+bool M2PExport::MapCompileStats::write()
+{
+	fs::path filepath{ g_config.inputFilepath };
+	filepath.replace_extension(".m2ps");
+
+	std::ofstream file{ filepath };
+	if (!file.is_open() || !file.good())
+	{
+		logger.error("Could not write success log to %s", filepath.string().c_str());
+		return false;
+	}
+
+	file << "Mapcompile statitics:\n"
+		<< "Models created: " << stats.countModels << "\n"
+		<< "Submodels created: " << stats.countSubmodels << "\n"
+		<< "Entities replaced: " << stats.entitiesReplaced << "\n";
+
+	bool res = file.good();
+	file.close();
+
+	return res;
+}
+
+bool M2PExport::writeMapCompileStats() { return stats.write(); }
