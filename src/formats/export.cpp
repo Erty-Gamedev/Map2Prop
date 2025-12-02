@@ -275,7 +275,6 @@ static inline void generateClip(std::ofstream& file, M2PEntity::Entity& entity, 
 
 		if (isCustom && !entity.getKeyBool("customclip_align"))
 		{
-			Vector3 entBoundsSize = parent.getBounds().getSize() * .5 * scale;
 			offset = { 0., 0., eOrigin.z - bb.min.z };
 
 			bb.min += offset;
