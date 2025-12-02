@@ -12,8 +12,9 @@
 
 
 static inline Logging::Logger& logger = Logging::Logger::getLogger("export");
-static inline const char* entProps[] = {
-	"origin", "body", "rendermode", "renderamt", "rendercolor", "renderfx"
+static inline const char* m2pKeys[] = {
+	"outname", "subdir", "gamma", "smoothing", "qc_flags", "parent_model", "own_model", "chrome",
+	"convert_to", "use_world_origin", "clip_type", "customclip_min", "customclip_max", "customclip_align"
 };
 static inline M2PExport::MapCompileStats stats{};
 
@@ -799,32 +800,28 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 
 		std::string newClass = entity->hasKey("convert_to") ? entity->getKey("convert_to") : "env_sprite";
 
+		entity->setKey("classname", newClass);
+
 		int spawnflags = 0;
 		if (newClass.starts_with("monster_"))
 			spawnflags |= 16; // Prisoner
 		if (newClass == "monster_generic")
 			spawnflags |= 4;  // Not solid
-
-		file << "{\n\"classname\" \"" << newClass << "\"\n";
-		file << "\"model\" \"" << entity->getKey("model") << "\"\n";
+		if (newClass == "env_sprite")
+			entity->setKey("scale", "1.0");
 
 		if (spawnflags)
-			file << "\"spawnflags\" \"" << spawnflags << "\"\n";
-
-		if (entity->hasKey("targetname"))
-			file << "\"targetname\" \"" << entity->getKey("targetname") << "\"\n";
+			entity->setKey("spawnflags", std::to_string(spawnflags));
+		else
+			entity->removeKey("spawnflags");
 
 		if (entity->hasKey("angles"))
-		{
-			std::vector<std::string> parts = M2PUtils::split(entity->getKey("angles"));
-			file << "\"angles\" \"360 " << parts.at(1) << " 360\"\n";
-		}
+			entity->setKey("angles", "360 " + entity->getYaw() + " 360");
 
-		for (const auto& renderProp : entProps)
-			if (entity->hasKey(renderProp))
-				file << "\"" << renderProp << "\" \"" << entity->getKey(renderProp) << "\"\n";
+		for (const auto& skipKey : m2pKeys)
+			entity->removeKey(skipKey);
 
-		file << "}\n";
+		entity->writeToMap(file);
 	}
 
 	stats.write();
