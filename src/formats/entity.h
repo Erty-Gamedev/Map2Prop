@@ -46,7 +46,7 @@ namespace M2PEntity
     {
     public:
         std::string classname;
-        std::vector< std::pair<std::string, std::string>> keyvalues;
+        std::vector<std::pair<std::string, std::string>> keyvalues;
         std::vector<std::unique_ptr<Brush>> brushes;
         std::string raw;
 
@@ -54,13 +54,17 @@ namespace M2PEntity
         bool hasKey(const std::string& key) const;
         std::string getKey(const std::string& key) const;
         void setKey(const std::string& key, const std::string& value);
+        void removeKey(const std::string& key);
         int getKeyInt(const std::string& key) const;
         FP getKeyFloat(const std::string& key) const;
+        std::string getYaw() const;
         bool getKeyBool(const std::string& key) const;
         M2PGeo::Vector3 getOrigin() const;
         M2PGeo::Bounds getBounds() const;
         M2PGeo::Bounds getCustomBounds() const;
         virtual std::string toString() const;
+
+        void writeToMap(std::ofstream& file) const;
     };
 
 
