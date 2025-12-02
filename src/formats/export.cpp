@@ -410,6 +410,7 @@ std::unordered_map<std::string, ModelData> M2PExport::prepareModels(M2PEntity::B
 					else
 						++submodelIndices[keyvalue];
 					entity->setKey("body", std::to_string(submodelIndices[keyvalue]));
+					stats.countSubmodels++;
 				}
 				else
 				{
@@ -425,6 +426,7 @@ std::unordered_map<std::string, ModelData> M2PExport::prepareModels(M2PEntity::B
 							break;
 						}
 					}
+					stats.countClones++;
 					continue;
 				}
 			}
@@ -776,6 +778,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 		if (entity->getKeyInt("spawnflags") & Spawnflags::DISABLE)
 			continue;
 
+
 		if (entity->hasKey("parent_model"))
 		{
 			std::string parent = entity->getKey("parent_model");
@@ -787,8 +790,6 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 			}
 
 			entity->setKey("model", parentEntities.at(entity->getKey("parent_model"))->getKey("model"));
-
-			stats.countSubmodels++;
 		}
 
 		stats.entitiesReplaced++;
@@ -851,10 +852,11 @@ bool M2PExport::MapCompileStats::write()
 		return false;
 	}
 
-	file << "Mapcompile statitics:\n"
-		<< "Models created: " << stats.countModels << "\n"
-		<< "Submodels created: " << stats.countSubmodels << "\n"
-		<< "Entities replaced: " << stats.entitiesReplaced << "\n";
+	file << "Map2Prop macompile statitics:\n\n"
+		<< std::format("| {:<25}|{:>11} |\n", "Models created:", stats.countModels)
+		<< std::format("| {:<25}|{:>11} |\n", "Submodels created:", stats.countSubmodels)
+		<< std::format("| {:<25}|{:>11} |\n", "Template clones:", stats.countClones)
+		<< std::format("| {:<25}|{:>11} |\n", "Entities replaced:", stats.entitiesReplaced);
 
 	bool res = file.good();
 	file.close();

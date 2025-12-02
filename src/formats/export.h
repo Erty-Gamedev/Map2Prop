@@ -62,9 +62,10 @@ namespace M2PExport
 
 	struct MapCompileStats
 	{
-		int entitiesReplaced;
-		int countModels;
-		int countSubmodels;
+		int entitiesReplaced = 0;
+		int countModels = 0;
+		int countSubmodels = 0;
+		int countClones = 0;
 
 		void clear();
 		bool write();
