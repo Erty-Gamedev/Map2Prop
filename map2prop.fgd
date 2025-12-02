@@ -66,6 +66,11 @@
 		1 : "Center"
 	]
 
+	effects(choices) : "Get light from ceiling?" : "" =
+	[
+		"": "No"
+		16: "Yes"
+	]
 	rendermode(choices) : "Render Mode" : 0 =
 	[
 		0: "Normal"
