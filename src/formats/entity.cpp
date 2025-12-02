@@ -113,6 +113,14 @@ std::string Entity::toString() const
 	return str;
 }
 
+void Entity::writeToMap(std::ofstream& file) const
+{
+	file << "{\n";
+	for (const std::pair<std::string, std::string>& kv : keyvalues)
+		file << "\"" << kv.first << "\" \"" << kv.second << "\"\n";
+	file << "}\n";
+}
+
 bool Entity::hasKey(const std::string& key) const
 {
 	for (const std::pair<std::string, std::string>& kv : keyvalues)
@@ -146,6 +154,18 @@ void Entity::setKey(const std::string& key, const std::string& value)
 	keyvalues.emplace_back(key, value);
 }
 
+void Entity::removeKey(const std::string& key)
+{
+	for (int i = 0; i < keyvalues.size(); ++i)
+	{
+		if (key == keyvalues[i].first)
+		{
+			keyvalues.erase(keyvalues.begin() + i);
+			return;
+		}
+	}
+}
+
 int Entity::getKeyInt(const std::string& key) const
 {
 	return atoi(getKey(key).c_str());
@@ -154,6 +174,14 @@ int Entity::getKeyInt(const std::string& key) const
 FP Entity::getKeyFloat(const std::string& key) const
 {
 	return static_cast<FP>(atof(getKey(key).c_str()));
+}
+
+std::string M2PEntity::Entity::getYaw() const
+{
+	std::vector<std::string> parts = M2PUtils::split(getKey("angles"));
+	if (parts.size() == 3)
+		return parts.at(1);
+	return "";
 }
 
 bool Entity::getKeyBool(const std::string& key) const

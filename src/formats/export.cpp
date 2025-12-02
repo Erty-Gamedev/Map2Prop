@@ -12,9 +12,11 @@
 
 
 static inline Logging::Logger& logger = Logging::Logger::getLogger("export");
-static inline const char* entProps[] = {
-	"origin", "body", "rendermode", "renderamt", "rendercolor", "renderfx"
+static inline const char* m2pKeys[] = {
+	"outname", "subdir", "gamma", "smoothing", "qc_flags", "parent_model", "own_model", "chrome",
+	"convert_to", "use_world_origin", "clip_type", "customclip_min", "customclip_max", "customclip_align"
 };
+static inline M2PExport::MapCompileStats stats{};
 
 
 using M2PConfig::g_config;
@@ -274,7 +276,6 @@ static inline void generateClip(std::ofstream& file, M2PEntity::Entity& entity, 
 
 		if (isCustom && !entity.getKeyBool("customclip_align"))
 		{
-			Vector3 entBoundsSize = parent.getBounds().getSize() * .5 * scale;
 			offset = { 0., 0., eOrigin.z - bb.min.z };
 
 			bb.min += offset;
@@ -410,6 +411,7 @@ std::unordered_map<std::string, ModelData> M2PExport::prepareModels(M2PEntity::B
 					else
 						++submodelIndices[keyvalue];
 					entity->setKey("body", std::to_string(submodelIndices[keyvalue]));
+					stats.countSubmodels++;
 				}
 				else
 				{
@@ -425,6 +427,7 @@ std::unordered_map<std::string, ModelData> M2PExport::prepareModels(M2PEntity::B
 							break;
 						}
 					}
+					stats.countClones++;
 					continue;
 				}
 			}
@@ -701,6 +704,8 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 		if (!returnCode)
 			successes.emplace_back(fs::path{ model.subdir } / (model.outname + ".mdl"));
 		returnCodes += returnCode;
+
+		stats.countModels++;
 	}
 
 	return returnCodes;
@@ -708,6 +713,8 @@ int M2PExport::processModels(std::unordered_map<std::string, ModelData>& models,
 
 void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &entities)
 {
+	stats.clear();
+
 	std::string stem = g_config.inputFilepath.stem().string();
 
 	fs::path filepath;
@@ -753,7 +760,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 	logger.info("Writing modified MAP as " + filepath.string());
 
 	std::ofstream file{ filepath };
-	if (!file.good())
+	if (!file.is_open() || !file.good())
 	{
 		logger.error("Could not open \"" + filepath.string() + "\" for writing");
 		return;
@@ -772,6 +779,7 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 		if (entity->getKeyInt("spawnflags") & Spawnflags::DISABLE)
 			continue;
 
+
 		if (entity->hasKey("parent_model"))
 		{
 			std::string parent = entity->getKey("parent_model");
@@ -785,38 +793,72 @@ void M2PExport::rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>> &enti
 			entity->setKey("model", parentEntities.at(entity->getKey("parent_model"))->getKey("model"));
 		}
 
+		stats.entitiesReplaced++;
+
 		generateClip(file, *entity, parentEntities);
 
 
 		std::string newClass = entity->hasKey("convert_to") ? entity->getKey("convert_to") : "env_sprite";
+
+		entity->setKey("classname", newClass);
 
 		int spawnflags = 0;
 		if (newClass.starts_with("monster_"))
 			spawnflags |= 16; // Prisoner
 		if (newClass == "monster_generic")
 			spawnflags |= 4;  // Not solid
-
-		file << "{\n\"classname\" \"" << newClass << "\"\n";
-		file << "\"model\" \"" << entity->getKey("model") << "\"\n";
+		if (newClass == "env_sprite")
+			entity->setKey("scale", "1.0");
 
 		if (spawnflags)
-			file << "\"spawnflags\" \"" << spawnflags << "\"\n";
-
-		if (entity->hasKey("targetname"))
-			file << "\"targetname\" \"" << entity->getKey("targetname") << "\"\n";
+			entity->setKey("spawnflags", std::to_string(spawnflags));
+		else
+			entity->removeKey("spawnflags");
 
 		if (entity->hasKey("angles"))
-		{
-			std::vector<std::string> parts = M2PUtils::split(entity->getKey("angles"));
-			file << "\"angles\" \"360 " << parts.at(1) << " 360\"\n";
-		}
+			entity->setKey("angles", "360 " + entity->getYaw() + " 360");
 
-		for (const auto& renderProp : entProps)
-			if (entity->hasKey(renderProp))
-				file << "\"" << renderProp << "\" \"" << entity->getKey(renderProp) << "\"\n";
+		for (const auto& skipKey : m2pKeys)
+			entity->removeKey(skipKey);
 
-		file << "}\n";
+		entity->writeToMap(file);
 	}
 
+	stats.write();
 	logger.info("MAP successfully written. Ready for CSG");
 }
+
+void M2PExport::MapCompileStats::clear()
+{
+	fs::path filepath{ g_config.inputFilepath };
+	filepath.replace_extension(".m2ps");
+
+	if (fs::exists(filepath) && !fs::remove(filepath))
+		logger.warning("Could not clear success log %s", filepath.string().c_str());
+}
+
+bool M2PExport::MapCompileStats::write()
+{
+	fs::path filepath{ g_config.inputFilepath };
+	filepath.replace_extension(".m2ps");
+
+	std::ofstream file{ filepath };
+	if (!file.is_open() || !file.good())
+	{
+		logger.error("Could not write success log to %s", filepath.string().c_str());
+		return false;
+	}
+
+	file << "Map2Prop macompile statitics:\n\n"
+		<< std::format("| {:<25}|{:>11} |\n", "Models created:", stats.countModels)
+		<< std::format("| {:<25}|{:>11} |\n", "Submodels created:", stats.countSubmodels)
+		<< std::format("| {:<25}|{:>11} |\n", "Template clones:", stats.countClones)
+		<< std::format("| {:<25}|{:>11} |\n", "Entities replaced:", stats.entitiesReplaced);
+
+	bool res = file.good();
+	file.close();
+
+	return res;
+}
+
+bool M2PExport::writeMapCompileStats() { return stats.write(); }

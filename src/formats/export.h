@@ -61,7 +61,19 @@ namespace M2PExport
 		}
 	};
 
+	struct MapCompileStats
+	{
+		int entitiesReplaced = 0;
+		int countModels = 0;
+		int countSubmodels = 0;
+		int countClones = 0;
+
+		void clear();
+		bool write();
+	};
+
 	std::unordered_map<std::string, ModelData> prepareModels(M2PEntity::BaseReader& reader, const std::string& _filename = "");
 	int processModels(std::unordered_map<std::string, ModelData>& models, bool missingTextures, std::vector<std::filesystem::path>& successes);
 	void rewriteMap(std::vector<std::unique_ptr<M2PEntity::Entity>>& entities);
+	bool writeMapCompileStats();
 }
