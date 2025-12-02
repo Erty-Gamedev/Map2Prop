@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <fstream>
+#include <cmath>
 #include <set>
 #include "entity.h"
 #include "geometry.h"
