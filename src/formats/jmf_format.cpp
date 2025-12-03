@@ -289,6 +289,7 @@ Face JmfReader::readFace()
 	{
 		JmfVertex vertex{};
 		m_file.read(reinterpret_cast<char*>(&vertex), sizeof(JmfVertex));
+		vertex.uv[1] = -vertex.uv[1];
 		face.vertices.emplace_back(vertex.coords, vertex.uv, face.normal);
 	}
 
