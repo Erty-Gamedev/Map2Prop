@@ -335,7 +335,7 @@ void M2PConfig::handleArgs(int argc, char** argv)
     logger.info(g_config.input);
 
     if (!g_config.output.empty())
-        g_config.outputDir = g_config.output;
+        g_config.outputDir = g_config.inputDir / g_config.output;
 
     configFile.setGameConfig(g_config.gameConfig);
 
