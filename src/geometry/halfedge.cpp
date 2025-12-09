@@ -224,7 +224,7 @@ static inline SmoothFan walkSmoothFan(
 		}
 		++g;
 
-		if (visitedFaces.find(currentEdge->face->index) != visitedFaces.end())
+		if (visitedFaces.contains(currentEdge->face->index))
 		{
 			backwards = false;
 			break;
@@ -234,6 +234,9 @@ static inline SmoothFan walkSmoothFan(
 
 		if (currentEdge->face->normal.dot(startEdge->face->normal) < 0)
 		{
+			if (!currentEdge->twin)
+				break;
+
 			currentEdge = currentEdge->twin->next;
 			continue;
 		}
@@ -260,7 +263,7 @@ static inline SmoothFan walkSmoothFan(
 		}
 		++g;
 
-		if (visitedFaces.find(prevEdge->face->index) != visitedFaces.end())
+		if (visitedFaces.contains(prevEdge->face->index))
 			break;
 
 		visitedFaces.insert(prevEdge->face->index);
@@ -301,7 +304,7 @@ std::vector<SmoothFan> Mesh::getSmoothFansByVertex(const Coord& vertex)
 		}
 		++g;
 
-		if (visitedFaces.find(currentEdge->face->index) != visitedFaces.end())
+		if (visitedFaces.contains(currentEdge->face->index))
 		{
 			if (currentEdge->index == startEdgeIndex || !currentEdge->twin)
 				break;
