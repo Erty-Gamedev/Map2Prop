@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.22)
 
 set(MAP2PROP_NAME           "Map2Prop")
-set(MAP2PROP_VERSION        "2.2.1")
-set(MAP2PROP_NAME_VERSION   "${MAP2PROP_NAME} v${MAP2PROP_VERSION}")
-add_compile_definitions(MAP2PROP_NAME_VERSION="${MAP2PROP_NAME_VERSION}")
+set(MAP2PROP_VMAJOR         "2")
+set(MAP2PROP_VMINOR         "2")
+set(MAP2PROP_VPATCH         "2")
+set(MAP2PROP_VERSION        "${MAP2PROP_VMAJOR}.${MAP2PROP_VMINOR}.${MAP2PROP_VPATCH}")
+add_compile_definitions(MAP2PROP_VERSION="${MAP2PROP_VERSION}")
 
 project(
     Map2Prop
