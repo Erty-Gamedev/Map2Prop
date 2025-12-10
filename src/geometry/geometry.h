@@ -110,6 +110,12 @@ namespace M2PGeo {
             x = point.x; y = point.y; z = point.z;
             normal = _normal;
         }
+        Vertex(const Vector3& point, const Vector2& _uv, const Vector3& _normal)
+        {
+            x = point.x; y = point.y; z = point.z;
+            uv = _uv;
+            normal = _normal;
+        }
         Vertex(const float xyz[3], const float _uv[2], const Vector3 _normal)
         {
             x = xyz[0]; y = xyz[1]; z = xyz[2];
