@@ -103,6 +103,7 @@ Many thanks goes out to these great people who have provided *lots* of help, fee
 * AdamBean
 * generic
 * RaptorSKA
+* Ogdred
 
 ### Alpha Testers
 
