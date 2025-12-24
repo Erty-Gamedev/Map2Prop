@@ -91,7 +91,7 @@ static inline void loadFromFileConfig(const M2PConfig::ConfigFile& configFile)
         g_config.renameChrome = M2PUtils::strToBool(value);
 
     if (!(value = configFile.getConfig("output directory")).empty())
-        g_config.outputDir = value;
+        g_config.output = value;
 
     if (!(value = configFile.getConfig("steam directory")).empty())
         g_config.steamDir = value;
@@ -141,6 +141,9 @@ static inline void findWadsInDir(const std::filesystem::path& dir)
 
 static inline std::string unSteamPipe(std::string str)
 {
+    if (str.empty())
+        return str;
+
     for (auto const& steampipe : M2PUtils::c_STEAMPIPES)
     {
         size_t matchPosition = str.rfind(steampipe);
@@ -375,7 +378,9 @@ void M2PConfig::handleArgs(int argc, char** argv)
 
     logger.info(g_config.input);
 
-    if (!g_config.output.empty())
+    if (g_config.output.empty())
+        g_config.outputDir = g_config.inputDir;
+    else
         g_config.outputDir = g_config.inputDir / g_config.output;
 
     configFile.setGameConfig(g_config.gameConfig);
