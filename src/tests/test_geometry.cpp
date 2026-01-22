@@ -27,13 +27,13 @@ TEST_SUITE("geometry")
 
         SUBCASE("30 degree angle")
         {
-            Vector3 b{ cos(deg2rad(60)), 0, sin(deg2rad(60)) };
+            Vector3 b{ static_cast<FP>(cos(deg2rad(60))), 0, static_cast<FP>(sin(deg2rad(60)))};
             CHECK(abs(rad2deg(a.angle(b)) - 30) < delta);
         }
 
         SUBCASE("60 degree angle")
         {
-            Vector3 b{ cos(deg2rad(30)), 0, sin(deg2rad(30)) };
+            Vector3 b{ static_cast<FP>(cos(deg2rad(30))), 0, static_cast<FP>(sin(deg2rad(30))) };
             CHECK(abs(rad2deg(a.angle(b)) - 60) < delta);
         }
 
@@ -45,7 +45,7 @@ TEST_SUITE("geometry")
 
         SUBCASE("150 degree angle")
         {
-            Vector3 b{ cos(deg2rad(300)), 0, sin(deg2rad(300)) };
+            Vector3 b{ static_cast<FP>(cos(deg2rad(300))), 0, static_cast<FP>(sin(deg2rad(300))) };
             CHECK(abs(rad2deg(a.angle(b)) - 150) < delta);
         }
     }
