@@ -219,7 +219,7 @@ static inline SmoothFan walkSmoothFan(
 	{
 		if (g > 100)
 		{
-			logger.debug("Loop detected in %s() @ L%i", __func__, __LINE__);
+			logger.debug("Loop detected in %s()", __func__);
 			break;
 		}
 		++g;
@@ -258,7 +258,7 @@ static inline SmoothFan walkSmoothFan(
 	{
 		if (g > 100)
 		{
-			logger.debug("Loop detected in %s() @ L%i", __func__, __LINE__);
+			logger.debug("Loop detected in %s()", __func__);
 			break;
 		}
 		++g;
@@ -299,7 +299,7 @@ std::vector<SmoothFan> Mesh::getSmoothFansByVertex(const Coord& vertex)
 	{
 		if (g > 100)
 		{
-			logger.debug("Loop detected in %s() @ L%i", __func__, __LINE__);
+			logger.debug("Loop detected in %s()", __func__);
 			break;
 		}
 		++g;
