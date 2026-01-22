@@ -373,17 +373,18 @@ void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
 				indexSmallest = static_cast<int>(i);
 			}
 		}
-		
-		vertices.push_back(getCircular(rest, indexSmallest));
+
+		size_t maxIndex = rest.size();
+        if (indexSmallest < 0)
+			indexSmallest = (maxIndex + indexSmallest) % maxIndex;
+		vertices.push_back(rest[indexSmallest % maxIndex]);
 		rest.erase(rest.begin() + indexSmallest);
 	}
 
 	Vector3 sortedPlanePoints[3]{ vertices[0], vertices[1], vertices[2] };
 	Vector3 sortedNormal = planeNormal(sortedPlanePoints);
 	if (normal.dot(sortedNormal) < 0.0f)
-	{
 		std::reverse(vertices.begin(), vertices.end());
-	}
 }
 
 void M2PGeo::averageNormals(GroupedVertices& groupedVertices)

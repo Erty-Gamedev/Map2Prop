@@ -27,7 +27,7 @@ TEST_SUITE("geometry")
 
         SUBCASE("30 degree angle")
         {
-            Vector3 b{ static_cast<FP>(cos(deg2rad(60))), 0, static_cast<FP>(sin(deg2rad(60)))};
+            Vector3 b{ static_cast<FP>(cos(deg2rad(60))), 0, static_cast<FP>(sin(deg2rad(60))) };
             CHECK(abs(rad2deg(a.angle(b)) - 30) < delta);
         }
 
