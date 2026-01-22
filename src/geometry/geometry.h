@@ -201,6 +201,15 @@ namespace M2PGeo {
     using GroupedVertices = std::unordered_map<Vector3, std::vector<std::reference_wrapper<Vertex>>>;
     void averageNormals(GroupedVertices& groupedVertices);
     void averageNearNormals(GroupedVertices& groupedVertices, FP thresholdDegrees);
+
+    template<typename T>
+    T getCircular(const std::vector<T>& vect, int index)
+    {
+        size_t maxIndex = vect.size();
+        if (index < 0)
+            return vect[(maxIndex + index) % maxIndex];
+        return vect[index % maxIndex];
+    }
 }
 
 template <>

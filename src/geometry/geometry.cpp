@@ -373,7 +373,8 @@ void M2PGeo::sortVertices(std::vector<Vertex> &vertices, const Vector3& normal)
 				indexSmallest = i;
 			}
 		}
-		vertices.push_back(rest[indexSmallest]);
+		
+		vertices.push_back(getCircular(rest, indexSmallest));
 		rest.erase(rest.begin() + indexSmallest);
 	}
 
