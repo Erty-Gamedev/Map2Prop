@@ -9,7 +9,7 @@
 
 namespace M2PRMF
 {
-	static inline constexpr std::array<int, 3> c_SUPPORTED_VERSIONS{ 16, 18, 22 };
+	static inline constexpr std::array<int, 6> c_SUPPORTED_VERSIONS{ 8, 9, 14, 16, 18, 22 };
 
 #pragma pack(push, 1)
 	struct RmfHeader

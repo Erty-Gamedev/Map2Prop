@@ -62,15 +62,16 @@ int main(int argc, char** argv)
         std::vector<std::filesystem::path> successes;
         successes.reserve(models.size());
 
+
         int res = M2PExport::processModels(models, reader.hasMissingTextures(), successes);
-
-
-        if (res > 0)
+        if (res)
             logger.warning("Something went wrong during compilation. Check logs for more info");
 
-        size_t numSuccesses = successes.size();
-        if (numSuccesses != 0)
+
+        if (!successes.empty())
         {
+            size_t numSuccesses = successes.size();
+
             std::sort(successes.begin(), successes.end());
             logger.log("\n");
             logger.info("Finished compiling %u model%c:", numSuccesses, numSuccesses == 1 ? '\0' : 's');

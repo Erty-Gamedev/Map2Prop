@@ -111,9 +111,12 @@ void RmfReader::parse()
 		exit(EXIT_FAILURE);
 	}
 
-	std::int32_t visgroupCount = readInt(m_file);
-	for (int i = 0; i < visgroupCount; ++i)
-		readVisgroup();
+	if (m_version > 9)
+	{
+		std::int32_t visgroupCount = readInt(m_file);
+		for (int i = 0; i < visgroupCount; ++i)
+			readVisgroup();
+	}
 
 	entities.emplace_back(std::make_unique<RmfEntity>());
 	auto& worldspawn = *entities[0];
@@ -122,12 +125,24 @@ void RmfReader::parse()
 	worldspawn.keyvalues.emplace_back("mapversion", "220");
 
 	std::string objectType = readLPString(m_file); // CMapWorld
+
 	MapObjectData cMapWorldData{};
-	m_file.read(reinterpret_cast<char*>(&cMapWorldData), sizeof(MapObjectData));
+
+	if (m_version > 9)
+		m_file.read(reinterpret_cast<char*>(&cMapWorldData), sizeof(MapObjectData));
+	else
+	{
+		std::int32_t visgroupCount = readInt(m_file);
+		m_file.seekg(visgroupCount, std::ios::cur);  // Skip past the IDs, we don't use them
+
+		m_file.read(reinterpret_cast<char*>(&cMapWorldData.color), sizeof(RGB));
+		cMapWorldData.childCount = readInt(m_file);
+	}
 
 	readChildren(cMapWorldData.childCount, worldspawn);
 
 	std::string classname = readLPString(m_file); // "worldspawn"
+
 	if (classname != "worldspawn")
 		throw std::runtime_error("Expected worldspawn, but was \"" + classname + "\"");
 
@@ -141,15 +156,25 @@ void RmfReader::parse()
 		value = readLPString(m_file);
 		worldspawn.keyvalues.emplace_back(key, value);
 	}
-	m_file.seekg(12, std::ios::cur); // Padding?
 
 	if (worldspawnData.spawnflags)
 		worldspawn.setKey("spawnflags", std::to_string(worldspawnData.spawnflags));
 
-	std::int32_t pathCount = readInt(m_file);
-	for (int i = 0; i < pathCount; ++i)
-		readPath();
+	if (m_version > 16)
+		m_file.seekg(12, std::ios::cur); // Padding?
 
+	if (m_version > 9)
+	{
+		std::int32_t pathCount = readInt(m_file);
+		for (int i = 0; i < pathCount; ++i)
+			readPath();
+	}
+	else
+	{
+		std::int32_t visgroupCount = readInt(m_file);
+		for (int i = 0; i < visgroupCount; ++i)
+			readVisgroup();
+	}
 }
 
 void RmfReader::readChildren(int count, Entity &parent)
@@ -193,7 +218,16 @@ void RmfReader::readVisgroup()
 void RmfReader::readEntity(Entity& entity)
 {
 	MapObjectData objectData{};
-	m_file.read(reinterpret_cast<char*>(&objectData), sizeof(MapObjectData));
+	if (m_version > 9)
+		m_file.read(reinterpret_cast<char*>(&objectData), sizeof(MapObjectData));
+	else
+	{
+		std::int32_t visgroupCount = readInt(m_file);
+		m_file.seekg(visgroupCount, std::ios::cur);  // Skip past the IDs, we don't use them
+
+		m_file.read(reinterpret_cast<char*>(&objectData.color), sizeof(RGB));
+		objectData.childCount = readInt(m_file);
+	}
 
 	readChildren(objectData.childCount, entity);
 
@@ -211,7 +245,11 @@ void RmfReader::readEntity(Entity& entity)
 		entity.keyvalues.emplace_back(key, value);
 	}
 
-	m_file.seekg(14, std::ios::cur); // Padding?
+	// Padding?
+	if (m_version > 14)
+		m_file.seekg(14, std::ios::cur);
+	else
+		m_file.seekg(2, std::ios::cur);
 
 	if (entData.spawnflags && !entity.hasKey("spawnflags"))
 		entity.setKey("spawnflags", std::to_string(entData.spawnflags));
@@ -228,7 +266,16 @@ void RmfReader::readEntity(Entity& entity)
 void RmfReader::readBrush(Brush& brush)
 {
 	MapObjectData objectData{};
-	m_file.read(reinterpret_cast<char*>(&objectData), sizeof(MapObjectData));
+	if (m_version > 9)
+		m_file.read(reinterpret_cast<char*>(&objectData), sizeof(MapObjectData));
+	else
+	{
+		std::int32_t visgroupCount = readInt(m_file);
+		m_file.seekg(visgroupCount, std::ios::cur);  // Skip past the IDs, we don't use them
+
+		m_file.read(reinterpret_cast<char*>(&objectData.color), sizeof(RGB));
+		objectData.childCount = readInt(m_file);
+	}
 	//readChildren(objectData.childCount, parent);
 
 	std::int32_t faceCount = readInt(m_file);
@@ -243,7 +290,12 @@ M2PEntity::Face RmfReader::readFace()
 {
 	Face face;
 
-	face.texture.name = (m_version < 18) ? readNTString(m_file, 40) : readNTString(m_file, 260);
+	if (m_version < 9)
+		face.texture.name = readNTString(m_file, 16);
+	else if (m_version < 18)
+		face.texture.name = readNTString(m_file, 40);
+	else
+		face.texture.name =  readNTString(m_file, 260);
 
 	M2PWad3::ImageSize imageInfo = wadHandler.checkTexture(face.texture.name);
 
@@ -272,10 +324,10 @@ M2PEntity::Face RmfReader::readFace()
 	face.texture.scaley = readFloat(m_file);
 
 	// Padding
-	if (m_version < 18)
-		m_file.seekg(4, std::ios::cur);
-	else
+	if (m_version > 16)
 		m_file.seekg(16, std::ios::cur);
+	else if (m_version > 9)
+		m_file.seekg(4, std::ios::cur);
 
 	std::int32_t vertexCount = readInt(m_file);
 	float coord[3]{};
@@ -334,7 +386,16 @@ M2PEntity::Face RmfReader::readFace()
 void RmfReader::readGroup(Entity &parent)
 {
 	MapObjectData objectData{};
-	m_file.read(reinterpret_cast<char*>(&objectData), sizeof(MapObjectData));
+	if (m_version > 9)
+		m_file.read(reinterpret_cast<char*>(&objectData), sizeof(MapObjectData));
+	else
+	{
+		std::int32_t visgroupCount = readInt(m_file);
+		m_file.seekg(visgroupCount, std::ios::cur);  // Skip past the IDs, we don't use them
+
+		m_file.read(reinterpret_cast<char*>(&objectData.color), sizeof(RGB));
+		objectData.childCount = readInt(m_file);
+	}
 	readChildren(objectData.childCount, parent);
 }
 
