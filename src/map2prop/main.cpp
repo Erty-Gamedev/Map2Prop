@@ -12,7 +12,7 @@
 static Logging::Logger& logger = Logging::Logger::getLogger("map2prop");
 
 
-int main(int argc, char** argv)
+int main(const int argc, char** argv)
 {
     M2PConfig::handleArgs(argc, argv);
     using M2PConfig::g_config;
@@ -25,32 +25,32 @@ int main(int argc, char** argv)
 
     try
     {
-        M2PEntity::BaseReader reader;
+        std::unique_ptr<M2PEntity::BaseReader> reader;
 
         switch (g_config.extension)
         {
         case M2PConfig::Extension::MAP:
-            reader = M2PFormat::MapReader(g_config.inputFilepath, g_config.outputDir);
+            reader = std::make_unique<M2PFormat::MapReader>(g_config.inputFilepath, g_config.outputDir);
             break;
         case M2PConfig::Extension::RMF:
-            reader = M2PFormat::RmfReader(g_config.inputFilepath, g_config.outputDir);
+            reader = std::make_unique<M2PFormat::RmfReader>(g_config.inputFilepath, g_config.outputDir);
             break;
         case M2PConfig::Extension::JMF:
-            reader = M2PFormat::JmfReader(g_config.inputFilepath, g_config.outputDir);
+            reader = std::make_unique<M2PFormat::JmfReader>(g_config.inputFilepath, g_config.outputDir);
             break;
         case M2PConfig::Extension::OBJ:
-            reader = M2PFormat::ObjReader(g_config.inputFilepath, g_config.outputDir);
+            reader = std::make_unique<M2PFormat::ObjReader>(g_config.inputFilepath, g_config.outputDir);
             break;
         case M2PConfig::Extension::OL:
             M2PFormat::OlReader olReader = M2PFormat::OlReader(g_config.inputFilepath, g_config.outputDir);
             return olReader.process();
         }
 
-        std::unordered_map<std::string, M2PExport::ModelData> models = M2PExport::prepareModels(reader);
+        std::unordered_map<std::string, M2PExport::ModelData> models = M2PExport::prepareModels(*reader);
 
         if (models.empty())
         {
-            if (reader.entities[0]->getKey(M2PExport::c_NOTE_KEY) == M2PExport::c_NOTE_VALUE)
+            if (reader->entities[0]->getKey(M2PExport::c_NOTE_KEY) == M2PExport::c_NOTE_VALUE)
                 logger.info(g_config.input + " was already converted and had no new models to convert");
             else
                 logger.info(g_config.input + " had no models to convert");
@@ -63,20 +63,20 @@ int main(int argc, char** argv)
         successes.reserve(models.size());
 
 
-        int res = M2PExport::processModels(models, reader.hasMissingTextures(), successes);
+        const int res = M2PExport::processModels(models, reader->hasMissingTextures(), successes);
         if (res)
             logger.warning("Something went wrong during compilation. Check logs for more info");
 
 
         if (!successes.empty())
         {
-            size_t numSuccesses = successes.size();
+            const size_t numSuccesses = successes.size();
 
             std::sort(successes.begin(), successes.end());
             logger.log("\n");
             logger.info("Finished compiling %u model%c:", numSuccesses, numSuccesses == 1 ? '\0' : 's');
 
-            std::string successList{ "" };
+            std::string successList;
             for (const std::filesystem::path& successPath : successes)
                 successList += Styling::style(Styling::success)
                 + std::filesystem::absolute(g_config.extractDir() / successPath).string() + Styling::style() + "\n";
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
         }
 
         if (g_config.mapcompile && !res)
-            M2PExport::rewriteMap(reader.entities);
+            M2PExport::rewriteMap(reader->entities);
 
         return res;
     }
